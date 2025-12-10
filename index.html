@@ -76,7 +76,7 @@
             </div>
 
             <!-- VIEW 2: Lista Giorni -->
-            <div id="days-view" class="absolute inset-0 flex flex-col hidden overflow-hidden">
+            <div id="days-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-16">
                 <div class="bg-orange-50 p-2 text-center text-xs text-orange-800 font-medium border-b border-orange-100 flex justify-between px-4 items-center flex-shrink-0">
                     <span>Viaggio: <span id="current-key-display" class="font-bold">...</span></span>
                     <span class="text-[10px] text-orange-400">ID: <span id="app-id-display">...</span></span>
@@ -98,13 +98,11 @@
                         <h4 class="text-[10px] font-bold text-orange-400 uppercase tracking-widest">TOTALE VIAGGIO</h4>
                         <span class="text-[10px] text-stone-400">Stima complessiva</span>
                     </div>
-                    <!-- MODIFICATO: Rimossa Durata, ora 3 colonne -->
                     <div class="grid grid-cols-3 gap-2 text-center divide-x divide-stone-600">
                         <div>
                             <div class="text-[9px] text-stone-400 uppercase">Auto</div>
                             <div class="font-bold text-amber-400 text-sm" id="grand-total-drive">--</div>
                         </div>
-                        <!-- Durata Rimossa -->
                         <div>
                             <div class="text-[9px] text-stone-400 uppercase">Miglia</div>
                             <div class="font-bold text-white text-sm" id="grand-total-miles">--</div>
@@ -116,7 +114,7 @@
                     </div>
                 </div>
 
-                <!-- Pulsante flottante (alzato per non coprire il riepilogo) -->
+                <!-- Pulsante flottante -->
                 <button onclick="openModal(null)" class="absolute bottom-28 right-6 bg-orange-400 hover:bg-orange-500 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-20 border-2 border-white">
                     <i class="ph ph-plus text-2xl font-bold"></i>
                 </button>
@@ -124,7 +122,7 @@
 
             <!-- VIEW 3: Riepilogo Totale (Tab 2) -->
             <div id="summary-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-16 bg-stone-100">
-                <div class="flex-grow overflow-y-auto custom-scroll p-4"> <!-- Added scroll here -->
+                <div class="flex-grow overflow-y-auto custom-scroll p-4"> 
                     <div class="bg-white rounded-2xl shadow-xl p-6 border border-stone-200 w-full mb-6">
                         <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
                             <div>
@@ -133,6 +131,22 @@
                             </div>
                             <div class="bg-orange-100 p-3 rounded-full text-orange-500">
                                 <i class="ph-fill ph-chart-pie-slice text-2xl"></i>
+                            </div>
+                        </div>
+
+                        <!-- NEW ROW: Counts -->
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <!-- Card Stati -->
+                            <div class="bg-purple-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-purple-100">
+                                <div class="bg-purple-100 p-2 rounded-full text-purple-600 mb-2"><i class="ph-bold ph-flag text-xl"></i></div>
+                                <span class="text-[10px] font-bold text-stone-500 uppercase">Stati Visitati</span>
+                                <span class="text-2xl font-black text-purple-600" id="summ-view-states">0</span>
+                            </div>
+                            <!-- Card Tappe Uniche -->
+                            <div class="bg-pink-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-pink-100">
+                                <div class="bg-pink-100 p-2 rounded-full text-pink-600 mb-2"><i class="ph-bold ph-map-pin text-xl"></i></div>
+                                <span class="text-[10px] font-bold text-stone-500 uppercase">Luoghi Unici</span>
+                                <span class="text-2xl font-black text-pink-600" id="summ-view-stages">0</span>
                             </div>
                         </div>
 
@@ -161,7 +175,7 @@
                     <!-- CHART SECTION -->
                     <div class="bg-white rounded-2xl shadow-xl p-4 border border-stone-200 w-full">
                         <h3 class="text-sm font-bold text-stone-600 uppercase mb-4 pl-2 border-l-4 border-orange-400">Analisi Giornaliera</h3>
-                        <!-- Adjusted height for horizontal bar chart to allow for many days if needed -->
+                        <!-- Adjusted height for horizontal bar chart -->
                         <div class="h-96 w-full">
                             <canvas id="activityChart"></canvas>
                         </div>
@@ -280,7 +294,6 @@
             messagingSenderId: "826682465160",
             appId: "1:826682465160:web:f92ba804c99ad3e651b83d"
         };
-        // Un identificativo fisso per la tua app nel database
         const appId = 'travel-planner-v1'; 
         // =================================================================
 
@@ -374,10 +387,7 @@
                 durationData.push(parseFloat((dayDurationMins / 60).toFixed(1)));
             });
 
-            const canvas = document.getElementById('activityChart');
-            if(!canvas) return; // Safety
-            
-            const ctx = canvas.getContext('2d');
+            const ctx = document.getElementById('activityChart').getContext('2d');
 
             if (activityChart) {
                 activityChart.destroy();
@@ -412,11 +422,17 @@
                     indexAxis: 'y', // --- HORIZONTAL BAR CHART ---
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        axis: 'y', // Important for horizontal charts
+                        intersect: false
+                    },
                     plugins: {
                         legend: { display: false }, 
                         tooltip: {
                             mode: 'index',
                             intersect: false,
+                            position: 'nearest'
                         }
                     },
                     scales: {
@@ -439,8 +455,6 @@
             const summaryView = document.getElementById('summary-view');
             const tabDays = document.getElementById('tab-days');
             const tabSummary = document.getElementById('tab-summary');
-
-            if(!daysView || !summaryView || !tabDays || !tabSummary) return;
 
             if (tabName === 'days') {
                 daysView.classList.remove('hidden');
@@ -549,7 +563,6 @@
                          stage.miles = 0;
                          stage.km = 0;
                          stage.driveTime = 0;
-                         // Sosta preserved
                     }
                 } else {
                     stage[field] = value;
@@ -617,21 +630,14 @@
                 });
                 if(lastEnd > firstStart) dayDuration = lastEnd - firstStart;
             }
-            
-            // Safe updates
-            const elDrive = document.getElementById('sum-drive-time');
-            if(elDrive) elDrive.textContent = minsToTimeStr(totalDrive);
-            const elDur = document.getElementById('sum-day-time');
-            if(elDur) elDur.textContent = minsToTimeStr(dayDuration);
-            const elMiles = document.getElementById('sum-miles');
-            if(elMiles) elMiles.textContent = `${totalMiles.toFixed(1)} mi`;
-            const elKm = document.getElementById('sum-km');
-            if(elKm) elKm.textContent = `${totalKm.toFixed(1)} km`;
+            document.getElementById('sum-drive-time').textContent = minsToTimeStr(totalDrive);
+            document.getElementById('sum-day-time').textContent = minsToTimeStr(dayDuration);
+            document.getElementById('sum-miles').textContent = `${totalMiles.toFixed(1)} mi`;
+            document.getElementById('sum-km').textContent = `${totalKm.toFixed(1)} km`;
         };
 
         const renderStages = () => {
             const container = document.getElementById('stages-container');
-            if(!container) return;
             container.innerHTML = '';
             currentStages.forEach((stage, index) => {
                 const div = document.createElement('div');
@@ -680,8 +686,7 @@
         };
 
         window.openModal = (dayData) => {
-            const modal = document.getElementById('day-modal');
-            if(modal) modal.classList.remove('hidden');
+            document.getElementById('day-modal').classList.remove('hidden');
             if(dayData) {
                 editingDayId = dayData.id;
                 document.getElementById('modal-title').textContent = "Modifica Giornata";
@@ -693,6 +698,7 @@
                 editingDayId = null;
                 document.getElementById('modal-title').textContent = "Nuova Giornata";
                 
+                // --- LOGICA DATA DI DEFAULT AL GIORNO SUCCESSIVO ---
                 if (cachedDays.length > 0) {
                     const lastDateStr = cachedDays[cachedDays.length - 1].dateString;
                     if (lastDateStr) {
@@ -734,20 +740,11 @@
 
         // --- Auth & Init ---
         const login = async () => {
-            const keyInput = document.getElementById('secret-key-input');
-            const key = keyInput ? keyInput.value : '';
+            const key = document.getElementById('secret-key-input').value;
             const names = generateColNames(key);
-            if(!names) { 
-                const err = document.getElementById('login-error');
-                if(err) { err.textContent = "Chiave non valida (min 3 chars)."; err.classList.remove('hidden'); }
-                return; 
-            }
-            
-            const btn = document.getElementById('login-btn');
-            const loader = document.getElementById('auth-loader');
-            if(btn) btn.classList.add('hidden');
-            if(loader) loader.classList.remove('hidden');
-
+            if(!names) { document.getElementById('login-error').textContent = "Chiave non valida (min 3 chars)."; document.getElementById('login-error').classList.remove('hidden'); return; }
+            document.getElementById('login-btn').classList.add('hidden');
+            document.getElementById('auth-loader').classList.remove('hidden');
             try {
                 if (!auth.currentUser) {
                     await signInAnonymously(auth);
@@ -756,41 +753,29 @@
                 daysColName = names.days;
                 notesColName = names.notes;
                 
-                const idDisplay = document.getElementById('app-id-display');
-                if(idDisplay) idDisplay.textContent = appId.substring(0, 8);
-                const keyDisplay = document.getElementById('current-key-display');
-                if(keyDisplay) keyDisplay.textContent = activeSecretKey;
-
+                document.getElementById('app-id-display').textContent = appId.substring(0, 8); // Show simplified ID
+                document.getElementById('current-key-display').textContent = activeSecretKey;
                 document.getElementById('login-view').classList.add('hidden');
+                
                 document.getElementById('days-view').classList.remove('hidden');
                 document.getElementById('bottom-nav').classList.remove('hidden'); // Show NAV
                 
-                const logout = document.getElementById('logout-btn');
-                if(logout) logout.classList.remove('hidden');
-                const exportBtn = document.getElementById('export-btn');
-                if(exportBtn) exportBtn.classList.remove('hidden');
-
+                document.getElementById('logout-btn').classList.remove('hidden');
+                document.getElementById('export-btn').classList.remove('hidden');
                 loadDays();
             } catch(e) { 
                 console.error(e);
-                const err = document.getElementById('login-error');
-                if(err) {
-                    if (e.code === 'auth/operation-not-allowed') {
-                        alert("Errore: Devi abilitare 'Anonimo' nella sezione Authentication della console Firebase.");
-                    } else {
-                        err.textContent = "Errore di accesso: " + e.message;
-                        err.classList.remove('hidden');
-                    }
+                if (e.code === 'auth/operation-not-allowed') {
+                    alert("Errore: Devi abilitare 'Anonimo' nella sezione Authentication della console Firebase.");
+                } else {
+                    document.getElementById('login-error').textContent = "Errore di accesso: " + e.message;
+                    document.getElementById('login-error').classList.remove('hidden');
                 }
             } 
-            finally { 
-                if(btn) btn.classList.remove('hidden'); 
-                if(loader) loader.classList.add('hidden'); 
-            }
+            finally { document.getElementById('login-btn').classList.remove('hidden'); document.getElementById('auth-loader').classList.add('hidden'); }
         };
         document.getElementById('login-btn').addEventListener('click', login);
         
-        // --- ADD ENTER KEY LISTENER FOR LOGIN ---
         document.getElementById('secret-key-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') login();
         });
@@ -802,60 +787,47 @@
             const list = document.getElementById('days-list');
             const loading = document.getElementById('loading-days');
             const empty = document.getElementById('empty-days');
-            if(loading) loading.classList.remove('hidden'); 
-            if(empty) empty.classList.add('hidden'); 
-            if(list) list.innerHTML = '';
+            loading.classList.remove('hidden'); empty.classList.add('hidden'); list.innerHTML = '';
             
             const q = collection(db, 'artifacts', appId, 'public', 'data', daysColName);
             
             unsubscribeDays = onSnapshot(q, (snapshot) => {
-                if(loading) loading.classList.add('hidden'); 
-                if(list) list.innerHTML = '';
-                
-                if(snapshot.empty) { 
-                    if(empty) empty.classList.remove('hidden'); 
-                    return; 
-                }
-                if(empty) empty.classList.add('hidden');
-                
+                loading.classList.add('hidden'); list.innerHTML = '';
+                if(snapshot.empty) { empty.classList.remove('hidden'); return; }
+                empty.classList.add('hidden');
                 const days = [];
                 snapshot.forEach(d => days.push({id: d.id, ...d.data()}));
                 
-                // --- SORT BY DATE ASCENDING ---
                 days.sort((a, b) => {
                     const dateA = a.dateString || '9999-99-99';
                     const dateB = b.dateString || '9999-99-99';
                     return dateA.localeCompare(dateB);
                 });
 
-                // SALVA IN CACHE
                 cachedDays = days; 
-
-                // Assign IDs based on date order
                 days.forEach((d, i) => d.chronoId = i + 1);
                 
-                // Reset GRAND TOTALS counters (NO DURATA)
                 let gDrive = 0, gMiles = 0, gKm = 0;
+                const statesSet = new Set();
+                const stagesSet = new Set();
 
                 days.forEach(day => {
+                    if(day.title) statesSet.add(day.title.trim());
+
                     const card = document.createElement('div');
                     card.className = "bg-white p-4 rounded-xl shadow-sm border border-stone-200 hover:shadow-md transition-all cursor-pointer relative group";
                     let dateStr = day.dateString ? new Date(day.dateString).toLocaleDateString('it-IT', {weekday: 'short', day: 'numeric', month: 'short'}) : 'N/D';
                     if(dateStr !== 'N/D') dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
 
                     let totKm = 0;
-                    
-                    // --- ACCUMULATE GRAND TOTALS ---
                     if (day.stages) {
                         day.stages.forEach(s => {
-                            // Only sum if NOT a visit
+                            if(s.name) stagesSet.add(s.name.trim());
                             if (!s.isVisit) {
                                 const stageKm = parseFloat(s.km || 0);
                                 const stageMiles = parseFloat(s.miles || 0);
                                 const stageDrive = parseInt(s.driveTime || 0);
-                                
-                                totKm += stageKm; // Day Total
-                                
+                                totKm += stageKm; 
                                 gKm += stageKm;
                                 gMiles += stageMiles;
                                 gDrive += stageDrive;
@@ -871,16 +843,8 @@
                         <div class="flex justify-between items-start mb-2">
                             <div class="flex-grow pr-2">
                                 <span class="text-[10px] font-black text-orange-500 uppercase tracking-widest">GIORNO ${day.chronoId}</span>
-                                
-                                <!-- Stages List (NEW PRIMARY VISUAL) -->
-                                <h3 class="font-bold text-stone-800 text-lg leading-tight mb-1">
-                                    ${stagesList}
-                                </h3>
-                                
-                                <!-- State (OLD TITLE) -->
-                                <div class="text-stone-500 text-sm font-medium uppercase tracking-wide">
-                                    ${day.title || 'Stato non indicato'}
-                                </div>
+                                <h3 class="font-bold text-stone-800 text-lg leading-tight mb-1">${stagesList}</h3>
+                                <div class="text-stone-500 text-sm font-medium uppercase tracking-wide">${day.title || 'Stato non indicato'}</div>
                             </div>
                             <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-xs font-bold text-center min-w-[60px] flex-shrink-0">${dateStr}</div>
                         </div>
@@ -894,26 +858,24 @@
                     card.appendChild(actions);
                     card.querySelector(`#edit-${day.id}`).onclick = (e) => { e.stopPropagation(); openModal(day); };
                     card.querySelector(`#del-${day.id}`).onclick = (e) => { e.stopPropagation(); if(confirm('Eliminare?')) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, day.id)); };
-                    if(list) list.appendChild(card);
+                    list.appendChild(card);
                 });
 
-                // UPDATE GRAND TOTALS IN FOOTER (Removed Duration)
-                const elTotalDrive = document.getElementById('grand-total-drive');
-                if(elTotalDrive) elTotalDrive.textContent = minsToTimeStr(gDrive);
-                const elTotalMiles = document.getElementById('grand-total-miles');
-                if(elTotalMiles) elTotalMiles.textContent = `${gMiles.toFixed(0)} mi`;
-                const elTotalKm = document.getElementById('grand-total-km');
-                if(elTotalKm) elTotalKm.textContent = `${gKm.toFixed(0)} km`;
+                document.getElementById('grand-total-drive').textContent = minsToTimeStr(gDrive);
+                document.getElementById('grand-total-miles').textContent = `${gMiles.toFixed(0)} mi`;
+                document.getElementById('grand-total-km').textContent = `${gKm.toFixed(0)} km`;
 
-                // UPDATE SUMMARY VIEW AS WELL
-                const elSummDrive = document.getElementById('summ-view-drive');
-                if(elSummDrive) elSummDrive.textContent = minsToTimeStr(gDrive);
-                const elSummMiles = document.getElementById('summ-view-miles');
-                if(elSummMiles) elSummMiles.textContent = `${gMiles.toFixed(0)} mi`;
-                const elSummKm = document.getElementById('summ-view-km');
-                if(elSummKm) elSummKm.textContent = `${gKm.toFixed(0)} km`;
+                document.getElementById('summ-view-drive').textContent = minsToTimeStr(gDrive);
+                document.getElementById('summ-view-miles').textContent = `${gMiles.toFixed(0)} mi`;
+                document.getElementById('summ-view-km').textContent = `${gKm.toFixed(0)} km`;
+                
+                // FIX: Update new counters
+                const elStates = document.getElementById('summ-view-states');
+                if(elStates) elStates.textContent = statesSet.size;
+                const elStages = document.getElementById('summ-view-stages');
+                if(elStages) elStages.textContent = stagesSet.size;
 
-            }, (error) => { console.error(error); if(loading) loading.classList.add('hidden'); });
+            }, (error) => { console.error(error); loading.classList.add('hidden'); });
         };
 
         const openDayDetail = (day) => {
@@ -923,7 +885,6 @@
             document.getElementById('back-btn').classList.remove('hidden');
             document.getElementById('bottom-nav').classList.add('hidden'); 
             
-            // Update Header Title with Day X - State
             document.getElementById('header-title').textContent = `GIORNO ${day.chronoId} - ${day.title || ''}`;
             
             const detailContainer = document.getElementById('day-detail-content');
@@ -945,7 +906,6 @@
 
             let stagesHtml = '';
             stages.forEach((s, idx) => {
-                // Generazione link maps sicuro
                 const safeUrl = getMapsUrl(s.mapsLink);
                 let linkHtml = safeUrl ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="ml-2 text-[10px] font-bold text-orange-500 border border-orange-200 bg-orange-50 hover:bg-orange-100 px-1.5 py-0.5 rounded transition-colors uppercase tracking-wider" onclick="event.stopPropagation()">MAPS</a>` : '';
                 let pauseDisplay = s.pause && s.pause !== '00:00' ? `<span class="flex items-center gap-1 text-amber-500 font-bold"><i class="ph-bold ph-coffee"></i> ${s.pause.replace(':', 'h ')}m</span>` : '<span class="text-stone-300 flex items-center gap-1"><i class="ph ph-coffee"></i> --</span>';
