@@ -74,8 +74,8 @@
                 <p id="login-error" class="hidden text-red-500 text-sm mt-2"></p>
             </div>
 
-            <!-- VIEW 2: Lista Giorni -->
-            <div id="days-view" class="absolute inset-0 flex flex-col hidden overflow-hidden">
+            <!-- VIEW 2: Lista Giorni (Tab 1) -->
+            <div id="days-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-16">
                 <div class="bg-orange-50 p-2 text-center text-xs text-orange-800 font-medium border-b border-orange-100 flex justify-between px-4 items-center flex-shrink-0">
                     <span>Viaggio: <span id="current-key-display" class="font-bold">...</span></span>
                     <span class="text-[10px] text-orange-400">ID: <span id="app-id-display">...</span></span>
@@ -91,38 +91,60 @@
                     <div id="days-list" class="space-y-3"></div>
                 </div>
 
-                <!-- RIEPILOGO TOTALE VIAGGIO (Fisso in basso) -->
-                <div class="bg-stone-800 text-white p-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10 flex-shrink-0 border-t-4 border-orange-400">
-                    <div class="flex justify-between items-center mb-1">
-                        <h4 class="text-[10px] font-bold text-orange-400 uppercase tracking-widest">TOTALE VIAGGIO</h4>
-                        <span class="text-[10px] text-stone-400">Stima complessiva</span>
-                    </div>
-                    <!-- MODIFICATO: Rimossa Durata, ora 3 colonne -->
-                    <div class="grid grid-cols-3 gap-2 text-center divide-x divide-stone-600">
-                        <div>
-                            <div class="text-[9px] text-stone-400 uppercase">Auto</div>
-                            <div class="font-bold text-amber-400 text-sm" id="grand-total-drive">--</div>
-                        </div>
-                        <!-- Durata Rimossa -->
-                        <div>
-                            <div class="text-[9px] text-stone-400 uppercase">Miglia</div>
-                            <div class="font-bold text-white text-sm" id="grand-total-miles">--</div>
-                        </div>
-                        <div>
-                            <div class="text-[9px] text-stone-400 uppercase">Km</div>
-                            <div class="font-bold text-green-400 text-sm" id="grand-total-km">--</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pulsante flottante (alzato per non coprire il riepilogo) -->
-                <button onclick="openModal(null)" class="absolute bottom-28 right-6 bg-orange-400 hover:bg-orange-500 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-20 border-2 border-white">
+                <!-- Pulsante flottante -->
+                <button onclick="openModal(null)" class="absolute bottom-20 right-6 bg-orange-400 hover:bg-orange-500 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-20 border-2 border-white">
                     <i class="ph ph-plus text-2xl font-bold"></i>
                 </button>
             </div>
 
-            <!-- VIEW 3: Dettaglio Giorno -->
-            <div id="notes-view" class="absolute inset-0 flex flex-col hidden bg-white">
+            <!-- VIEW 3: Riepilogo Totale (Tab 2) -->
+            <div id="summary-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-16 bg-stone-100">
+                <div class="flex-grow flex flex-col justify-center items-center p-4">
+                    <div class="bg-white rounded-2xl shadow-xl p-6 border border-stone-200 w-full max-w-sm">
+                        <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
+                            <div>
+                                <h2 class="text-2xl font-bold text-stone-800">Riepilogo Totale</h2>
+                                <p class="text-sm text-stone-400">Statistiche del tuo viaggio</p>
+                            </div>
+                            <div class="bg-orange-100 p-3 rounded-full text-orange-500">
+                                <i class="ph-fill ph-chart-pie-slice text-2xl"></i>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4">
+                            <!-- Card Auto -->
+                            <div class="bg-stone-50 p-4 rounded-xl flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-amber-100 p-2 rounded-lg text-amber-600"><i class="ph-bold ph-car text-xl"></i></div>
+                                    <span class="text-sm font-bold text-stone-600 uppercase">Ore Guida</span>
+                                </div>
+                                <span class="text-xl font-bold text-amber-500" id="summ-view-drive">--</span>
+                            </div>
+
+                            <!-- Card Miglia -->
+                            <div class="bg-stone-50 p-4 rounded-xl flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-blue-100 p-2 rounded-lg text-blue-600"><i class="ph-bold ph-signpost text-xl"></i></div>
+                                    <span class="text-sm font-bold text-stone-600 uppercase">Miglia Totali</span>
+                                </div>
+                                <span class="text-xl font-bold text-stone-700" id="summ-view-miles">--</span>
+                            </div>
+
+                            <!-- Card Km -->
+                            <div class="bg-stone-50 p-4 rounded-xl flex justify-between items-center border-l-4 border-green-500">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-green-100 p-2 rounded-lg text-green-600"><i class="ph-bold ph-globe text-xl"></i></div>
+                                    <span class="text-sm font-bold text-stone-600 uppercase">Km Totali</span>
+                                </div>
+                                <span class="text-2xl font-black text-green-600" id="summ-view-km">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 4: Dettaglio Giorno (Overlay) -->
+            <div id="notes-view" class="absolute inset-0 flex flex-col hidden bg-white z-30">
                 <div class="flex-grow overflow-y-auto custom-scroll" id="notes-list-container">
                     <!-- Contenitore unico per Dettagli + Note + Riepilogo + Tappe -->
                     <div id="day-detail-content" class="p-4 bg-white border-b border-stone-100 shadow-sm pb-24"></div>
@@ -139,8 +161,21 @@
 
         </main>
 
+        <!-- BOTTOM TAB BAR (Navigation) -->
+        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full max-w-md z-20 flex justify-around items-center h-16 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden">
+            <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/2 h-full text-orange-500 transition-colors">
+                <i class="ph-fill ph-calendar-blank text-2xl mb-1"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Diario</span>
+            </button>
+            <div class="w-px h-8 bg-stone-200"></div>
+            <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/2 h-full text-stone-400 hover:text-stone-600 transition-colors">
+                <i class="ph-bold ph-chart-pie-slice text-2xl mb-1"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Riepilogo</span>
+            </button>
+        </nav>
+
         <!-- Debug Footer -->
-        <footer class="bg-stone-50 text-[10px] text-stone-400 p-1 text-center border-t select-all">
+        <footer id="debug-footer" class="bg-stone-50 text-[10px] text-stone-400 p-1 text-center border-t select-all hidden">
             App ID: <span id="debug-app-id" class="font-mono">loading...</span>
         </footer>
 
@@ -277,6 +312,47 @@
             return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}`;
         };
 
+        // --- TAB NAVIGATION LOGIC ---
+        window.switchTab = (tabName) => {
+            const daysView = document.getElementById('days-view');
+            const summaryView = document.getElementById('summary-view');
+            const tabDays = document.getElementById('tab-days');
+            const tabSummary = document.getElementById('tab-summary');
+
+            if (tabName === 'days') {
+                daysView.classList.remove('hidden');
+                summaryView.classList.add('hidden');
+                
+                // Style Active
+                tabDays.classList.remove('text-stone-400');
+                tabDays.classList.add('text-orange-500');
+                tabDays.querySelector('i').classList.remove('ph-bold');
+                tabDays.querySelector('i').classList.add('ph-fill');
+
+                // Style Inactive
+                tabSummary.classList.add('text-stone-400');
+                tabSummary.classList.remove('text-orange-500');
+                tabSummary.querySelector('i').classList.add('ph-bold');
+                tabSummary.querySelector('i').classList.remove('ph-fill');
+
+            } else if (tabName === 'summary') {
+                daysView.classList.add('hidden');
+                summaryView.classList.remove('hidden');
+
+                // Style Active
+                tabSummary.classList.remove('text-stone-400');
+                tabSummary.classList.add('text-orange-500');
+                tabSummary.querySelector('i').classList.remove('ph-bold');
+                tabSummary.querySelector('i').classList.add('ph-fill');
+
+                // Style Inactive
+                tabDays.classList.add('text-stone-400');
+                tabDays.classList.remove('text-orange-500');
+                tabDays.querySelector('i').classList.add('ph-bold');
+                tabDays.querySelector('i').classList.remove('ph-fill');
+            }
+        };
+
         // --- EXPORT LOGIC ---
         document.getElementById('export-btn').onclick = async () => {
             if (!daysColName || !notesColName) return;
@@ -313,43 +389,28 @@
 
         // --- LOGICA CASCATA (IL FILO INVISIBILE) ---
         const recalculateCascade = (changedIndex) => {
-            // Se siamo all'ultima tappa, non c'è nulla da aggiornare dopo
             if (changedIndex >= currentStages.length - 1) return;
-
-            // Iniziamo dalla tappa successiva a quella modificata
             for (let i = changedIndex; i < currentStages.length - 1; i++) {
                 const currentStage = currentStages[i];
                 const nextStage = currentStages[i+1];
-
-                // Solo se la fine della corrente è diversa dall'inizio della successiva
                 if (currentStage.end && nextStage.start !== currentStage.end) {
-                    
-                    // 1. Calcola la durata della tappa successiva PRIMA della modifica
                     const nextStartMins = timeToMins(nextStage.start);
                     const nextEndMins = timeToMins(nextStage.end);
                     let durationMins = nextEndMins - nextStartMins;
-                    if (durationMins < 0) durationMins += 1440; // Gestione mezzanotte
-
-                    // 2. Sposta l'inizio della successiva alla fine della corrente
+                    if (durationMins < 0) durationMins += 1440; 
                     nextStage.start = currentStage.end;
-
-                    // 3. Sposta la fine della successiva mantenendo la durata invariata
                     const newStartMins = timeToMins(nextStage.start);
                     const newEndMins = newStartMins + durationMins;
                     nextStage.end = minsToHHMM(newEndMins);
-
-                    // 4. Se non è una visita, ricalcola il tempo di guida (teoricamente invariato se la durata è fissa, ma per sicurezza)
                     if (!nextStage.isVisit) {
                          const p = timeToMins(nextStage.pause);
-                         let driveDiff = newEndMins - newStartMins; // è uguale a durationMins
-                         // driveTime = Durata Totale - Sosta
+                         let driveDiff = newEndMins - newStartMins; 
                          nextStage.driveTime = Math.max(0, driveDiff - p);
                     }
                 }
             }
-            renderStages(); // Ridisegna tutto con i nuovi orari
+            renderStages(); 
         };
-
 
         // --- UI Modal Logic ---
         window.addStageUI = (data = null) => {
@@ -410,21 +471,7 @@
                     if(field === 'miles') stage.km = (parseFloat(value) * 1.60934).toFixed(1);
                 } 
 
-                // --- INNESCO FILO INVISIBILE ---
-                // Se modifico l'orario di FINE di una tappa, o l'INIZIO della PRIMA tappa
-                if (field === 'end') {
-                    recalculateCascade(index);
-                }
-                if (field === 'start' && index === 0) {
-                     // Se sposto l'inizio della prima tappa, sposto anche la sua fine per mantenere la durata, poi scatta la cascata
-                     // Nota: questo richiede conoscere la vecchia durata, qui semplifichiamo:
-                     // Se cambio start[0], l'utente dovrà cambiare end[0] manualmente o implementiamo logica più complessa.
-                     // Per ora la richiesta era "filo invisibile tra una tappa e l'altra", quindi End[i] -> Start[i+1].
-                     
-                     // Se cambio start[0], potrei voler spostare tutto il blocco.
-                     // Ma per coerenza con l'input manuale, lasciamo che l'utente sistemi la fine della prima tappa,
-                     // e quando tocca la fine, scatta la cascata.
-                }
+                if (field === 'end') recalculateCascade(index);
 
                 renderStages(); 
                 calculateTotals();
@@ -434,7 +481,6 @@
         const calculateTotals = () => {
             let totalDrive = 0, totalMiles = 0, totalKm = 0, dayDuration = 0;
             currentStages.forEach(s => {
-                // Sum only if NOT a visit
                 if (!s.isVisit) {
                     totalDrive += (s.driveTime || 0);
                     totalMiles += parseFloat(s.miles) || 0;
@@ -573,6 +619,7 @@
                 
                 // Show Main Interface elements
                 document.getElementById('days-view').classList.remove('hidden');
+                document.getElementById('bottom-nav').classList.remove('hidden'); // Show NAV
                 
                 document.getElementById('logout-btn').classList.remove('hidden');
                 document.getElementById('export-btn').classList.remove('hidden');
@@ -690,9 +737,14 @@
                 });
 
                 // UPDATE GRAND TOTALS IN FOOTER (Removed Duration)
-                document.getElementById('grand-total-drive').textContent = minsToTimeStr(gDrive);
-                document.getElementById('grand-total-miles').textContent = `${gMiles.toFixed(0)} mi`;
-                document.getElementById('grand-total-km').textContent = `${gKm.toFixed(0)} km`;
+                // document.getElementById('grand-total-drive').textContent = minsToTimeStr(gDrive);
+                // document.getElementById('grand-total-miles').textContent = `${gMiles.toFixed(0)} mi`;
+                // document.getElementById('grand-total-km').textContent = `${gKm.toFixed(0)} km`;
+
+                // UPDATE SUMMARY VIEW AS WELL
+                document.getElementById('summ-view-drive').textContent = minsToTimeStr(gDrive);
+                document.getElementById('summ-view-miles').textContent = `${gMiles.toFixed(0)} mi`;
+                document.getElementById('summ-view-km').textContent = `${gKm.toFixed(0)} km`;
 
             }, (error) => { console.error(error); loading.classList.add('hidden'); });
         };
@@ -702,6 +754,7 @@
             document.getElementById('days-view').classList.add('hidden');
             document.getElementById('notes-view').classList.remove('hidden');
             document.getElementById('back-btn').classList.remove('hidden');
+            document.getElementById('bottom-nav').classList.add('hidden'); // Hide Nav in Detail
             
             // Update Header Title with Day X - State
             document.getElementById('header-title').textContent = `GIORNO ${day.chronoId} - ${day.title || ''}`;
@@ -792,6 +845,7 @@
             document.getElementById('days-view').classList.remove('hidden');
             document.getElementById('notes-view').classList.add('hidden');
             document.getElementById('back-btn').classList.remove('hidden');
+            document.getElementById('bottom-nav').classList.remove('hidden'); // Show Nav back
             document.getElementById('header-title').textContent = "Travel Planner";
             if(unsubscribeNotes) unsubscribeNotes();
         };
