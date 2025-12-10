@@ -252,6 +252,14 @@
             return (h * 60) + m;
         };
 
+        const minsToHHMM = (m) => {
+            let mins = m % 1440;
+            if (mins < 0) mins += 1440;
+            const h = Math.floor(mins / 60);
+            const min = mins % 60;
+            return `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+        };
+
         const minsToTimeStr = (m) => {
             if(m < 0) return "--";
             const h = Math.floor(m / 60);
@@ -303,6 +311,46 @@
             }
         };
 
+        // --- LOGICA CASCATA (IL FILO INVISIBILE) ---
+        const recalculateCascade = (changedIndex) => {
+            // Se siamo all'ultima tappa, non c'è nulla da aggiornare dopo
+            if (changedIndex >= currentStages.length - 1) return;
+
+            // Iniziamo dalla tappa successiva a quella modificata
+            for (let i = changedIndex; i < currentStages.length - 1; i++) {
+                const currentStage = currentStages[i];
+                const nextStage = currentStages[i+1];
+
+                // Solo se la fine della corrente è diversa dall'inizio della successiva
+                if (currentStage.end && nextStage.start !== currentStage.end) {
+                    
+                    // 1. Calcola la durata della tappa successiva PRIMA della modifica
+                    const nextStartMins = timeToMins(nextStage.start);
+                    const nextEndMins = timeToMins(nextStage.end);
+                    let durationMins = nextEndMins - nextStartMins;
+                    if (durationMins < 0) durationMins += 1440; // Gestione mezzanotte
+
+                    // 2. Sposta l'inizio della successiva alla fine della corrente
+                    nextStage.start = currentStage.end;
+
+                    // 3. Sposta la fine della successiva mantenendo la durata invariata
+                    const newStartMins = timeToMins(nextStage.start);
+                    const newEndMins = newStartMins + durationMins;
+                    nextStage.end = minsToHHMM(newEndMins);
+
+                    // 4. Se non è una visita, ricalcola il tempo di guida (teoricamente invariato se la durata è fissa, ma per sicurezza)
+                    if (!nextStage.isVisit) {
+                         const p = timeToMins(nextStage.pause);
+                         let driveDiff = newEndMins - newStartMins; // è uguale a durationMins
+                         // driveTime = Durata Totale - Sosta
+                         nextStage.driveTime = Math.max(0, driveDiff - p);
+                    }
+                }
+            }
+            renderStages(); // Ridisegna tutto con i nuovi orari
+        };
+
+
         // --- UI Modal Logic ---
         window.addStageUI = (data = null) => {
             if (data) {
@@ -318,7 +366,7 @@
                     name: '', desc: '',
                     start: defaultStart, end: '', pause: '00:00',
                     miles: 0, km: 0, driveTime: 0, mapsLink: '',
-                    isVisit: false // Nuovo campo
+                    isVisit: false 
                 };
                 currentStages.push(stage);
             }
@@ -333,22 +381,23 @@
         };
 
         window.updateStageField = (id, field, value) => {
-            const stage = currentStages.find(s => s.id === id);
+            const index = currentStages.findIndex(s => s.id === id);
+            const stage = currentStages[index];
+            
             if(stage) {
                 if (field === 'isVisit') {
-                    stage.isVisit = value; // Boolean from checkbox
+                    stage.isVisit = value; 
                     if (stage.isVisit) {
-                         // Reset auto data if it's a visit
                          stage.miles = 0;
                          stage.km = 0;
                          stage.driveTime = 0;
-                         // NOTA: Non resettiamo stage.pause perchè deve rimanere visibile/modificabile
+                         // Sosta preserved
                     }
                 } else {
                     stage[field] = value;
                 }
 
-                // Recalculate drive time only if NOT a visit
+                // Recalculate Logic
                 if(!stage.isVisit) {
                     if(field === 'start' || field === 'end' || field === 'pause') {
                         const s = timeToMins(stage.start);
@@ -360,6 +409,22 @@
                     }
                     if(field === 'miles') stage.km = (parseFloat(value) * 1.60934).toFixed(1);
                 } 
+
+                // --- INNESCO FILO INVISIBILE ---
+                // Se modifico l'orario di FINE di una tappa, o l'INIZIO della PRIMA tappa
+                if (field === 'end') {
+                    recalculateCascade(index);
+                }
+                if (field === 'start' && index === 0) {
+                     // Se sposto l'inizio della prima tappa, sposto anche la sua fine per mantenere la durata, poi scatta la cascata
+                     // Nota: questo richiede conoscere la vecchia durata, qui semplifichiamo:
+                     // Se cambio start[0], l'utente dovrà cambiare end[0] manualmente o implementiamo logica più complessa.
+                     // Per ora la richiesta era "filo invisibile tra una tappa e l'altra", quindi End[i] -> Start[i+1].
+                     
+                     // Se cambio start[0], potrei voler spostare tutto il blocco.
+                     // Ma per coerenza con l'input manuale, lasciamo che l'utente sistemi la fine della prima tappa,
+                     // e quando tocca la fine, scatta la cascata.
+                }
 
                 renderStages(); 
                 calculateTotals();
@@ -399,16 +464,12 @@
                 const div = document.createElement('div');
                 div.className = "bg-stone-50 border border-stone-200 rounded-lg p-3 relative group";
                 
-                // Visibility class for Auto Details
                 const autoDetailsClass = stage.isVisit ? 'hidden' : 'grid';
-                // REVERTED: Sosta is ALWAYS visible now
-                // const sostaClass = stage.isVisit ? 'hidden' : ''; 
 
                 div.innerHTML = `
                     <button onclick="removeStage(${stage.id})" class="absolute top-2 right-2 text-stone-300 hover:text-red-500 transition-colors"><i class="ph ph-trash"></i></button>
                     <div class="text-xs font-bold text-stone-400 mb-2 flex justify-between items-center">
                         <span>TAPPA ${index + 1}</span>
-                        <!-- CHECKBOX VISITA -->
                         <label class="flex items-center gap-1 cursor-pointer">
                             <input type="checkbox" ${stage.isVisit ? 'checked' : ''} onchange="updateStageField(${stage.id}, 'isVisit', this.checked)" class="form-checkbox h-3 w-3 text-orange-500 rounded border-gray-300 focus:ring-orange-500">
                             <span class="text-[10px] uppercase font-bold text-orange-600">Visita (No Auto)</span>
@@ -428,7 +489,6 @@
                         <div><label class="text-[10px] uppercase text-stone-500 font-bold">Sosta (hh:mm)</label><input type="time" value="${stage.pause}" onchange="updateStageField(${stage.id}, 'pause', this.value)" class="w-full p-1 text-sm border border-stone-200 rounded bg-white text-center text-stone-700"></div>
                     </div>
                     
-                    <!-- AUTO DETAILS (Hidden if isVisit is true) -->
                     <div class="${autoDetailsClass} grid-cols-4 gap-2 items-center bg-white p-2 rounded border border-stone-200 transition-all duration-300">
                         <div class="col-span-1"><label class="text-[10px] uppercase text-stone-400">Miglia</label><input type="number" step="0.1" value="${stage.miles}" onchange="updateStageField(${stage.id}, 'miles', this.value)" class="w-full text-sm font-bold border-b border-stone-200 focus:outline-none text-orange-500"></div>
                         <div class="col-span-1 text-center border-l border-stone-100"><label class="text-[10px] uppercase text-stone-400">Km</label><div class="text-sm font-bold text-stone-600">${stage.km || 0}</div></div>
@@ -672,7 +732,7 @@
                 
                 // CONDITIONAL ICON: Visit or Car
                 let typeIcon = s.isVisit 
-                    ? `<span class="text-purple-500 font-bold flex items-center gap-1 text-xs bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100"><i class="ph-fill ph-ticket"></i> VISITA</span>` 
+                    ? `<span class="text-orange-600 font-bold flex items-center gap-1 text-xs bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100"><i class="ph-fill ph-ticket"></i> VISITA</span>` 
                     : `<span class="flex items-center gap-1 text-green-700 font-medium text-xs"><i class="ph-bold ph-car"></i> ${minsToTimeStr(s.driveTime)}</span>`;
 
                 let kmDisplay = s.isVisit 
