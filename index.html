@@ -42,6 +42,10 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
+                <!-- LOGS BUTTON -->
+                <button id="logs-btn" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors" title="Registro Accessi">
+                    <i class="ph-fill ph-eye text-xl"></i>
+                </button>
                 <button id="export-btn" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors" title="Scarica Backup">
                     <i class="ph ph-download-simple text-xl"></i>
                 </button>
@@ -76,7 +80,7 @@
             </div>
 
             <!-- VIEW 2: Lista Giorni -->
-            <div id="days-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-16">
+            <div id="days-view" class="absolute inset-0 flex flex-col hidden overflow-hidden">
                 <div class="bg-orange-50 p-2 text-center text-xs text-orange-800 font-medium border-b border-orange-100 flex justify-between px-4 items-center flex-shrink-0">
                     <span>Viaggio: <span id="current-key-display" class="font-bold">...</span></span>
                     <span class="text-[10px] text-orange-400">ID: <span id="app-id-display">...</span></span>
@@ -92,28 +96,6 @@
                     <div id="days-list" class="space-y-3"></div>
                 </div>
 
-                <!-- RIEPILOGO TOTALE VIAGGIO (Fisso in basso) -->
-                <div class="bg-stone-800 text-white p-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10 flex-shrink-0 border-t-4 border-orange-400">
-                    <div class="flex justify-between items-center mb-1">
-                        <h4 class="text-[10px] font-bold text-orange-400 uppercase tracking-widest">TOTALE VIAGGIO</h4>
-                        <span class="text-[10px] text-stone-400">Stima complessiva</span>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2 text-center divide-x divide-stone-600">
-                        <div>
-                            <div class="text-[9px] text-stone-400 uppercase">Auto</div>
-                            <div class="font-bold text-amber-400 text-sm" id="grand-total-drive">--</div>
-                        </div>
-                        <div>
-                            <div class="text-[9px] text-stone-400 uppercase">Miglia</div>
-                            <div class="font-bold text-white text-sm" id="grand-total-miles">--</div>
-                        </div>
-                        <div>
-                            <div class="text-[9px] text-stone-400 uppercase">Km</div>
-                            <div class="font-bold text-green-400 text-sm" id="grand-total-km">--</div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Pulsante flottante -->
                 <button onclick="openModal(null)" class="absolute bottom-28 right-6 bg-orange-400 hover:bg-orange-500 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-20 border-2 border-white">
                     <i class="ph ph-plus text-2xl font-bold"></i>
@@ -122,7 +104,7 @@
 
             <!-- VIEW 3: Riepilogo Totale (Tab 2) -->
             <div id="summary-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-16 bg-stone-100">
-                <div class="flex-grow overflow-y-auto custom-scroll p-4"> 
+                <div class="flex-grow overflow-y-auto custom-scroll p-4"> <!-- Added scroll here -->
                     <div class="bg-white rounded-2xl shadow-xl p-6 border border-stone-200 w-full mb-6">
                         <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
                             <div>
@@ -173,7 +155,7 @@
                     </div>
 
                     <!-- CHART SECTION -->
-                    <div class="bg-white rounded-2xl shadow-xl p-4 border border-stone-200 w-full">
+                    <div class="bg-white rounded-2xl shadow-xl p-4 border border-stone-200 w-full mb-6">
                         <h3 class="text-sm font-bold text-stone-600 uppercase mb-4 pl-2 border-l-4 border-orange-400">Analisi Giornaliera</h3>
                         <!-- Adjusted height for horizontal bar chart -->
                         <div class="h-96 w-full">
@@ -183,6 +165,24 @@
                             <span class="inline-block w-2 h-2 rounded-full bg-orange-400 mr-1"></span>Ore Guida
                             <span class="inline-block w-2 h-2 rounded-full bg-stone-400 ml-3 mr-1"></span>Durata Totale Giornata
                         </p>
+                    </div>
+
+                    <!-- HIGHLIGHTS SECTION (New) -->
+                    <div class="grid grid-cols-2 gap-4 w-full">
+                        <!-- Giorno più Intenso -->
+                        <div class="bg-red-50 p-4 rounded-xl border border-red-100 flex flex-col items-center text-center shadow-sm">
+                            <div class="bg-red-100 text-red-500 p-2 rounded-full mb-2"><i class="ph-fill ph-fire text-xl"></i></div>
+                            <span class="text-[10px] font-bold text-stone-500 uppercase">Giorno Più Intenso</span>
+                            <div class="font-bold text-red-600 text-lg mt-1" id="high-intense-day">--</div>
+                            <div class="text-xs text-stone-400 font-mono" id="high-intense-val">--</div>
+                        </div>
+                        <!-- Giorno più Guida -->
+                        <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 flex flex-col items-center text-center shadow-sm">
+                            <div class="bg-amber-100 text-amber-500 p-2 rounded-full mb-2"><i class="ph-fill ph-steering-wheel text-xl"></i></div>
+                            <span class="text-[10px] font-bold text-stone-500 uppercase">Più Ore Auto</span>
+                            <div class="font-bold text-amber-600 text-lg mt-1" id="high-drive-day">--</div>
+                            <div class="text-xs text-stone-400 font-mono" id="high-drive-val">--</div>
+                        </div>
                     </div>
 
                 </div>
@@ -221,9 +221,23 @@
             App ID: <span id="debug-app-id" class="font-mono">loading...</span>
         </footer>
 
+        <!-- MODAL LOGS -->
+        <div id="logs-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[70vh]">
+                <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+                    <h3 class="text-lg font-bold text-stone-800 flex items-center gap-2"><i class="ph-fill ph-shield-check text-green-500"></i> Registro Accessi</h3>
+                    <button onclick="document.getElementById('logs-modal').classList.add('hidden')" class="p-2 hover:bg-stone-200 rounded-full text-stone-500"><i class="ph ph-x text-xl"></i></button>
+                </div>
+                <div class="flex-grow overflow-y-auto p-4" id="logs-list">
+                    <!-- Logs injected here -->
+                    <div class="text-center text-stone-400 text-sm mt-10">Caricamento...</div>
+                </div>
+            </div>
+        </div>
+
         <!-- MODALE UNICO -->
         <div id="day-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-end sm:items-center justify-center backdrop-blur-sm sm:p-4">
-            <div class="bg-white w-full h-[95vh] sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col overflow-hidden">
+            <div class="bg-white w-full h-[95vh] sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col overflow-hidden mx-auto">
                 <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
                     <h3 id="modal-title" class="text-lg font-bold text-stone-800">Pianifica Giornata</h3>
                     <button onclick="closeModal()" class="p-2 hover:bg-stone-200 rounded-full text-stone-500"><i class="ph ph-x text-xl"></i></button>
@@ -281,7 +295,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp, query, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp, query, where, getDocs, writeBatch, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =================================================================
         // CONFIGURAZIONE PERSONALE UTENTE
@@ -310,6 +324,7 @@
         let activeSecretKey = null;
         let daysColName = null;
         let notesColName = null;
+        let logsColName = null; 
         let currentDayId = null;
         let editingDayId = null;
         let unsubscribeDays = null;
@@ -321,7 +336,12 @@
         // --- Helpers ---
         const generateColNames = (key) => {
             const safe = key.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-            return safe.length < 3 ? null : { days: `days_${safe}`, notes: `notes_${safe}`, display: key.trim().toUpperCase() };
+            return safe.length < 3 ? null : { 
+                days: `days_${safe}`, 
+                notes: `notes_${safe}`, 
+                logs: `logs_${safe}`, 
+                display: key.trim().toUpperCase() 
+            };
         };
 
         const timeToMins = (t) => {
@@ -354,6 +374,84 @@
             }
             return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}`;
         };
+        
+        // --- LOGS LOGIC ---
+        const getDeviceType = () => {
+            const ua = navigator.userAgent;
+            if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return "Tablet";
+            if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated/.test(ua)) return "Mobile";
+            return "Desktop/Laptop";
+        };
+
+        const logAccess = async () => {
+             if(!logsColName) return;
+             
+             let locationStr = "Posizione non disponibile";
+             
+             try {
+                 // Tento di ottenere la posizione IP (potrebbe essere bloccato da AdBlock)
+                 const res = await fetch('https://ipapi.co/json/');
+                 if(res.ok) {
+                     const data = await res.json();
+                     if(data.city) {
+                        locationStr = `${data.city}, ${data.country_name}`;
+                     }
+                 }
+             } catch(e) {
+                 console.log("Geo IP fallito (probabilmente adblock)", e);
+             }
+
+             try {
+                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', logsColName), {
+                     timestamp: serverTimestamp(),
+                     device: getDeviceType(),
+                     userAgent: navigator.userAgent,
+                     location: locationStr 
+                 });
+             } catch(e) { console.error("Logging failed", e); }
+        };
+
+        const showLogs = () => {
+            if(!logsColName) return;
+            const modal = document.getElementById('logs-modal');
+            const list = document.getElementById('logs-list');
+            modal.classList.remove('hidden');
+            list.innerHTML = '<div class="flex justify-center p-4"><div class="loader w-6 h-6 border-t-orange-500"></div></div>';
+
+            const q = query(collection(db, 'artifacts', appId, 'public', 'data', logsColName), orderBy('timestamp', 'desc'), limit(20));
+            getDocs(q).then(snap => {
+                list.innerHTML = '';
+                if(snap.empty) {
+                    list.innerHTML = '<p class="text-center text-stone-400 text-sm">Nessun accesso registrato.</p>';
+                    return;
+                }
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    const date = data.timestamp ? data.timestamp.toDate() : new Date();
+                    const formattedDate = date.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                    
+                    const locationDisplay = data.location || 'N/D';
+
+                    const item = document.createElement('div');
+                    item.className = "flex justify-between items-center py-3 border-b border-stone-100 last:border-0";
+                    item.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="font-bold text-sm text-stone-700 flex items-center gap-1">
+                                ${data.device || 'Sconosciuto'} 
+                                <span class="text-[10px] font-normal text-stone-500 bg-stone-100 px-1 rounded ml-1 flex items-center gap-0.5"><i class="ph-bold ph-map-pin"></i> ${locationDisplay}</span>
+                            </span>
+                            <span class="text-[10px] text-stone-400 truncate w-40">${data.userAgent}</span>
+                        </div>
+                        <span class="text-xs font-mono text-orange-500 bg-orange-50 px-2 py-1 rounded">${formattedDate}</span>
+                    `;
+                    list.appendChild(item);
+                });
+            });
+        };
+
+        const logsBtn = document.getElementById('logs-btn');
+        if(logsBtn) logsBtn.onclick = showLogs;
+
 
         // --- CHART LOGIC ---
         const updateSummaryChart = () => {
@@ -362,6 +460,11 @@
             const labels = [];
             const driveData = [];
             const durationData = [];
+
+            let maxDriveVal = 0;
+            let maxDriveLabel = '--';
+            let maxIntenseVal = 0;
+            let maxIntenseLabel = '--';
 
             const sortedDays = [...cachedDays].sort((a,b) => a.chronoId - b.chronoId);
 
@@ -383,11 +486,35 @@
                     if (end > start) dayDurationMins = end - start;
                 }
 
+                // Check Highlights
+                if (dayDriveMins > maxDriveVal) {
+                    maxDriveVal = dayDriveMins;
+                    maxDriveLabel = `Giorno ${day.chronoId}`;
+                }
+                if (dayDurationMins > maxIntenseVal) {
+                    maxIntenseVal = dayDurationMins;
+                    maxIntenseLabel = `Giorno ${day.chronoId}`;
+                }
+
                 driveData.push(parseFloat((dayDriveMins / 60).toFixed(1)));
                 durationData.push(parseFloat((dayDurationMins / 60).toFixed(1)));
             });
 
-            const ctx = document.getElementById('activityChart').getContext('2d');
+            // Update Highlights DOM (Safe Checks)
+            const highIntenseDay = document.getElementById('high-intense-day');
+            const highIntenseVal = document.getElementById('high-intense-val');
+            const highDriveDay = document.getElementById('high-drive-day');
+            const highDriveVal = document.getElementById('high-drive-val');
+
+            if(highIntenseDay) highIntenseDay.textContent = maxIntenseLabel;
+            if(highIntenseVal) highIntenseVal.textContent = minsToTimeStr(maxIntenseVal);
+            if(highDriveDay) highDriveDay.textContent = maxDriveLabel;
+            if(highDriveVal) highDriveVal.textContent = minsToTimeStr(maxDriveVal);
+
+            const canvas = document.getElementById('activityChart');
+            if(!canvas) return; 
+
+            const ctx = canvas.getContext('2d');
 
             if (activityChart) {
                 activityChart.destroy();
@@ -630,10 +757,8 @@
                 });
                 if(lastEnd > firstStart) dayDuration = lastEnd - firstStart;
             }
-            document.getElementById('sum-drive-time').textContent = minsToTimeStr(totalDrive);
-            document.getElementById('sum-day-time').textContent = minsToTimeStr(dayDuration);
-            document.getElementById('sum-miles').textContent = `${totalMiles.toFixed(1)} mi`;
-            document.getElementById('sum-km').textContent = `${totalKm.toFixed(1)} km`;
+            // Totals are calculated but only shown in modal here if needed
+            // Main totals are updated in loadDays loop
         };
 
         const renderStages = () => {
@@ -752,6 +877,7 @@
                 activeSecretKey = names.display;
                 daysColName = names.days;
                 notesColName = names.notes;
+                logsColName = names.logs; // Set logs collection name
                 
                 document.getElementById('app-id-display').textContent = appId.substring(0, 8); // Show simplified ID
                 document.getElementById('current-key-display').textContent = activeSecretKey;
@@ -762,6 +888,9 @@
                 
                 document.getElementById('logout-btn').classList.remove('hidden');
                 document.getElementById('export-btn').classList.remove('hidden');
+                document.getElementById('logs-btn').classList.remove('hidden'); // Show logs button
+
+                logAccess(); // Log this access
                 loadDays();
             } catch(e) { 
                 console.error(e);
@@ -776,6 +905,7 @@
         };
         document.getElementById('login-btn').addEventListener('click', login);
         
+        // --- ADD ENTER KEY LISTENER FOR LOGIN ---
         document.getElementById('secret-key-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') login();
         });
@@ -849,7 +979,10 @@
                             <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-xs font-bold text-center min-w-[60px] flex-shrink-0">${dateStr}</div>
                         </div>
                         <p class="text-sm text-stone-600 mb-3">${day.description || 'Nessuna descrizione.'}</p>
-                        <div class="flex items-center gap-4 text-xs font-medium text-stone-400 border-t border-stone-100 pt-2"><span class="flex items-center gap-1"><i class="ph-fill ph-flag-checkered"></i> ${day.stages ? day.stages.length : 0} Tappe</span><span class="flex items-center gap-1"><i class="ph-fill ph-road-horizon"></i> ${totKm.toFixed(0)} km</span></div>
+                        <div class="flex items-center gap-4 text-xs font-bold text-black border-t border-stone-100 pt-2">
+                            <span class="flex items-center gap-1"><i class="ph-fill ph-flag-checkered text-orange-600"></i> ${day.stages ? day.stages.length : 0} Tappe</span>
+                            <span class="flex items-center gap-1"><i class="ph-fill ph-road-horizon text-orange-600"></i> ${totKm.toFixed(0)} km</span>
+                        </div>
                     `;
                     card.onclick = () => openDayDetail(day);
                     const actions = document.createElement('div');
@@ -861,19 +994,22 @@
                     list.appendChild(card);
                 });
 
-                document.getElementById('grand-total-drive').textContent = minsToTimeStr(gDrive);
-                document.getElementById('grand-total-miles').textContent = `${gMiles.toFixed(0)} mi`;
-                document.getElementById('grand-total-km').textContent = `${gKm.toFixed(0)} km`;
-
-                document.getElementById('summ-view-drive').textContent = minsToTimeStr(gDrive);
-                document.getElementById('summ-view-miles').textContent = `${gMiles.toFixed(0)} mi`;
-                document.getElementById('summ-view-km').textContent = `${gKm.toFixed(0)} km`;
+                // UPDATE SUMMARY VIEW AS WELL
+                const elSummDrive = document.getElementById('summ-view-drive');
+                if(elSummDrive) elSummDrive.textContent = minsToTimeStr(gDrive);
+                const elSummMiles = document.getElementById('summ-view-miles');
+                if(elSummMiles) elSummMiles.textContent = `${gMiles.toFixed(0)} mi`;
+                const elSummKm = document.getElementById('summ-view-km');
+                if(elSummKm) elSummKm.textContent = `${gKm.toFixed(0)} km`;
                 
                 // FIX: Update new counters
                 const elStates = document.getElementById('summ-view-states');
                 if(elStates) elStates.textContent = statesSet.size;
                 const elStages = document.getElementById('summ-view-stages');
                 if(elStages) elStages.textContent = stagesSet.size;
+
+                // Update Chart if visible (or prepare data)
+                updateSummaryChart();
 
             }, (error) => { console.error(error); loading.classList.add('hidden'); });
         };
@@ -885,6 +1021,7 @@
             document.getElementById('back-btn').classList.remove('hidden');
             document.getElementById('bottom-nav').classList.add('hidden'); 
             
+            // Update Header Title with Day X - State
             document.getElementById('header-title').textContent = `GIORNO ${day.chronoId} - ${day.title || ''}`;
             
             const detailContainer = document.getElementById('day-detail-content');
