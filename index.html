@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Planner Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        .loader {
+            border: 3px solid #fff7ed; /* orange-50 */
+            border-top: 3px solid #fb923c; /* orange-400 */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #fff7ed; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #fdba74; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #fb923c; }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-700 font-sans h-screen overflow-hidden flex flex-col">
+
+    <!-- App Container -->
+    <div class="max-w-md mx-auto w-full h-full bg-white shadow-2xl relative flex flex-col border-x border-stone-200">
+        
+        <!-- Header -->
+        <header class="bg-orange-400 text-white p-4 shadow-md z-20 flex items-center justify-between transition-colors duration-300" id="main-header">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <button id="back-btn" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors flex-shrink-0">
+                    <i class="ph ph-arrow-left text-xl"></i>
+                </button>
+                <div class="flex flex-col overflow-hidden">
+                    <h1 id="header-title" class="text-xl font-bold truncate flex items-center gap-2">
+                        <i class="ph-fill ph-airplane-tilt"></i> Travel Planner
+                    </h1>
+                    <span id="header-subtitle" class="text-xs text-orange-50 truncate hidden"></span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="export-btn" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors" title="Scarica Backup">
+                    <i class="ph ph-download-simple text-xl"></i>
+                </button>
+                <button id="logout-btn" class="hidden text-xs bg-orange-600/30 hover:bg-orange-600/50 px-3 py-1 rounded transition-colors flex items-center gap-1">
+                    <i class="ph ph-sign-out"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow relative overflow-hidden bg-stone-50">
+            
+            <!-- VIEW 1: Login -->
+            <div id="login-view" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-50 p-6 text-center">
+                <div class="p-5 bg-orange-50 rounded-full mb-6 text-orange-400">
+                    <i class="ph ph-map-trifold text-6xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2 text-stone-800">Travel Planner</h2>
+                <p class="text-stone-500 mb-6 text-sm">Accedi con la tua chiave segreta.</p>
+                
+                <div class="w-full max-w-xs mb-4 relative">
+                    <input type="text" id="secret-key-input" class="w-full p-4 pl-12 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none font-bold text-stone-700 tracking-wide placeholder-stone-400" placeholder="es. USA2025">
+                    <i class="ph ph-key absolute left-4 top-1/2 transform -translate-y-1/2 text-stone-400 text-xl"></i>
+                </div>
+                
+                <button id="login-btn" class="bg-orange-400 hover:bg-orange-500 text-white w-full max-w-xs py-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 mb-4 transition-transform active:scale-95">
+                    <span>Entra</span> <i class="ph ph-arrow-right"></i>
+                </button>
+
+                <div id="auth-loader" class="hidden loader border-t-orange-400 mt-4"></div>
+                <p id="login-error" class="hidden text-red-500 text-sm mt-2"></p>
+            </div>
+
+            <!-- VIEW 2: Lista Giorni (Tab 1) -->
+            <div id="days-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-16">
+                <div class="bg-orange-50 p-2 text-center text-xs text-orange-800 font-medium border-b border-orange-100 flex justify-between px-4 items-center flex-shrink-0">
+                    <span>Viaggio: <span id="current-key-display" class="font-bold">...</span></span>
+                    <span class="text-[10px] text-orange-400">ID: <span id="app-id-display">...</span></span>
+                </div>
+                
+                <!-- Lista scrollabile -->
+                <div class="flex-grow overflow-y-auto p-4" id="days-list-container">
+                    <div id="loading-days" class="flex justify-center mt-10"><div class="loader border-t-orange-400"></div></div>
+                    <div id="empty-days" class="hidden flex flex-col items-center justify-center mt-20 text-stone-400">
+                        <i class="ph ph-road-horizon text-5xl mb-3 text-stone-300"></i>
+                        <p>Nessun giorno pianificato.</p>
+                    </div>
+                    <div id="days-list" class="space-y-3 pb-20"></div>
+                </div>
+
+                <!-- Pulsante flottante -->
+                <button onclick="openModal(null)" class="absolute bottom-6 right-6 bg-orange-400 hover:bg-orange-500 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-20 border-2 border-white">
+                    <i class="ph ph-plus text-2xl font-bold"></i>
+                </button>
+            </div>
+
+            <!-- VIEW 3: Riepilogo Totale (Tab 2) -->
+            <div id="summary-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-16 bg-stone-100">
+                <div class="flex-grow flex flex-col justify-end p-4">
+                    <div class="bg-white rounded-2xl shadow-xl p-6 border border-stone-200">
+                        <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
+                            <div>
+                                <h2 class="text-2xl font-bold text-stone-800">Riepilogo Totale</h2>
+                                <p class="text-sm text-stone-400">Statistiche del tuo viaggio</p>
+                            </div>
+                            <div class="bg-orange-100 p-3 rounded-full text-orange-500">
+                                <i class="ph-fill ph-chart-pie-slice text-2xl"></i>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4">
+                            <!-- Card Auto -->
+                            <div class="bg-stone-50 p-4 rounded-xl flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-amber-100 p-2 rounded-lg text-amber-600"><i class="ph-bold ph-car text-xl"></i></div>
+                                    <span class="text-sm font-bold text-stone-600 uppercase">Ore Guida</span>
+                                </div>
+                                <span class="text-xl font-bold text-amber-500" id="grand-total-drive">--</span>
+                            </div>
+
+                            <!-- Card Miglia -->
+                            <div class="bg-stone-50 p-4 rounded-xl flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-blue-100 p-2 rounded-lg text-blue-600"><i class="ph-bold ph-signpost text-xl"></i></div>
+                                    <span class="text-sm font-bold text-stone-600 uppercase">Miglia Totali</span>
+                                </div>
+                                <span class="text-xl font-bold text-stone-700" id="grand-total-miles">--</span>
+                            </div>
+
+                            <!-- Card Km -->
+                            <div class="bg-stone-50 p-4 rounded-xl flex justify-between items-center border-l-4 border-green-500">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-green-100 p-2 rounded-lg text-green-600"><i class="ph-bold ph-globe text-xl"></i></div>
+                                    <span class="text-sm font-bold text-stone-600 uppercase">Km Totali</span>
+                                </div>
+                                <span class="text-2xl font-black text-green-600" id="grand-total-km">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 4: Dettaglio Giorno (Overlay) -->
+            <div id="notes-view" class="absolute inset-0 flex flex-col hidden bg-white z-30">
+                <div class="flex-grow overflow-y-auto custom-scroll" id="notes-list-container">
+                    <!-- Contenitore unico per Dettagli + Note + Riepilogo + Tappe -->
+                    <div id="day-detail-content" class="p-4 bg-white border-b border-stone-100 shadow-sm pb-24"></div>
+                </div>
+                
+                <!-- Input Note Fisso -->
+                <div class="p-3 bg-stone-100 border-t border-stone-200 flex gap-2 items-center z-20">
+                    <input type="text" id="note-input" class="flex-grow p-3 rounded-xl border-none focus:ring-2 focus:ring-orange-400 shadow-sm text-stone-700" placeholder="Aggiungi una nota..." autocomplete="off">
+                    <button id="add-note-btn" class="bg-orange-400 hover:bg-orange-500 text-white p-3 rounded-xl shadow-md active:scale-95 transition-transform">
+                        <i class="ph ph-paper-plane-right text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- BOTTOM TAB BAR (Navigation) -->
+        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full max-w-md z-10 flex justify-around items-center h-16 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden">
+            <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/2 h-full text-orange-500 transition-colors">
+                <i class="ph-fill ph-calendar-blank text-2xl mb-1"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Diario</span>
+            </button>
+            <div class="w-px h-8 bg-stone-200"></div>
+            <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/2 h-full text-stone-400 hover:text-stone-600 transition-colors">
+                <i class="ph-bold ph-chart-pie-slice text-2xl mb-1"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Riepilogo</span>
+            </button>
+        </nav>
+
+        <!-- Debug Footer (Hidden behind nav usually, visible on login) -->
+        <footer id="debug-footer" class="bg-stone-50 text-[10px] text-stone-400 p-1 text-center border-t select-all hidden">
+            App ID: <span id="debug-app-id" class="font-mono">loading...</span>
+        </footer>
+
+        <!-- MODALE UNICO -->
+        <div id="day-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-end sm:items-center justify-center backdrop-blur-sm sm:p-4">
+            <div class="bg-white w-full h-[95vh] sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col overflow-hidden">
+                <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+                    <h3 id="modal-title" class="text-lg font-bold text-stone-800">Pianifica Giornata</h3>
+                    <button onclick="closeModal()" class="p-2 hover:bg-stone-200 rounded-full text-stone-500"><i class="ph ph-x text-xl"></i></button>
+                </div>
+                <div class="flex-grow overflow-y-auto p-4 custom-scroll" id="modal-body">
+                    <div class="space-y-3 mb-6">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Data</label>
+                                <input type="date" id="day-date-input" class="w-full p-2 bg-stone-50 border border-stone-200 rounded-lg focus:ring-1 focus:ring-orange-400 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Stato</label>
+                                <input type="text" id="day-name-input" class="w-full p-2 bg-stone-50 border border-stone-200 rounded-lg focus:ring-1 focus:ring-orange-400 outline-none" placeholder="Es. California">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Descrizione Generale</label>
+                            <textarea id="day-desc-input" rows="2" class="w-full p-2 bg-stone-50 border border-stone-200 rounded-lg resize-none focus:ring-1 focus:ring-orange-400 outline-none" placeholder="Obiettivi della giornata..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-sm font-bold text-orange-500 uppercase flex items-center gap-1"><i class="ph ph-flag-checkered"></i> Tappe & Percorso</label>
+                        </div>
+                        <div id="stages-container" class="space-y-4 mb-4"></div>
+                        <button onclick="addStageUI()" class="w-full py-3 bg-orange-50 border-2 border-dashed border-orange-200 rounded-xl text-orange-500 font-bold hover:bg-orange-100 transition-colors flex items-center justify-center gap-2">
+                            <i class="ph ph-plus-circle text-xl"></i> Aggiungi Tappa
+                        </button>
+                    </div>
+
+                    <div class="bg-stone-800 text-white rounded-xl p-4 shadow-lg">
+                        <h4 class="text-xs font-bold text-stone-400 uppercase mb-3 border-b border-stone-700 pb-1">Riepilogo Stimato</h4>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div><p class="text-stone-400 text-xs">Ore Auto Totali</p><p id="sum-drive-time" class="font-mono text-lg font-bold text-amber-400">0h 00m</p></div>
+                            <div><p class="text-stone-400 text-xs">Durata Giornata</p><p id="sum-day-time" class="font-mono text-lg font-bold">0h 00m</p></div>
+                            <div><p class="text-stone-400 text-xs">Totale Miglia</p><p id="sum-miles" class="font-mono font-bold">0 mi</p></div>
+                            <div><p class="text-stone-400 text-xs">Totale Km</p><p id="sum-km" class="font-mono font-bold text-green-400">0 km</p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-stone-100 bg-white flex justify-end gap-3">
+                    <button onclick="closeModal()" class="px-4 py-2 text-stone-500 hover:bg-stone-100 rounded-lg transition-colors">Annulla</button>
+                    <button id="confirm-save-btn" class="px-6 py-2 bg-orange-400 text-white rounded-lg font-bold shadow-md hover:bg-orange-500 flex items-center gap-2 transition-transform active:scale-95">
+                        <i class="ph ph-floppy-disk"></i> Salva Tutto
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp, query, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =================================================================
+        // CONFIGURAZIONE PERSONALE UTENTE
+        // =================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGKOOLOXRU5-kKlROBjBt3n9QLOoh0pEA",
+            authDomain: "mio-diario-viaggi.firebaseapp.com",
+            projectId: "mio-diario-viaggi",
+            storageBucket: "mio-diario-viaggi.firebasestorage.app",
+            messagingSenderId: "826682465160",
+            appId: "1:826682465160:web:f92ba804c99ad3e651b83d"
+        };
+        // Un identificativo fisso per la tua app nel database
+        const appId = 'travel-planner-v1'; 
+        // =================================================================
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Update Debug Footer
+        document.getElementById('debug-app-id').textContent = appId;
+
+        // --- State ---
+        let currentAuthUser = null;
+        let activeSecretKey = null;
+        let daysColName = null;
+        let notesColName = null;
+        let currentDayId = null;
+        let editingDayId = null;
+        let unsubscribeDays = null;
+        let unsubscribeNotes = null;
+        let currentStages = []; 
+        let cachedDays = []; 
+
+        // --- Helpers ---
+        const generateColNames = (key) => {
+            const safe = key.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+            return safe.length < 3 ? null : { days: `days_${safe}`, notes: `notes_${safe}`, display: key.trim().toUpperCase() };
+        };
+
+        const timeToMins = (t) => {
+            if(!t) return 0;
+            const [h, m] = t.split(':').map(Number);
+            return (h * 60) + m;
+        };
+
+        const minsToTimeStr = (m) => {
+            if(m < 0) return "--";
+            const h = Math.floor(m / 60);
+            const min = m % 60;
+            return `${h}h ${min.toString().padStart(2, '0')}m`;
+        };
+
+        const getMapsUrl = (input) => {
+            if (!input) return '';
+            let text = input.trim();
+            if (/^https?:\/\//i.test(text)) return text;
+            if (/^(www\.|maps\.)/i.test(text) || text.includes('google.com/maps')) {
+                return 'https://' + text;
+            }
+            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}`;
+        };
+
+        // --- TAB NAVIGATION LOGIC ---
+        window.switchTab = (tabName) => {
+            const daysView = document.getElementById('days-view');
+            const summaryView = document.getElementById('summary-view');
+            const tabDays = document.getElementById('tab-days');
+            const tabSummary = document.getElementById('tab-summary');
+
+            if (tabName === 'days') {
+                daysView.classList.remove('hidden');
+                summaryView.classList.add('hidden');
+                
+                // Style Active
+                tabDays.classList.remove('text-stone-400');
+                tabDays.classList.add('text-orange-500');
+                tabDays.querySelector('i').classList.remove('ph-bold');
+                tabDays.querySelector('i').classList.add('ph-fill');
+
+                // Style Inactive
+                tabSummary.classList.add('text-stone-400');
+                tabSummary.classList.remove('text-orange-500');
+                tabSummary.querySelector('i').classList.add('ph-bold');
+                tabSummary.querySelector('i').classList.remove('ph-fill');
+
+            } else if (tabName === 'summary') {
+                daysView.classList.add('hidden');
+                summaryView.classList.remove('hidden');
+
+                // Style Active
+                tabSummary.classList.remove('text-stone-400');
+                tabSummary.classList.add('text-orange-500');
+                tabSummary.querySelector('i').classList.remove('ph-bold');
+                tabSummary.querySelector('i').classList.add('ph-fill');
+
+                // Style Inactive
+                tabDays.classList.add('text-stone-400');
+                tabDays.classList.remove('text-orange-500');
+                tabDays.querySelector('i').classList.add('ph-bold');
+                tabDays.querySelector('i').classList.remove('ph-fill');
+            }
+        };
+
+        // --- EXPORT LOGIC ---
+        document.getElementById('export-btn').onclick = async () => {
+            if (!daysColName || !notesColName) return;
+            const exportBtn = document.getElementById('export-btn');
+            exportBtn.innerHTML = '<div class="loader w-4 h-4 border-t-white border-white"></div>';
+            
+            try {
+                const daysSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', daysColName));
+                const daysData = daysSnap.docs.map(d => ({ ...d.data(), _id: d.id })); 
+                const notesSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', notesColName));
+                const notesData = notesSnap.docs.map(d => d.data());
+
+                const backupData = {
+                    key: activeSecretKey,
+                    timestamp: new Date().toISOString(),
+                    days: daysData,
+                    notes: notesData
+                };
+
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", `travel_backup_${activeSecretKey}.json`);
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+            } catch (error) {
+                console.error("Export failed:", error);
+                alert("Errore durante l'export dei dati.");
+            } finally {
+                exportBtn.innerHTML = '<i class="ph ph-download-simple text-xl"></i>';
+            }
+        };
+
+        // --- UI Modal Logic ---
+        window.addStageUI = (data = null) => {
+            if (data) {
+                currentStages.push(data);
+            } else {
+                let defaultStart = '';
+                if (currentStages.length > 0) {
+                    const lastStage = currentStages[currentStages.length - 1];
+                    if (lastStage.end) defaultStart = lastStage.end;
+                }
+                const stage = {
+                    id: Date.now(),
+                    name: '', desc: '',
+                    start: defaultStart, end: '', pause: '00:00',
+                    miles: 0, km: 0, driveTime: 0, mapsLink: ''
+                };
+                currentStages.push(stage);
+            }
+            renderStages();
+            calculateTotals();
+        };
+
+        window.removeStage = (id) => {
+            currentStages = currentStages.filter(s => s.id !== id);
+            renderStages();
+            calculateTotals();
+        };
+
+        window.updateStageField = (id, field, value) => {
+            const stage = currentStages.find(s => s.id === id);
+            if(stage) {
+                stage[field] = value;
+                if(field === 'start' || field === 'end' || field === 'pause') {
+                    const s = timeToMins(stage.start);
+                    const e = timeToMins(stage.end);
+                    const p = timeToMins(stage.pause);
+                    let diff = e - s; 
+                    if(diff < 0) diff += 1440; 
+                    stage.driveTime = Math.max(0, diff - p);
+                }
+                if(field === 'miles') stage.km = (parseFloat(value) * 1.60934).toFixed(1);
+                renderStages(); 
+                calculateTotals();
+            }
+        };
+
+        const calculateTotals = () => {
+            let totalDrive = 0, totalMiles = 0, totalKm = 0, dayDuration = 0;
+            currentStages.forEach(s => {
+                totalDrive += (s.driveTime || 0);
+                totalMiles += parseFloat(s.miles) || 0;
+                totalKm += parseFloat(s.km) || 0;
+            });
+            if(currentStages.length > 0) {
+                const sorted = [...currentStages].sort((a,b) => timeToMins(a.start) - timeToMins(b.start));
+                const firstStart = timeToMins(sorted[0].start);
+                let lastEnd = 0;
+                sorted.forEach(s => {
+                    const e = timeToMins(s.end);
+                    if(e > lastEnd) lastEnd = e;
+                });
+                if(lastEnd > firstStart) dayDuration = lastEnd - firstStart;
+            }
+            document.getElementById('sum-drive-time').textContent = minsToTimeStr(totalDrive);
+            document.getElementById('sum-day-time').textContent = minsToTimeStr(dayDuration);
+            document.getElementById('sum-miles').textContent = `${totalMiles.toFixed(1)} mi`;
+            document.getElementById('sum-km').textContent = `${totalKm.toFixed(1)} km`;
+        };
+
+        const renderStages = () => {
+            const container = document.getElementById('stages-container');
+            container.innerHTML = '';
+            currentStages.forEach((stage, index) => {
+                const div = document.createElement('div');
+                div.className = "bg-stone-50 border border-stone-200 rounded-lg p-3 relative group";
+                div.innerHTML = `
+                    <button onclick="removeStage(${stage.id})" class="absolute top-2 right-2 text-stone-300 hover:text-red-500 transition-colors"><i class="ph ph-trash"></i></button>
+                    <div class="text-xs font-bold text-stone-400 mb-2">TAPPA ${index + 1}</div>
+                    <div class="grid grid-cols-1 gap-2 mb-2">
+                        <input type="text" value="${stage.name}" onchange="updateStageField(${stage.id}, 'name', this.value)" placeholder="Nome Tappa" class="w-full p-2 text-sm border border-stone-200 rounded bg-white font-bold text-stone-800 focus:border-orange-400 focus:outline-none">
+                        <input type="text" value="${stage.desc}" onchange="updateStageField(${stage.id}, 'desc', this.value)" placeholder="Descrizione breve" class="w-full p-2 text-sm border border-stone-200 rounded bg-white text-stone-600 focus:border-orange-400 focus:outline-none">
+                        <div class="relative">
+                            <i class="ph ph-map-pin absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"></i>
+                            <input type="text" value="${stage.mapsLink || ''}" onchange="updateStageField(${stage.id}, 'mapsLink', this.value)" placeholder="Incolla link Google Maps" class="w-full p-2 pl-9 text-xs border border-stone-200 rounded bg-white text-orange-500 focus:ring-1 focus:ring-orange-400 focus:outline-none">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mb-2">
+                        <div><label class="text-[10px] uppercase text-stone-500 font-bold">Partenza</label><input type="time" value="${stage.start}" onchange="updateStageField(${stage.id}, 'start', this.value)" class="w-full p-1 text-sm border border-stone-200 rounded bg-white text-stone-700"></div>
+                        <div><label class="text-[10px] uppercase text-stone-500 font-bold">Arrivo</label><input type="time" value="${stage.end}" onchange="updateStageField(${stage.id}, 'end', this.value)" class="w-full p-1 text-sm border border-stone-200 rounded bg-white text-stone-700"></div>
+                        <div><label class="text-[10px] uppercase text-stone-500 font-bold">Sosta (hh:mm)</label><input type="time" value="${stage.pause}" onchange="updateStageField(${stage.id}, 'pause', this.value)" class="w-full p-1 text-sm border border-stone-200 rounded bg-white text-center text-stone-700"></div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 items-center bg-white p-2 rounded border border-stone-200">
+                        <div class="col-span-1"><label class="text-[10px] uppercase text-stone-400">Miglia</label><input type="number" step="0.1" value="${stage.miles}" onchange="updateStageField(${stage.id}, 'miles', this.value)" class="w-full text-sm font-bold border-b border-stone-200 focus:outline-none text-orange-500"></div>
+                        <div class="col-span-1 text-center border-l border-stone-100"><label class="text-[10px] uppercase text-stone-400">Km</label><div class="text-sm font-bold text-stone-600">${stage.km || 0}</div></div>
+                        <div class="col-span-2 text-right"><label class="text-[10px] uppercase text-stone-400">Ore Auto</label><div class="text-sm font-bold text-green-600">${minsToTimeStr(stage.driveTime || 0)}</div></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        };
+
+        window.openModal = (dayData) => {
+            document.getElementById('day-modal').classList.remove('hidden');
+            if(dayData) {
+                editingDayId = dayData.id;
+                document.getElementById('modal-title').textContent = "Modifica Giornata";
+                document.getElementById('day-date-input').value = dayData.dateString || '';
+                document.getElementById('day-name-input').value = dayData.title || '';
+                document.getElementById('day-desc-input').value = dayData.description || '';
+                currentStages = dayData.stages || [];
+            } else {
+                editingDayId = null;
+                document.getElementById('modal-title').textContent = "Nuova Giornata";
+                
+                // --- LOGICA DATA DI DEFAULT AL GIORNO SUCCESSIVO ---
+                if (cachedDays.length > 0) {
+                    const lastDateStr = cachedDays[cachedDays.length - 1].dateString;
+                    if (lastDateStr) {
+                        const nextDate = new Date(lastDateStr);
+                        nextDate.setDate(nextDate.getDate() + 1);
+                        document.getElementById('day-date-input').value = nextDate.toISOString().split('T')[0];
+                    } else {
+                        document.getElementById('day-date-input').valueAsDate = new Date();    
+                    }
+                } else {
+                    document.getElementById('day-date-input').valueAsDate = new Date();
+                }
+
+                document.getElementById('day-name-input').value = '';
+                document.getElementById('day-desc-input').value = '';
+                currentStages = [];
+            }
+            renderStages();
+            calculateTotals();
+        };
+        window.closeModal = () => document.getElementById('day-modal').classList.add('hidden');
+
+        document.getElementById('confirm-save-btn').addEventListener('click', async () => {
+            const dateStr = document.getElementById('day-date-input').value;
+            const title = document.getElementById('day-name-input').value;
+            const desc = document.getElementById('day-desc-input').value;
+            if(!dateStr && !title) { alert("Inserisci Data o Titolo"); return; }
+            const stagesClean = currentStages.map(s => ({
+                id: s.id, name: s.name, desc: s.desc, start: s.start, end: s.end, pause: s.pause,
+                miles: s.miles, km: s.km, driveTime: s.driveTime, mapsLink: s.mapsLink || ''
+            }));
+            const payload = { dateString: dateStr, title: title, description: desc, stages: stagesClean, updatedAt: serverTimestamp() };
+            try {
+                if(editingDayId) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, editingDayId), payload);
+                else { payload.createdAt = serverTimestamp(); await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), payload); }
+                closeModal();
+            } catch(e) { console.error(e); alert("Errore Salvataggio"); }
+        });
+
+        // --- Auth & Init ---
+        const login = async () => {
+            const key = document.getElementById('secret-key-input').value;
+            const names = generateColNames(key);
+            if(!names) { document.getElementById('login-error').textContent = "Chiave non valida (min 3 chars)."; document.getElementById('login-error').classList.remove('hidden'); return; }
+            document.getElementById('login-btn').classList.add('hidden');
+            document.getElementById('auth-loader').classList.remove('hidden');
+            try {
+                if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+                activeSecretKey = names.display;
+                daysColName = names.days;
+                notesColName = names.notes;
+                
+                document.getElementById('app-id-display').textContent = appId.substring(0, 8); // Show simplified ID
+                document.getElementById('current-key-display').textContent = activeSecretKey;
+                document.getElementById('login-view').classList.add('hidden');
+                
+                // Show Main Interface elements
+                document.getElementById('days-view').classList.remove('hidden');
+                document.getElementById('bottom-nav').classList.remove('hidden'); // Show NAV
+                
+                document.getElementById('logout-btn').classList.remove('hidden');
+                document.getElementById('export-btn').classList.remove('hidden');
+                loadDays();
+            } catch(e) { 
+                console.error(e);
+                if (e.code === 'auth/operation-not-allowed') {
+                    alert("Errore: Devi abilitare 'Anonimo' nella sezione Authentication della console Firebase.");
+                } else {
+                    document.getElementById('login-error').textContent = "Errore di accesso: " + e.message;
+                    document.getElementById('login-error').classList.remove('hidden');
+                }
+            } 
+            finally { document.getElementById('login-btn').classList.remove('hidden'); document.getElementById('auth-loader').classList.add('hidden'); }
+        };
+        document.getElementById('login-btn').addEventListener('click', login);
+        
+        // --- ADD ENTER KEY LISTENER FOR LOGIN ---
+        document.getElementById('secret-key-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => location.reload());
+
+        // --- View Logic ---
+        const loadDays = () => {
+            const list = document.getElementById('days-list');
+            const loading = document.getElementById('loading-days');
+            const empty = document.getElementById('empty-days');
+            loading.classList.remove('hidden'); empty.classList.add('hidden'); list.innerHTML = '';
+            
+            const q = collection(db, 'artifacts', appId, 'public', 'data', daysColName);
+            
+            unsubscribeDays = onSnapshot(q, (snapshot) => {
+                loading.classList.add('hidden'); list.innerHTML = '';
+                if(snapshot.empty) { empty.classList.remove('hidden'); return; }
+                empty.classList.add('hidden');
+                const days = [];
+                snapshot.forEach(d => days.push({id: d.id, ...d.data()}));
+                
+                // --- SORT BY DATE ASCENDING ---
+                days.sort((a, b) => {
+                    const dateA = a.dateString || '9999-99-99';
+                    const dateB = b.dateString || '9999-99-99';
+                    return dateA.localeCompare(dateB);
+                });
+
+                // SALVA IN CACHE
+                cachedDays = days; 
+
+                // Assign IDs based on date order
+                days.forEach((d, i) => d.chronoId = i + 1);
+                
+                // Reset GRAND TOTALS counters (NO DURATA)
+                let gDrive = 0, gMiles = 0, gKm = 0;
+
+                days.forEach(day => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-4 rounded-xl shadow-sm border border-stone-200 hover:shadow-md transition-all cursor-pointer relative group";
+                    let dateStr = day.dateString ? new Date(day.dateString).toLocaleDateString('it-IT', {weekday: 'short', day: 'numeric', month: 'short'}) : 'N/D';
+                    if(dateStr !== 'N/D') dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+
+                    let totKm = 0;
+                    
+                    // --- ACCUMULATE GRAND TOTALS ---
+                    if (day.stages) {
+                        day.stages.forEach(s => {
+                            const stageKm = parseFloat(s.km || 0);
+                            const stageMiles = parseFloat(s.miles || 0);
+                            const stageDrive = parseInt(s.driveTime || 0);
+                            
+                            totKm += stageKm; // Day Total
+                            
+                            gKm += stageKm;
+                            gMiles += stageMiles;
+                            gDrive += stageDrive;
+                        });
+                    }
+
+                    const stagesList = day.stages && day.stages.length > 0 
+                        ? day.stages.map(s => s.name).join(' - ')
+                        : 'Nessuna tappa';
+
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex-grow pr-2">
+                                <span class="text-[10px] font-black text-orange-500 uppercase tracking-widest">GIORNO ${day.chronoId}</span>
+                                <h3 class="font-bold text-stone-800 text-lg leading-tight mb-1">${stagesList}</h3>
+                                <div class="text-stone-500 text-sm font-medium uppercase tracking-wide">${day.title || 'Stato non indicato'}</div>
+                            </div>
+                            <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-xs font-bold text-center min-w-[60px] flex-shrink-0">${dateStr}</div>
+                        </div>
+                        <p class="text-sm text-stone-600 mb-3">${day.description || 'Nessuna descrizione.'}</p>
+                        <div class="flex items-center gap-4 text-xs font-medium text-stone-400 border-t border-stone-100 pt-2"><span class="flex items-center gap-1"><i class="ph-fill ph-flag-checkered"></i> ${day.stages ? day.stages.length : 0} Tappe</span><span class="flex items-center gap-1"><i class="ph-fill ph-road-horizon"></i> ${totKm.toFixed(0)} km</span></div>
+                    `;
+                    card.onclick = () => openDayDetail(day);
+                    const actions = document.createElement('div');
+                    actions.className = "absolute top-12 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity";
+                    actions.innerHTML = `<button class="p-2 bg-white/90 rounded-full shadow hover:text-orange-500 text-stone-400 border border-stone-100" id="edit-${day.id}"><i class="ph ph-pencil-simple"></i></button><button class="p-2 bg-white/90 rounded-full shadow hover:text-red-600 text-stone-400 border border-stone-100" id="del-${day.id}"><i class="ph ph-trash"></i></button>`;
+                    card.appendChild(actions);
+                    card.querySelector(`#edit-${day.id}`).onclick = (e) => { e.stopPropagation(); openModal(day); };
+                    card.querySelector(`#del-${day.id}`).onclick = (e) => { e.stopPropagation(); if(confirm('Eliminare?')) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, day.id)); };
+                    list.appendChild(card);
+                });
+
+                // UPDATE GRAND TOTALS IN FOOTER (Removed Duration)
+                document.getElementById('grand-total-drive').textContent = minsToTimeStr(gDrive);
+                document.getElementById('grand-total-miles').textContent = `${gMiles.toFixed(0)} mi`;
+                document.getElementById('grand-total-km').textContent = `${gKm.toFixed(0)} km`;
+
+            }, (error) => { console.error(error); loading.classList.add('hidden'); });
+        };
+
+        const openDayDetail = (day) => {
+            currentDayId = day.id;
+            document.getElementById('days-view').classList.add('hidden');
+            document.getElementById('notes-view').classList.remove('hidden');
+            document.getElementById('back-btn').classList.remove('hidden');
+            document.getElementById('bottom-nav').classList.add('hidden'); // Hide Nav in Detail
+            
+            // Update Header Title with Day X - State
+            document.getElementById('header-title').textContent = `GIORNO ${day.chronoId} - ${day.title || ''}`;
+            
+            const detailContainer = document.getElementById('day-detail-content');
+            let totMiles = 0, totKm = 0, totDrive = 0, dayDur = 0;
+            const stages = day.stages || [];
+            stages.forEach(s => { totMiles += parseFloat(s.miles || 0); totKm += parseFloat(s.km || 0); totDrive += (s.driveTime || 0); });
+            if(stages.length > 0) {
+                 const sorted = [...stages].sort((a,b) => timeToMins(a.start) - timeToMins(b.start));
+                 const f = timeToMins(sorted[0].start);
+                 let l = 0; sorted.forEach(s => { if(timeToMins(s.end) > l) l = timeToMins(s.end); });
+                 if(l > f) dayDur = l - f;
+            }
+
+            let stagesHtml = '';
+            stages.forEach((s, idx) => {
+                // Generazione link maps sicuro
+                const safeUrl = getMapsUrl(s.mapsLink);
+                let linkHtml = safeUrl ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="ml-2 text-[10px] font-bold text-orange-500 border border-orange-200 bg-orange-50 hover:bg-orange-100 px-1.5 py-0.5 rounded transition-colors uppercase tracking-wider" onclick="event.stopPropagation()">MAPS</a>` : '';
+                let pauseDisplay = s.pause && s.pause !== '00:00' ? `<span class="flex items-center gap-1 text-amber-500 font-bold"><i class="ph-bold ph-coffee"></i> ${s.pause.replace(':', 'h ')}m</span>` : '<span class="text-stone-300 flex items-center gap-1"><i class="ph ph-coffee"></i> --</span>';
+                
+                stagesHtml += `
+                    <div class="border-b border-stone-100 last:border-0">
+                        <div class="p-3 bg-white hover:bg-stone-50 cursor-pointer flex flex-col gap-2" onclick="document.getElementById('stage-detail-${idx}').classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-180')">
+                            <div class="flex justify-between items-start">
+                                <div class="font-bold text-stone-800 text-sm flex items-center gap-1"><span class="text-orange-500 mr-1">${idx + 1}.</span> ${s.name} ${linkHtml}</div>
+                                <div class="text-xs text-stone-500 font-mono bg-stone-100 px-2 py-1 rounded">${s.start} <span class="text-stone-300">➜</span> ${s.end}</div>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-stone-500 mt-1">
+                                <div class="flex gap-3"><span class="flex items-center gap-1 text-green-700 font-medium"><i class="ph-bold ph-car"></i> ${minsToTimeStr(s.driveTime)}</span>${pauseDisplay}</div>
+                                <div class="font-mono text-stone-400">${parseFloat(s.km).toFixed(0)} km</div>
+                            </div>
+                            <div class="flex justify-center -mt-2 opacity-50"><i class="chevron ph-bold ph-caret-down text-stone-400 transition-transform duration-200"></i></div>
+                        </div>
+                        <div id="stage-detail-${idx}" class="hidden bg-stone-50 p-4 text-sm text-stone-700 border-t border-stone-100 shadow-inner">
+                            <div class="mb-2"><span class="text-[10px] uppercase font-bold text-stone-400">Descrizione</span><p class="mt-1">${s.desc || '<span class="italic text-stone-400">Nessuna descrizione.</span>'}</p></div>
+                            <div class="flex gap-4 text-xs font-mono text-stone-500 border-t border-stone-200 pt-2 mt-2"><div>Miglia: <span class="font-bold text-stone-800">${s.miles}</span></div><div>Km esatti: <span class="font-bold text-stone-800">${s.km}</span></div></div>
+                        </div>
+                    </div>`;
+            });
+
+            detailContainer.innerHTML = `
+                <div class="mb-4"><p class="text-stone-600 text-sm italic border-l-4 border-orange-400 pl-3 py-1 bg-orange-50/50 rounded-r">${day.description || 'Nessuna descrizione generale.'}</p></div>
+                
+                <div class="mb-6">
+                     <h4 class="text-xs font-bold text-stone-400 uppercase mb-2 flex items-center gap-2">
+                        <i class="ph ph-note"></i> Note
+                    </h4>
+                    <div id="loading-notes" class="hidden flex justify-center py-2"><div class="loader w-4 h-4 border-t-orange-400"></div></div>
+                    <div id="empty-notes" class="hidden text-center py-2 text-stone-400 text-xs italic">Nessuna nota aggiunta.</div>
+                    <ul id="notes-list" class="space-y-2"></ul>
+                </div>
+
+                <div class="bg-gradient-to-r from-stone-800 to-stone-900 text-white rounded-xl p-4 shadow-lg mb-6">
+                    <div class="grid grid-cols-4 gap-2 text-center divide-x divide-stone-700">
+                        <div><div class="text-[10px] text-stone-400 uppercase">Auto</div><div class="font-bold text-amber-400 text-sm sm:text-base">${minsToTimeStr(totDrive)}</div></div>
+                        <div><div class="text-[10px] text-stone-400 uppercase">Durata</div><div class="font-bold text-sm sm:text-base">${minsToTimeStr(dayDur)}</div></div>
+                        <div><div class="text-[10px] text-stone-400 uppercase">Miglia</div><div class="font-bold text-sm sm:text-base">${totMiles.toFixed(1)}</div></div>
+                        <div><div class="text-[10px] text-stone-400 uppercase">Km</div><div class="font-bold text-green-400 text-sm sm:text-base">${totKm.toFixed(1)}</div></div>
+                    </div>
+                </div>
+                <h4 class="text-xs font-bold text-stone-400 uppercase mb-2">Piano di Viaggio (Clicca per espandere)</h4>
+                <div class="rounded-lg border border-stone-200 bg-white overflow-hidden shadow-sm">${stagesHtml || '<div class="p-4 text-center text-stone-400 text-xs">Nessuna tappa inserita.</div>'}</div>
+            `;
+            loadNotes(day.id);
+        };
+
+        document.getElementById('back-btn').onclick = () => {
+            document.getElementById('days-view').classList.remove('hidden');
+            document.getElementById('notes-view').classList.add('hidden');
+            document.getElementById('back-btn').classList.add('hidden');
+            document.getElementById('bottom-nav').classList.remove('hidden'); // Show Nav back
+            document.getElementById('header-title').textContent = "Travel Planner";
+            if(unsubscribeNotes) unsubscribeNotes();
+        };
+
+        const loadNotes = (dayId) => {
+            const list = document.getElementById('notes-list'); 
+            const loader = document.getElementById('loading-notes');
+            const empty = document.getElementById('empty-notes');
+            
+            if(!list) return; // Safety check
+
+            list.innerHTML = '';
+            loader.classList.remove('hidden');
+            
+            const q = query(collection(db, 'artifacts', appId, 'public', 'data', notesColName), where('dayId', '==', dayId));
+            unsubscribeNotes = onSnapshot(q, (snapshot) => {
+                loader.classList.add('hidden'); 
+                list.innerHTML = '';
+                const notes = []; 
+                snapshot.forEach(d => notes.push({id: d.id, ...d.data()}));
+                notes.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+                
+                if(notes.length === 0) empty.classList.remove('hidden');
+                else empty.classList.add('hidden');
+                
+                notes.forEach(n => {
+                    const li = document.createElement('li'); 
+                    // Changed to yellow background
+                    li.className = "bg-yellow-100 p-3 rounded-lg text-sm text-stone-800 flex justify-between group shadow-sm border border-yellow-200";
+                    li.innerHTML = `<span>${n.text}</span> <button class="text-stone-400 hover:text-red-600 opacity-0 group-hover:opacity-100" onclick="deleteNote('${n.id}')"><i class="ph ph-trash"></i></button>`;
+                    list.appendChild(li);
+                });
+                window.deleteNote = (id) => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', notesColName, id));
+            }, () => loader.classList.add('hidden'));
+        };
+
+        document.getElementById('add-note-btn').onclick = async () => {
+            const txt = document.getElementById('note-input').value.trim();
+            if(!txt || !currentDayId) return;
+            document.getElementById('note-input').value = '';
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', notesColName), { dayId: currentDayId, text: txt, createdAt: serverTimestamp() });
+        };
+    </script>
+</body>
+</html>
