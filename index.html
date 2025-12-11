@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Travel Planner Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -24,6 +24,9 @@
         /* Hide number input arrows */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        /* Safe area utility for modern phones */
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
     </style>
 </head>
 <body class="bg-stone-50 text-stone-700 font-sans h-screen overflow-hidden flex flex-col">
@@ -90,7 +93,8 @@
                 </div>
                 
                 <!-- Lista scrollabile -->
-                <div class="flex-grow overflow-y-auto p-4 pb-24" id="days-list-container">
+                <!-- AUMENTATO PADDING INFERIORE A pb-32 PER SICUREZZA -->
+                <div class="flex-grow overflow-y-auto p-4 pb-32 custom-scroll" id="days-list-container">
                     <div id="loading-days" class="flex justify-center mt-10"><div class="loader border-t-orange-400"></div></div>
                     <div id="empty-days" class="hidden flex flex-col items-center justify-center mt-20 text-stone-400">
                         <i class="ph ph-road-horizon text-5xl mb-3 text-stone-300"></i>
@@ -106,8 +110,9 @@
             </div>
 
             <!-- VIEW 3: Riepilogo Totale (Tab 2) -->
-            <div id="summary-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-16 bg-stone-100">
-                <div class="flex-grow overflow-y-auto custom-scroll p-4"> <!-- Added scroll here -->
+            <div id="summary-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-0 bg-stone-100">
+                <!-- AUMENTATO PADDING INFERIORE A pb-28 -->
+                <div class="flex-grow overflow-y-auto custom-scroll p-4 pb-28"> 
                     <div class="bg-white rounded-2xl shadow-xl p-6 border border-stone-200 w-full mb-6">
                         <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
                             <div>
@@ -191,7 +196,7 @@
             </div>
 
             <!-- VIEW 5: SPESE (Tab 3) -->
-            <div id="expenses-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10 pb-16">
+            <div id="expenses-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10">
                 <!-- Totale Card -->
                 <div class="bg-white p-4 shadow-md border-b border-stone-200 z-20 transition-all">
                     <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex justify-between items-center mb-2">
@@ -217,14 +222,14 @@
                 </div>
 
                 <!-- Lista Spese -->
-                <div class="flex-grow overflow-y-auto p-4" id="expenses-list-container">
+                <!-- AUMENTATO PADDING INFERIORE A pb-48 (12rem) PER COMPENSARE INPUT E NAV -->
+                <div class="flex-grow overflow-y-auto p-4 custom-scroll" id="expenses-list-container">
                     <div id="loading-expenses" class="hidden flex justify-center mt-10"><div class="loader border-t-emerald-400"></div></div>
                     <div id="empty-expenses" class="hidden flex flex-col items-center justify-center mt-10 text-stone-400">
                         <i class="ph ph-receipt text-5xl mb-3 text-stone-300"></i>
                         <p class="text-sm">Nessuna spesa registrata.</p>
                     </div>
                     
-                    <!-- Header Colonne Lista (opzionale per chiarezza) -->
                     <div id="expenses-header" class="hidden flex justify-between px-3 mb-2 text-[10px] uppercase font-bold text-stone-400">
                         <span class="w-1/3">Voce</span>
                         <div class="flex gap-4 w-2/3 justify-end pr-14">
@@ -233,10 +238,12 @@
                         </div>
                     </div>
 
-                    <div id="expenses-list" class="space-y-2 pb-24"></div>
+                    <!-- Il padding è gestito dal container padre ora, ma tengo spazio safe qui -->
+                    <div id="expenses-list" class="space-y-2 pb-48"></div>
                 </div>
 
                 <!-- Input Bar (Fixed Bottom) -->
+                <!-- POSIZIONATO A bottom-16 (sopra la nav) -->
                 <div class="absolute bottom-16 left-0 w-full bg-white p-3 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 flex gap-2 items-center">
                     <input type="text" id="expense-name-input" class="flex-grow p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-sm" placeholder="Voce spesa..." autocomplete="off">
                     
@@ -274,7 +281,7 @@
         </main>
 
         <!-- BOTTOM TAB BAR (Navigation) -->
-        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full max-w-md z-20 flex justify-between items-center h-16 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden">
+        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full max-w-md z-20 flex justify-between items-center h-16 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden pb-safe">
             <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/3 h-full text-orange-500 transition-colors">
                 <i class="ph-fill ph-calendar-blank text-2xl mb-1"></i>
                 <span class="text-[10px] font-bold uppercase tracking-wider">Diario</span>
@@ -565,6 +572,7 @@
                     if (end > start) dayDurationMins = end - start;
                 }
 
+                // Check Highlights
                 if (dayDriveMins > maxDriveVal) {
                     maxDriveVal = dayDriveMins;
                     maxDriveLabel = `Giorno ${day.chronoId}`;
@@ -578,6 +586,7 @@
                 durationData.push(parseFloat((dayDurationMins / 60).toFixed(1)));
             });
 
+            // Update Highlights DOM (Safe Checks)
             const highIntenseDay = document.getElementById('high-intense-day');
             const highIntenseVal = document.getElementById('high-intense-val');
             const highDriveDay = document.getElementById('high-drive-day');
