@@ -21,6 +21,9 @@
         .custom-scroll::-webkit-scrollbar-track { background: #fff7ed; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #fdba74; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #fb923c; }
+        /* Hide number input arrows */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="bg-stone-50 text-stone-700 font-sans h-screen overflow-hidden flex flex-col">
@@ -97,7 +100,7 @@
                 </div>
 
                 <!-- Pulsante flottante -->
-                <button onclick="openModal(null)" class="absolute bottom-28 right-6 bg-orange-400 hover:bg-orange-500 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-20 border-2 border-white">
+                <button onclick="openModal(null)" class="absolute bottom-24 right-6 bg-orange-400 hover:bg-orange-500 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-20 border-2 border-white">
                     <i class="ph ph-plus text-2xl font-bold"></i>
                 </button>
             </div>
@@ -184,7 +187,74 @@
                             <div class="text-xs text-stone-400 font-mono" id="high-drive-val">--</div>
                         </div>
                     </div>
+                </div>
+            </div>
 
+            <!-- VIEW 5: SPESE (Tab 3) -->
+            <div id="expenses-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10 pb-16">
+                <!-- Totale Card -->
+                <div class="bg-white p-4 shadow-md border-b border-stone-200 z-20 transition-all">
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex justify-between items-center mb-2">
+                        <div>
+                            <span class="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">Totale Spese</span>
+                            <div class="flex items-baseline gap-2">
+                                <h2 class="text-3xl font-black text-emerald-600" id="total-expenses">0.00 <span class="text-lg">€</span></h2>
+                                <span class="text-xs text-emerald-400 font-mono" id="total-expenses-usd">(0.00 $)</span>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-full text-emerald-500 shadow-sm">
+                            <i class="ph-fill ph-wallet text-2xl"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- NEW: Conversion Rate Input -->
+                    <div class="flex items-center justify-end gap-2 text-xs text-stone-500 bg-stone-50 p-2 rounded-lg border border-stone-100">
+                        <span class="font-bold">Tasso cambio:</span>
+                        <span>1 € = </span>
+                        <input type="number" step="0.01" id="global-exchange-rate" class="w-16 p-1 border border-stone-300 rounded text-center font-mono font-bold text-stone-700 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400" value="1.05">
+                        <span class="font-bold">$</span>
+                    </div>
+                </div>
+
+                <!-- Lista Spese -->
+                <div class="flex-grow overflow-y-auto p-4" id="expenses-list-container">
+                    <div id="loading-expenses" class="hidden flex justify-center mt-10"><div class="loader border-t-emerald-400"></div></div>
+                    <div id="empty-expenses" class="hidden flex flex-col items-center justify-center mt-10 text-stone-400">
+                        <i class="ph ph-receipt text-5xl mb-3 text-stone-300"></i>
+                        <p class="text-sm">Nessuna spesa registrata.</p>
+                    </div>
+                    
+                    <!-- Header Colonne Lista (opzionale per chiarezza) -->
+                    <div id="expenses-header" class="hidden flex justify-between px-3 mb-2 text-[10px] uppercase font-bold text-stone-400">
+                        <span class="w-1/3">Voce</span>
+                        <div class="flex gap-4 w-2/3 justify-end pr-14">
+                            <span>Euro (€)</span>
+                            <span>USD ($)</span>
+                        </div>
+                    </div>
+
+                    <div id="expenses-list" class="space-y-2 pb-24"></div>
+                </div>
+
+                <!-- Input Bar (Fixed Bottom) -->
+                <div class="absolute bottom-16 left-0 w-full bg-white p-3 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 flex gap-2 items-center">
+                    <input type="text" id="expense-name-input" class="flex-grow p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-sm" placeholder="Voce spesa..." autocomplete="off">
+                    
+                    <!-- Euro Input -->
+                    <div class="relative w-20 flex-shrink-0">
+                        <input type="number" step="0.01" id="expense-amount-input" class="w-full p-3 pl-6 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-sm font-mono" placeholder="0">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-stone-400 text-xs">€</span>
+                    </div>
+
+                    <!-- Dollar Input -->
+                    <div class="relative w-20 flex-shrink-0">
+                        <input type="number" step="0.01" id="expense-amount-usd-input" class="w-full p-3 pl-6 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-sm font-mono bg-stone-50" placeholder="0">
+                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-stone-400 text-xs">$</span>
+                    </div>
+
+                    <button id="add-expense-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white p-3 rounded-xl shadow-md active:scale-95 transition-transform flex-shrink-0">
+                        <i class="ph ph-plus text-xl font-bold"></i>
+                    </button>
                 </div>
             </div>
 
@@ -204,15 +274,20 @@
         </main>
 
         <!-- BOTTOM TAB BAR (Navigation) -->
-        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full max-w-md z-20 flex justify-around items-center h-16 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden">
-            <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/2 h-full text-orange-500 transition-colors">
+        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full max-w-md z-20 flex justify-between items-center h-16 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden">
+            <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/3 h-full text-orange-500 transition-colors">
                 <i class="ph-fill ph-calendar-blank text-2xl mb-1"></i>
                 <span class="text-[10px] font-bold uppercase tracking-wider">Diario</span>
             </button>
-            <div class="w-px h-8 bg-stone-200"></div>
-            <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/2 h-full text-stone-400 hover:text-stone-600 transition-colors">
+            
+            <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/3 h-full text-stone-400 hover:text-stone-600 transition-colors">
                 <i class="ph-bold ph-chart-pie-slice text-2xl mb-1"></i>
                 <span class="text-[10px] font-bold uppercase tracking-wider">Riepilogo</span>
+            </button>
+
+            <button onclick="switchTab('expenses')" id="tab-expenses" class="flex flex-col items-center justify-center w-1/3 h-full text-stone-400 hover:text-emerald-600 transition-colors">
+                <i class="ph-bold ph-wallet text-2xl mb-1"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Spese</span>
             </button>
         </nav>
 
@@ -298,7 +373,7 @@
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp, query, where, getDocs, writeBatch, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =================================================================
-        // CONFIGURAZIONE PERSONALE UTENTE
+        // CONFIGURAZIONE PERSONALE
         // =================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCGKOOLOXRU5-kKlROBjBt3n9QLOoh0pEA",
@@ -325,13 +400,17 @@
         let daysColName = null;
         let notesColName = null;
         let logsColName = null; 
+        let expensesColName = null; 
         let currentDayId = null;
         let editingDayId = null;
         let unsubscribeDays = null;
         let unsubscribeNotes = null;
+        let unsubscribeExpenses = null; 
         let currentStages = []; 
         let cachedDays = []; 
+        let cachedExpenses = []; // Cache for local conversion without refetch
         let activityChart = null; 
+        let currentExchangeRate = 1.05; // Default
 
         // --- Helpers ---
         const generateColNames = (key) => {
@@ -340,6 +419,7 @@
                 days: `days_${safe}`, 
                 notes: `notes_${safe}`, 
                 logs: `logs_${safe}`, 
+                expenses: `expenses_${safe}`, 
                 display: key.trim().toUpperCase() 
             };
         };
@@ -389,7 +469,6 @@
              let locationStr = "Posizione non disponibile";
              
              try {
-                 // Tento di ottenere la posizione IP (potrebbe essere bloccato da AdBlock)
                  const res = await fetch('https://ipapi.co/json/');
                  if(res.ok) {
                      const data = await res.json();
@@ -398,7 +477,7 @@
                      }
                  }
              } catch(e) {
-                 console.log("Geo IP fallito (probabilmente adblock)", e);
+                 console.log("Geo IP fallito", e);
              }
 
              try {
@@ -486,7 +565,6 @@
                     if (end > start) dayDurationMins = end - start;
                 }
 
-                // Check Highlights
                 if (dayDriveMins > maxDriveVal) {
                     maxDriveVal = dayDriveMins;
                     maxDriveLabel = `Giorno ${day.chronoId}`;
@@ -500,7 +578,6 @@
                 durationData.push(parseFloat((dayDurationMins / 60).toFixed(1)));
             });
 
-            // Update Highlights DOM (Safe Checks)
             const highIntenseDay = document.getElementById('high-intense-day');
             const highIntenseVal = document.getElementById('high-intense-val');
             const highDriveDay = document.getElementById('high-drive-day');
@@ -549,70 +626,276 @@
                     indexAxis: 'y', // --- HORIZONTAL BAR CHART ---
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        axis: 'y', // Important for horizontal charts
-                        intersect: false
-                    },
+                    interaction: { mode: 'index', axis: 'y', intersect: false },
                     plugins: {
                         legend: { display: false }, 
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            position: 'nearest'
-                        }
+                        tooltip: { mode: 'index', intersect: false, position: 'nearest' }
                     },
                     scales: {
-                        x: { // Value axis (horizontal)
-                            beginAtZero: true,
-                            title: { display: true, text: 'Ore' },
-                            grid: { color: '#f5f5f4' }
-                        },
-                        y: { // Category axis (vertical)
-                            grid: { display: false }
-                        }
+                        x: { beginAtZero: true, title: { display: true, text: 'Ore' }, grid: { color: '#f5f5f4' } },
+                        y: { grid: { display: false } }
                     }
                 }
             });
         };
 
+        // --- EXPENSES LOGIC ---
+        
+        // 1. GLOBAL RATE LISTENER
+        const rateInput = document.getElementById('global-exchange-rate');
+        rateInput.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if(!isNaN(val) && val > 0) {
+                currentExchangeRate = val;
+                // Save to local storage for persistence across reloads for this user
+                localStorage.setItem(`rate_${activeSecretKey}`, val);
+                // Re-render expenses without re-fetching
+                renderExpensesList();
+            }
+        });
+
+        // 2. LOAD EXPENSES (Fetch once, then local filter/render)
+        const loadExpenses = () => {
+            const list = document.getElementById('expenses-list');
+            const loading = document.getElementById('loading-expenses');
+            const empty = document.getElementById('empty-expenses');
+            const header = document.getElementById('expenses-header');
+            
+            loading.classList.remove('hidden'); list.innerHTML = '';
+            
+            const q = query(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), orderBy('createdAt', 'desc'));
+            
+            unsubscribeExpenses = onSnapshot(q, (snapshot) => {
+                loading.classList.add('hidden');
+                
+                cachedExpenses = [];
+                snapshot.forEach(docSnap => {
+                    cachedExpenses.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                if(cachedExpenses.length === 0) { 
+                    empty.classList.remove('hidden'); 
+                    header.classList.add('hidden');
+                    updateTotalExpenses(0);
+                    list.innerHTML = '';
+                    return; 
+                }
+                
+                empty.classList.add('hidden');
+                header.classList.remove('hidden');
+                renderExpensesList();
+
+            }, (err) => { console.error(err); loading.classList.add('hidden'); });
+        };
+
+        // 3. RENDER FUNCTION (Handles dynamic rate)
+        const renderExpensesList = () => {
+            const list = document.getElementById('expenses-list');
+            list.innerHTML = '';
+            let totalEur = 0;
+
+            cachedExpenses.forEach(data => {
+                const amountEur = parseFloat(data.amount || 0);
+                const amountUsd = amountEur * currentExchangeRate;
+                totalEur += amountEur;
+
+                const row = document.createElement('div');
+                row.className = "flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm hover:shadow-md transition-shadow group";
+                row.id = `row-${data.id}`;
+                row.innerHTML = `
+                    <div class="flex-grow pr-2">
+                        <div class="font-bold text-stone-700 text-sm break-words">${data.name}</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex gap-4 text-right">
+                            <span class="font-mono font-bold text-emerald-600 w-16">${amountEur.toFixed(2)} €</span>
+                            <span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>
+                        </div>
+                        <div class="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                            <button onclick="enableEditMode('${data.id}', '${data.name.replace(/'/g, "\\'")}', ${amountEur})" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button onclick="deleteExpense('${data.id}')" class="p-1.5 text-stone-400 hover:text-red-500 rounded hover:bg-red-50"><i class="ph-bold ph-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+            updateTotalExpenses(totalEur);
+        };
+
+        const updateTotalExpenses = (totalEur) => {
+            const totalEl = document.getElementById('total-expenses');
+            const totalElUsd = document.getElementById('total-expenses-usd');
+            totalEl.innerHTML = `${totalEur.toFixed(2)} <span class="text-lg">€</span>`;
+            if(totalElUsd) totalElUsd.textContent = `(${(totalEur * currentExchangeRate).toFixed(2)} $)`;
+        };
+
+        // Auto Conversion Logic for Input Bar
+        const eurInput = document.getElementById('expense-amount-input');
+        const usdInput = document.getElementById('expense-amount-usd-input');
+
+        eurInput.addEventListener('input', () => {
+            const eurVal = parseFloat(eurInput.value);
+            if (!isNaN(eurVal)) {
+                usdInput.value = (eurVal * currentExchangeRate).toFixed(2);
+            } else {
+                usdInput.value = '';
+            }
+        });
+
+        usdInput.addEventListener('input', () => {
+            const usdVal = parseFloat(usdInput.value);
+            if (!isNaN(usdVal)) {
+                eurInput.value = (usdVal / currentExchangeRate).toFixed(2);
+            } else {
+                eurInput.value = '';
+            }
+        });
+
+        window.addExpense = async () => {
+            const nameIn = document.getElementById('expense-name-input');
+            const name = nameIn.value.trim();
+            const amount = parseFloat(eurInput.value); // Always save in EUR
+
+            if(!name || isNaN(amount)) return;
+            
+            nameIn.value = ''; 
+            eurInput.value = '';
+            usdInput.value = '';
+            
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), {
+                    name, amount, createdAt: serverTimestamp()
+                });
+            } catch(e) { console.error(e); alert("Errore aggiunta spesa"); }
+        };
+        document.getElementById('add-expense-btn').addEventListener('click', window.addExpense);
+
+        window.deleteExpense = (id) => {
+            if(confirm("Eliminare questa spesa?")) {
+                deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id));
+            }
+        };
+
+        window.enableEditMode = (id, currentName, currentAmountEur) => {
+            const row = document.getElementById(`row-${id}`);
+            if(!row) return;
+            
+            const currentAmountUsd = (currentAmountEur * currentExchangeRate).toFixed(2);
+
+            row.innerHTML = `
+                <div class="flex gap-2 w-full items-center flex-wrap sm:flex-nowrap bg-stone-50 p-2 rounded">
+                    <input type="text" id="edit-name-${id}" value="${currentName}" class="flex-grow p-2 rounded border border-stone-300 text-sm focus:border-emerald-400 focus:outline-none w-full sm:w-auto">
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <div class="relative w-20">
+                            <input type="number" step="0.01" id="edit-eur-${id}" value="${currentAmountEur}" oninput="syncEditCurrency('${id}', 'eur')" class="w-full p-2 pl-5 rounded border border-stone-300 text-sm font-mono focus:border-emerald-400 focus:outline-none">
+                            <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">€</span>
+                        </div>
+                        <div class="relative w-20">
+                            <input type="number" step="0.01" id="edit-usd-${id}" value="${currentAmountUsd}" oninput="syncEditCurrency('${id}', 'usd')" class="w-full p-2 pl-5 rounded border border-stone-300 text-sm font-mono focus:border-emerald-400 focus:outline-none bg-stone-100">
+                            <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">$</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-1 ml-auto">
+                        <button onclick="saveExpenseEdit('${id}')" class="p-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 shadow-sm"><i class="ph-bold ph-check"></i></button>
+                        <button onclick="cancelExpenseEdit('${id}', '${currentName.replace(/'/g, "\\'")}', ${currentAmountEur})" class="p-2 text-stone-400 hover:bg-stone-200 rounded"><i class="ph-bold ph-x"></i></button>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.syncEditCurrency = (id, source) => {
+            const eurInput = document.getElementById(`edit-eur-${id}`);
+            const usdInput = document.getElementById(`edit-usd-${id}`);
+            
+            if (source === 'eur') {
+                const val = parseFloat(eurInput.value);
+                if(!isNaN(val)) usdInput.value = (val * currentExchangeRate).toFixed(2);
+                else usdInput.value = '';
+            } else {
+                const val = parseFloat(usdInput.value);
+                if(!isNaN(val)) eurInput.value = (val / currentExchangeRate).toFixed(2);
+                else eurInput.value = '';
+            }
+        };
+
+        window.saveExpenseEdit = async (id) => {
+            const newName = document.getElementById(`edit-name-${id}`).value.trim();
+            const newAmountEur = parseFloat(document.getElementById(`edit-eur-${id}`).value);
+            
+            if(!newName || isNaN(newAmountEur)) return;
+
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id), {
+                    name: newName, amount: newAmountEur
+                });
+            } catch(e) { console.error(e); alert("Errore modifica"); }
+        };
+        
+        window.cancelExpenseEdit = (id, name, amountEur) => {
+             const amountUsd = amountEur * currentExchangeRate;
+             const row = document.getElementById(`row-${id}`);
+             row.innerHTML = `
+                <div class="flex-grow pr-2">
+                    <div class="font-bold text-stone-700 text-sm break-words">${name}</div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex gap-4 text-right">
+                        <span class="font-mono font-bold text-emerald-600 w-16">${amountEur.toFixed(2)} €</span>
+                        <span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="enableEditMode('${id}', '${name.replace(/'/g, "\\'")}', ${amountEur})" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
+                        <button onclick="deleteExpense('${id}')" class="p-1.5 text-stone-400 hover:text-red-500 rounded hover:bg-red-50"><i class="ph-bold ph-trash"></i></button>
+                    </div>
+                </div>
+             `;
+        };
+
+
         // --- TAB NAVIGATION LOGIC ---
         window.switchTab = (tabName) => {
             const daysView = document.getElementById('days-view');
             const summaryView = document.getElementById('summary-view');
+            const expensesView = document.getElementById('expenses-view'); 
+            
             const tabDays = document.getElementById('tab-days');
             const tabSummary = document.getElementById('tab-summary');
+            const tabExpenses = document.getElementById('tab-expenses');
+
+            // Helper to reset tabs
+            const resetTabs = () => {
+                [tabDays, tabSummary, tabExpenses].forEach(t => {
+                    t.classList.add('text-stone-400');
+                    t.classList.remove('text-orange-500', 'text-emerald-600');
+                    t.querySelector('i').classList.add('ph-bold');
+                    t.querySelector('i').classList.remove('ph-fill');
+                });
+                [daysView, summaryView, expensesView].forEach(v => v.classList.add('hidden'));
+            };
+            
+            resetTabs();
 
             if (tabName === 'days') {
                 daysView.classList.remove('hidden');
-                summaryView.classList.add('hidden');
-                
                 tabDays.classList.remove('text-stone-400');
                 tabDays.classList.add('text-orange-500');
                 tabDays.querySelector('i').classList.remove('ph-bold');
                 tabDays.querySelector('i').classList.add('ph-fill');
-
-                tabSummary.classList.add('text-stone-400');
-                tabSummary.classList.remove('text-orange-500');
-                tabSummary.querySelector('i').classList.add('ph-bold');
-                tabSummary.querySelector('i').classList.remove('ph-fill');
-
             } else if (tabName === 'summary') {
-                daysView.classList.add('hidden');
                 summaryView.classList.remove('hidden');
-
                 tabSummary.classList.remove('text-stone-400');
-                tabSummary.classList.add('text-orange-500');
+                tabSummary.classList.add('text-orange-500'); 
                 tabSummary.querySelector('i').classList.remove('ph-bold');
                 tabSummary.querySelector('i').classList.add('ph-fill');
-
-                tabDays.classList.add('text-stone-400');
-                tabDays.classList.remove('text-orange-500');
-                tabDays.querySelector('i').classList.add('ph-bold');
-                tabDays.querySelector('i').classList.remove('ph-fill');
-                
-                // Update chart when tab becomes visible
                 setTimeout(updateSummaryChart, 100);
+            } else if (tabName === 'expenses') {
+                expensesView.classList.remove('hidden');
+                tabExpenses.classList.remove('text-stone-400');
+                tabExpenses.classList.add('text-emerald-600'); 
+                tabExpenses.querySelector('i').classList.remove('ph-bold');
+                tabExpenses.querySelector('i').classList.add('ph-fill');
+                // Ensure listener is active
+                if(!unsubscribeExpenses && expensesColName) loadExpenses();
             }
         };
 
@@ -627,12 +910,17 @@
                 const daysData = daysSnap.docs.map(d => ({ ...d.data(), _id: d.id })); 
                 const notesSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', notesColName));
                 const notesData = notesSnap.docs.map(d => d.data());
+                
+                // Fetch Expenses too
+                const expSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', expensesColName));
+                const expData = expSnap.docs.map(d => d.data());
 
                 const backupData = {
                     key: activeSecretKey,
                     timestamp: new Date().toISOString(),
                     days: daysData,
-                    notes: notesData
+                    notes: notesData,
+                    expenses: expData 
                 };
 
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
@@ -757,8 +1045,6 @@
                 });
                 if(lastEnd > firstStart) dayDuration = lastEnd - firstStart;
             }
-            // Totals are calculated but only shown in modal here if needed
-            // Main totals are updated in loadDays loop
         };
 
         const renderStages = () => {
@@ -799,7 +1085,6 @@
                         <div class="col-span-2 text-right"><label class="text-[10px] uppercase text-stone-400">Ore Auto</label><div class="text-sm font-bold text-green-600">${minsToTimeStr(stage.driveTime || 0)}</div></div>
                     </div>
 
-                    <!-- REMOVE BUTTON (ADDED HERE) -->
                     <div class="mt-3 pt-2 border-t border-stone-200 flex justify-end">
                         <button onclick="removeStage(${stage.id})" class="text-xs text-red-500 hover:text-red-700 font-bold flex items-center gap-1 bg-red-50 px-2 py-1 rounded transition-colors border border-red-100">
                             <i class="ph-bold ph-trash"></i> Rimuovi Tappa
@@ -831,7 +1116,7 @@
                         nextDate.setDate(nextDate.getDate() + 1);
                         document.getElementById('day-date-input').value = nextDate.toISOString().split('T')[0];
                     } else {
-                        document.getElementById('day-date-input').valueAsDate = new Date();    
+                        document.getElementById('day-date-input').valueAsDate = new Date();     
                     }
                 } else {
                     document.getElementById('day-date-input').valueAsDate = new Date();
@@ -874,38 +1159,42 @@
                 if (!auth.currentUser) {
                     await signInAnonymously(auth);
                 }
+
                 activeSecretKey = names.display;
                 daysColName = names.days;
                 notesColName = names.notes;
-                logsColName = names.logs; // Set logs collection name
+                logsColName = names.logs; 
+                expensesColName = names.expenses; // Set expenses collection
                 
-                document.getElementById('app-id-display').textContent = appId.substring(0, 8); // Show simplified ID
+                document.getElementById('app-id-display').textContent = appId.substring(0, 8); 
                 document.getElementById('current-key-display').textContent = activeSecretKey;
                 document.getElementById('login-view').classList.add('hidden');
                 
                 document.getElementById('days-view').classList.remove('hidden');
-                document.getElementById('bottom-nav').classList.remove('hidden'); // Show NAV
+                document.getElementById('bottom-nav').classList.remove('hidden'); 
                 
                 document.getElementById('logout-btn').classList.remove('hidden');
                 document.getElementById('export-btn').classList.remove('hidden');
-                document.getElementById('logs-btn').classList.remove('hidden'); // Show logs button
+                document.getElementById('logs-btn').classList.remove('hidden'); 
 
-                logAccess(); // Log this access
+                // RESTORE RATE FROM LOCALSTORAGE
+                const savedRate = localStorage.getItem(`rate_${activeSecretKey}`);
+                if(savedRate) {
+                    currentExchangeRate = parseFloat(savedRate);
+                    document.getElementById('global-exchange-rate').value = currentExchangeRate;
+                }
+
+                logAccess(); 
                 loadDays();
             } catch(e) { 
                 console.error(e);
-                if (e.code === 'auth/operation-not-allowed') {
-                    alert("Errore: Devi abilitare 'Anonimo' nella sezione Authentication della console Firebase.");
-                } else {
-                    document.getElementById('login-error').textContent = "Errore di accesso: " + e.message;
-                    document.getElementById('login-error').classList.remove('hidden');
-                }
+                document.getElementById('login-error').textContent = "Errore di accesso: " + e.message;
+                document.getElementById('login-error').classList.remove('hidden');
             } 
             finally { document.getElementById('login-btn').classList.remove('hidden'); document.getElementById('auth-loader').classList.add('hidden'); }
         };
         document.getElementById('login-btn').addEventListener('click', login);
         
-        // --- ADD ENTER KEY LISTENER FOR LOGIN ---
         document.getElementById('secret-key-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') login();
         });
@@ -994,7 +1283,6 @@
                     list.appendChild(card);
                 });
 
-                // UPDATE SUMMARY VIEW AS WELL
                 const elSummDrive = document.getElementById('summ-view-drive');
                 if(elSummDrive) elSummDrive.textContent = minsToTimeStr(gDrive);
                 const elSummMiles = document.getElementById('summ-view-miles');
@@ -1002,13 +1290,11 @@
                 const elSummKm = document.getElementById('summ-view-km');
                 if(elSummKm) elSummKm.textContent = `${gKm.toFixed(0)} km`;
                 
-                // FIX: Update new counters
                 const elStates = document.getElementById('summ-view-states');
                 if(elStates) elStates.textContent = statesSet.size;
                 const elStages = document.getElementById('summ-view-stages');
                 if(elStages) elStages.textContent = stagesSet.size;
 
-                // Update Chart if visible (or prepare data)
                 updateSummaryChart();
 
             }, (error) => { console.error(error); loading.classList.add('hidden'); });
@@ -1021,7 +1307,6 @@
             document.getElementById('back-btn').classList.remove('hidden');
             document.getElementById('bottom-nav').classList.add('hidden'); 
             
-            // Update Header Title with Day X - State
             document.getElementById('header-title').textContent = `GIORNO ${day.chronoId} - ${day.title || ''}`;
             
             const detailContainer = document.getElementById('day-detail-content');
@@ -1118,7 +1403,7 @@
             const loader = document.getElementById('loading-notes');
             const empty = document.getElementById('empty-notes');
             
-            if(!list) return; // Safety check
+            if(!list) return; 
 
             list.innerHTML = '';
             loader.classList.remove('hidden');
@@ -1136,7 +1421,6 @@
                 
                 notes.forEach(n => {
                     const li = document.createElement('li'); 
-                    // Changed to yellow background
                     li.className = "bg-yellow-100 p-3 rounded-lg text-sm text-stone-800 flex justify-between group shadow-sm border border-yellow-200";
                     li.innerHTML = `<span>${n.text}</span> <button class="text-stone-400 hover:text-red-600 opacity-0 group-hover:opacity-100" onclick="deleteNote('${n.id}')"><i class="ph ph-trash"></i></button>`;
                     list.appendChild(li);
