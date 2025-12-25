@@ -93,7 +93,6 @@
                 </div>
                 
                 <!-- Lista scrollabile -->
-                <!-- AUMENTATO PADDING INFERIORE A pb-32 PER SICUREZZA -->
                 <div class="flex-grow overflow-y-auto p-4 pb-32 custom-scroll" id="days-list-container">
                     <div id="loading-days" class="flex justify-center mt-10"><div class="loader border-t-orange-400"></div></div>
                     <div id="empty-days" class="hidden flex flex-col items-center justify-center mt-20 text-stone-400">
@@ -104,20 +103,19 @@
                 </div>
 
                 <!-- Pulsante flottante -->
-                <button onclick="openModal(null)" class="absolute bottom-24 right-6 bg-orange-400 hover:bg-orange-500 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-20 border-2 border-white">
+                <button onclick="openModal(null)" class="absolute bottom-20 right-6 bg-orange-400 hover:bg-orange-500 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-20 border-2 border-white">
                     <i class="ph ph-plus text-2xl font-bold"></i>
                 </button>
             </div>
 
-            <!-- VIEW 3: Riepilogo Totale (Tab 2) -->
+            <!-- VIEW 3: Riepilogo Totale (Stats) -->
             <div id="summary-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-0 bg-stone-100">
-                <!-- AUMENTATO PADDING INFERIORE A pb-28 -->
                 <div class="flex-grow overflow-y-auto custom-scroll p-4 pb-28"> 
                     <div class="bg-white rounded-2xl shadow-xl p-6 border border-stone-200 w-full mb-6">
                         <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
                             <div>
-                                <h2 class="text-2xl font-bold text-stone-800">Riepilogo Totale</h2>
-                                <p class="text-sm text-stone-400">Statistiche del tuo viaggio</p>
+                                <h2 class="text-2xl font-bold text-stone-800">Riepilogo Viaggio</h2>
+                                <p class="text-sm text-stone-400">Statistiche generali</p>
                             </div>
                             <div class="bg-orange-100 p-3 rounded-full text-orange-500">
                                 <i class="ph-fill ph-chart-pie-slice text-2xl"></i>
@@ -165,7 +163,6 @@
                     <!-- CHART SECTION -->
                     <div class="bg-white rounded-2xl shadow-xl p-4 border border-stone-200 w-full mb-6">
                         <h3 class="text-sm font-bold text-stone-600 uppercase mb-4 pl-2 border-l-4 border-orange-400">Analisi Giornaliera</h3>
-                        <!-- Adjusted height for horizontal bar chart -->
                         <div class="h-96 w-full">
                             <canvas id="activityChart"></canvas>
                         </div>
@@ -175,16 +172,14 @@
                         </p>
                     </div>
 
-                    <!-- HIGHLIGHTS SECTION (New) -->
+                    <!-- HIGHLIGHTS SECTION -->
                     <div class="grid grid-cols-2 gap-4 w-full">
-                        <!-- Giorno più Intenso -->
                         <div class="bg-red-50 p-4 rounded-xl border border-red-100 flex flex-col items-center text-center shadow-sm">
                             <div class="bg-red-100 text-red-500 p-2 rounded-full mb-2"><i class="ph-fill ph-fire text-xl"></i></div>
                             <span class="text-[10px] font-bold text-stone-500 uppercase">Giorno Più Intenso</span>
                             <div class="font-bold text-red-600 text-lg mt-1" id="high-intense-day">--</div>
                             <div class="text-xs text-stone-400 font-mono" id="high-intense-val">--</div>
                         </div>
-                        <!-- Giorno più Guida -->
                         <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 flex flex-col items-center text-center shadow-sm">
                             <div class="bg-amber-100 text-amber-500 p-2 rounded-full mb-2"><i class="ph-fill ph-steering-wheel text-xl"></i></div>
                             <span class="text-[10px] font-bold text-stone-500 uppercase">Più Ore Auto</span>
@@ -195,73 +190,86 @@
                 </div>
             </div>
 
-            <!-- VIEW 5: SPESE (Tab 3) -->
+            <!-- VIEW 5: SPESE LISTA (Tab 3) -->
             <div id="expenses-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10">
-                <!-- Totale Card -->
-                <div class="bg-white p-4 shadow-md border-b border-stone-200 z-20 transition-all">
-                    <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex justify-between items-center mb-2">
-                        <div>
-                            <span class="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">Totale Spese</span>
-                            <div class="flex items-baseline gap-2">
-                                <h2 class="text-3xl font-black text-emerald-600" id="total-expenses">0.00 <span class="text-lg">€</span></h2>
-                                <span class="text-xs text-emerald-400 font-mono" id="total-expenses-usd">(0.00 $)</span>
-                            </div>
-                        </div>
-                        <div class="bg-white p-3 rounded-full text-emerald-500 shadow-sm">
-                            <i class="ph-fill ph-wallet text-2xl"></i>
-                        </div>
-                    </div>
-                    
-                    <!-- NEW: Conversion Rate Input -->
-                    <div class="flex items-center justify-end gap-2 text-xs text-stone-500 bg-stone-50 p-2 rounded-lg border border-stone-100">
-                        <span class="font-bold">Tasso cambio:</span>
-                        <span>1 € = </span>
-                        <input type="number" step="0.01" id="global-exchange-rate" class="w-16 p-1 border border-stone-300 rounded text-center font-mono font-bold text-stone-700 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400" value="1.05">
-                        <span class="font-bold">$</span>
+                <!-- Header Colonne Lista - ADDED ID -->
+                <div id="expenses-header" class="bg-white p-3 shadow-sm border-b border-stone-200 z-20 flex justify-between text-[10px] uppercase font-bold text-stone-400">
+                    <span class="w-1/3">Voce</span>
+                    <div class="flex gap-4 w-2/3 justify-end pr-14">
+                        <span>Euro (€)</span>
+                        <span>USD ($)</span>
                     </div>
                 </div>
 
                 <!-- Lista Spese -->
-                <!-- AUMENTATO PADDING INFERIORE A pb-48 (12rem) PER COMPENSARE INPUT E NAV -->
-                <div class="flex-grow overflow-y-auto p-4 custom-scroll" id="expenses-list-container">
+                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-32" id="expenses-list-container">
                     <div id="loading-expenses" class="hidden flex justify-center mt-10"><div class="loader border-t-emerald-400"></div></div>
                     <div id="empty-expenses" class="hidden flex flex-col items-center justify-center mt-10 text-stone-400">
                         <i class="ph ph-receipt text-5xl mb-3 text-stone-300"></i>
                         <p class="text-sm">Nessuna spesa registrata.</p>
                     </div>
-                    
-                    <div id="expenses-header" class="hidden flex justify-between px-3 mb-2 text-[10px] uppercase font-bold text-stone-400">
-                        <span class="w-1/3">Voce</span>
-                        <div class="flex gap-4 w-2/3 justify-end pr-14">
-                            <span>Euro (€)</span>
-                            <span>USD ($)</span>
-                        </div>
-                    </div>
-
-                    <!-- Il padding è gestito dal container padre ora, ma tengo spazio safe qui -->
-                    <div id="expenses-list" class="space-y-2 pb-48"></div>
+                    <div id="expenses-list" class="space-y-2"></div>
                 </div>
 
                 <!-- Input Bar (Fixed Bottom) -->
-                <!-- POSIZIONATO A bottom-16 (sopra la nav) -->
-                <div class="absolute bottom-16 left-0 w-full bg-white p-3 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 flex gap-2 items-center">
-                    <input type="text" id="expense-name-input" class="flex-grow p-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-sm" placeholder="Voce spesa..." autocomplete="off">
+                <div class="absolute bottom-12 left-0 w-full bg-white p-2 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 flex gap-2 items-center">
+                    <input type="text" id="expense-name-input" class="flex-grow p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Voce spesa..." autocomplete="off">
                     
-                    <!-- Euro Input -->
-                    <div class="relative w-20 flex-shrink-0">
-                        <input type="number" step="0.01" id="expense-amount-input" class="w-full p-3 pl-6 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-sm font-mono" placeholder="0">
-                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-stone-400 text-xs">€</span>
+                    <!-- Moltiplicatore (Qtà) -->
+                    <div class="relative w-12 flex-shrink-0">
+                        <label class="absolute -top-2 left-1 text-[8px] text-stone-400 font-bold bg-white px-1">Qtà</label>
+                        <input type="number" id="expense-qty-input" min="1" max="20" value="1" class="w-full p-2 text-center rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-bold text-stone-600">
                     </div>
 
-                    <!-- Dollar Input -->
-                    <div class="relative w-20 flex-shrink-0">
-                        <input type="number" step="0.01" id="expense-amount-usd-input" class="w-full p-3 pl-6 rounded-xl border border-stone-200 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-sm font-mono bg-stone-50" placeholder="0">
-                        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-stone-400 text-xs">$</span>
+                    <div class="relative w-16 flex-shrink-0">
+                        <input type="number" step="0.01" id="expense-amount-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono" placeholder="0">
+                        <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">€</span>
                     </div>
 
-                    <button id="add-expense-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white p-3 rounded-xl shadow-md active:scale-95 transition-transform flex-shrink-0">
-                        <i class="ph ph-plus text-xl font-bold"></i>
+                    <div class="relative w-16 flex-shrink-0">
+                        <input type="number" step="0.01" id="expense-amount-usd-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono bg-stone-50" placeholder="0">
+                        <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">$</span>
+                    </div>
+
+                    <button id="add-expense-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg shadow-md active:scale-95 transition-transform flex-shrink-0">
+                        <i class="ph ph-plus text-lg font-bold"></i>
                     </button>
+                </div>
+            </div>
+
+            <!-- VIEW 6: BUDGET / TOTALI (Tab 4) -->
+            <div id="budget-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10 p-6 overflow-y-auto pb-24">
+                <div class="bg-white p-6 rounded-2xl shadow-xl border border-stone-200">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="p-3 bg-emerald-100 rounded-full text-emerald-600"><i class="ph-fill ph-wallet text-2xl"></i></div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-stone-800">Totale Spese</h2>
+                            <p class="text-xs text-stone-400">Riepilogo finanziario</p>
+                        </div>
+                    </div>
+
+                    <!-- Totale Euro -->
+                    <div class="mb-4">
+                        <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Totale in Euro</span>
+                        <div class="text-4xl font-black text-emerald-600 mt-1" id="total-expenses">0.00 <span class="text-2xl">€</span></div>
+                    </div>
+
+                    <!-- Totale Dollari -->
+                    <div class="mb-6 pb-6 border-b border-stone-100">
+                        <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Totale in Dollari</span>
+                        <div class="text-2xl font-bold text-stone-600 mt-1 font-mono" id="total-expenses-usd">0.00 $</div>
+                    </div>
+
+                    <!-- Tasso Cambio -->
+                    <div>
+                        <label class="block text-xs font-bold text-stone-500 uppercase mb-2">Tasso di Cambio Attuale</label>
+                        <div class="flex items-center gap-3 bg-stone-50 p-3 rounded-xl border border-stone-200">
+                            <span class="font-bold text-stone-700">1 € = </span>
+                            <input type="number" step="0.01" id="global-exchange-rate" class="w-24 p-2 text-center font-mono font-bold text-lg border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400" value="1.05">
+                            <span class="font-bold text-stone-700">$</span>
+                        </div>
+                        <p class="text-[10px] text-stone-400 mt-2 text-center">Modifica il tasso per aggiornare tutti i valori in $.</p>
+                    </div>
                 </div>
             </div>
 
@@ -281,20 +289,25 @@
         </main>
 
         <!-- BOTTOM TAB BAR (Navigation) -->
-        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full max-w-md z-20 flex justify-between items-center h-16 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden pb-safe">
-            <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/3 h-full text-orange-500 transition-colors">
-                <i class="ph-fill ph-calendar-blank text-2xl mb-1"></i>
-                <span class="text-[10px] font-bold uppercase tracking-wider">Diario</span>
+        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full max-w-md z-20 flex justify-between items-center h-12 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden pb-safe">
+            <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/4 h-full text-orange-500 transition-colors">
+                <i class="ph-fill ph-calendar-blank text-xl mb-0.5"></i>
+                <span class="text-[9px] font-bold uppercase tracking-wider">Diario</span>
             </button>
             
-            <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/3 h-full text-stone-400 hover:text-stone-600 transition-colors">
-                <i class="ph-bold ph-chart-pie-slice text-2xl mb-1"></i>
-                <span class="text-[10px] font-bold uppercase tracking-wider">Riepilogo</span>
+            <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/4 h-full text-stone-400 hover:text-stone-600 transition-colors">
+                <i class="ph-bold ph-chart-pie-slice text-xl mb-0.5"></i>
+                <span class="text-[9px] font-bold uppercase tracking-wider">Riepilogo</span>
             </button>
 
-            <button onclick="switchTab('expenses')" id="tab-expenses" class="flex flex-col items-center justify-center w-1/3 h-full text-stone-400 hover:text-emerald-600 transition-colors">
-                <i class="ph-bold ph-wallet text-2xl mb-1"></i>
-                <span class="text-[10px] font-bold uppercase tracking-wider">Spese</span>
+            <button onclick="switchTab('expenses')" id="tab-expenses" class="flex flex-col items-center justify-center w-1/4 h-full text-stone-400 hover:text-emerald-600 transition-colors">
+                <i class="ph-bold ph-receipt text-xl mb-0.5"></i>
+                <span class="text-[9px] font-bold uppercase tracking-wider">Spese</span>
+            </button>
+
+            <button onclick="switchTab('budget')" id="tab-budget" class="flex flex-col items-center justify-center w-1/4 h-full text-stone-400 hover:text-emerald-600 transition-colors">
+                <i class="ph-bold ph-wallet text-xl mb-0.5"></i>
+                <span class="text-[9px] font-bold uppercase tracking-wider">Totali</span>
             </button>
         </nav>
 
@@ -311,7 +324,6 @@
                     <button onclick="document.getElementById('logs-modal').classList.add('hidden')" class="p-2 hover:bg-stone-200 rounded-full text-stone-500"><i class="ph ph-x text-xl"></i></button>
                 </div>
                 <div class="flex-grow overflow-y-auto p-4" id="logs-list">
-                    <!-- Logs injected here -->
                     <div class="text-center text-stone-400 text-sm mt-10">Caricamento...</div>
                 </div>
             </div>
@@ -345,6 +357,11 @@
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-2">
                             <label class="text-sm font-bold text-orange-500 uppercase flex items-center gap-1"><i class="ph ph-flag-checkered"></i> Tappe & Percorso</label>
+                            <!-- NEW TOGGLE -->
+                            <label class="flex items-center gap-1 cursor-pointer">
+                                <span class="text-[10px] font-bold text-stone-400">USA MIGLIA</span>
+                                <input type="checkbox" id="use-miles-toggle" class="form-checkbox h-4 w-4 text-orange-500 rounded border-gray-300 focus:ring-orange-500" checked>
+                            </label>
                         </div>
                         <div id="stages-container" class="space-y-4 mb-4"></div>
                         <button onclick="addStageUI()" class="w-full py-3 bg-orange-50 border-2 border-dashed border-orange-200 rounded-xl text-orange-500 font-bold hover:bg-orange-100 transition-colors flex items-center justify-center gap-2">
@@ -415,7 +432,7 @@
         let unsubscribeExpenses = null; 
         let currentStages = []; 
         let cachedDays = []; 
-        let cachedExpenses = []; // Cache for local conversion without refetch
+        let cachedExpenses = []; 
         let activityChart = null; 
         let currentExchangeRate = 1.05; // Default
 
@@ -684,14 +701,14 @@
 
                 if(cachedExpenses.length === 0) { 
                     empty.classList.remove('hidden'); 
-                    header.classList.add('hidden');
+                    if(header) header.classList.add('hidden'); // Safety check
                     updateTotalExpenses(0);
                     list.innerHTML = '';
                     return; 
                 }
                 
                 empty.classList.add('hidden');
-                header.classList.remove('hidden');
+                if(header) header.classList.remove('hidden'); // Safety check
                 renderExpensesList();
 
             }, (err) => { console.error(err); loading.classList.add('hidden'); });
@@ -704,9 +721,17 @@
             let totalEur = 0;
 
             cachedExpenses.forEach(data => {
+                const qty = data.qty || 1; // Default to 1 if missing
                 const amountEur = parseFloat(data.amount || 0);
                 const amountUsd = amountEur * currentExchangeRate;
-                totalEur += amountEur;
+                
+                // Add total cost (unit * qty) to overall total
+                totalEur += (amountEur * qty);
+
+                // Badge for QTY if > 1
+                const qtyBadge = qty > 1 
+                    ? `<span class="text-[10px] bg-stone-100 text-stone-500 font-bold px-1.5 py-0.5 rounded ml-1 border border-stone-200">x${qty}</span>` 
+                    : '';
 
                 const row = document.createElement('div');
                 row.className = "flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm hover:shadow-md transition-shadow group";
@@ -717,11 +742,11 @@
                     </div>
                     <div class="flex items-center gap-3">
                         <div class="flex gap-4 text-right">
-                            <span class="font-mono font-bold text-emerald-600 w-16">${amountEur.toFixed(2)} €</span>
+                            <span class="font-mono font-bold text-emerald-600 w-16 flex justify-end items-center">${amountEur.toFixed(2)} € ${qtyBadge}</span>
                             <span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>
                         </div>
                         <div class="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                            <button onclick="enableEditMode('${data.id}', '${data.name.replace(/'/g, "\\'")}', ${amountEur})" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button onclick="enableEditMode('${data.id}', '${data.name.replace(/'/g, "\\'")}', ${amountEur}, ${qty})" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
                             <button onclick="deleteExpense('${data.id}')" class="p-1.5 text-stone-400 hover:text-red-500 rounded hover:bg-red-50"><i class="ph-bold ph-trash"></i></button>
                         </div>
                     </div>
@@ -734,8 +759,8 @@
         const updateTotalExpenses = (totalEur) => {
             const totalEl = document.getElementById('total-expenses');
             const totalElUsd = document.getElementById('total-expenses-usd');
-            totalEl.innerHTML = `${totalEur.toFixed(2)} <span class="text-lg">€</span>`;
-            if(totalElUsd) totalElUsd.textContent = `(${(totalEur * currentExchangeRate).toFixed(2)} $)`;
+            if(totalEl) totalEl.innerHTML = `${totalEur.toFixed(2)} <span class="text-2xl">€</span>`;
+            if(totalElUsd) totalElUsd.textContent = `${(totalEur * currentExchangeRate).toFixed(2)} $`;
         };
 
         // Auto Conversion Logic for Input Bar
@@ -762,18 +787,21 @@
 
         window.addExpense = async () => {
             const nameIn = document.getElementById('expense-name-input');
+            const qtyIn = document.getElementById('expense-qty-input');
             const name = nameIn.value.trim();
             const amount = parseFloat(eurInput.value); // Always save in EUR
+            const qty = parseInt(qtyIn.value) || 1;
 
             if(!name || isNaN(amount)) return;
             
             nameIn.value = ''; 
             eurInput.value = '';
             usdInput.value = '';
+            qtyIn.value = '1'; // Reset qty
             
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), {
-                    name, amount, createdAt: serverTimestamp()
+                    name, amount, qty, createdAt: serverTimestamp()
                 });
             } catch(e) { console.error(e); alert("Errore aggiunta spesa"); }
         };
@@ -785,7 +813,7 @@
             }
         };
 
-        window.enableEditMode = (id, currentName, currentAmountEur) => {
+        window.enableEditMode = (id, currentName, currentAmountEur, currentQty) => {
             const row = document.getElementById(`row-${id}`);
             if(!row) return;
             
@@ -795,6 +823,9 @@
                 <div class="flex gap-2 w-full items-center flex-wrap sm:flex-nowrap bg-stone-50 p-2 rounded">
                     <input type="text" id="edit-name-${id}" value="${currentName}" class="flex-grow p-2 rounded border border-stone-300 text-sm focus:border-emerald-400 focus:outline-none w-full sm:w-auto">
                     <div class="flex gap-2 w-full sm:w-auto">
+                        <div class="relative w-12 flex-shrink-0">
+                            <input type="number" id="edit-qty-${id}" value="${currentQty}" min="1" class="w-full p-2 text-center rounded border border-stone-300 text-sm font-bold text-stone-600 focus:border-emerald-400 focus:outline-none">
+                        </div>
                         <div class="relative w-20">
                             <input type="number" step="0.01" id="edit-eur-${id}" value="${currentAmountEur}" oninput="syncEditCurrency('${id}', 'eur')" class="w-full p-2 pl-5 rounded border border-stone-300 text-sm font-mono focus:border-emerald-400 focus:outline-none">
                             <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">€</span>
@@ -806,7 +837,7 @@
                     </div>
                     <div class="flex gap-1 ml-auto">
                         <button onclick="saveExpenseEdit('${id}')" class="p-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 shadow-sm"><i class="ph-bold ph-check"></i></button>
-                        <button onclick="cancelExpenseEdit('${id}', '${currentName.replace(/'/g, "\\'")}', ${currentAmountEur})" class="p-2 text-stone-400 hover:bg-stone-200 rounded"><i class="ph-bold ph-x"></i></button>
+                        <button onclick="cancelExpenseEdit('${id}', '${currentName.replace(/'/g, "\\'")}', ${currentAmountEur}, ${currentQty})" class="p-2 text-stone-400 hover:bg-stone-200 rounded"><i class="ph-bold ph-x"></i></button>
                     </div>
                 </div>
             `;
@@ -830,30 +861,35 @@
         window.saveExpenseEdit = async (id) => {
             const newName = document.getElementById(`edit-name-${id}`).value.trim();
             const newAmountEur = parseFloat(document.getElementById(`edit-eur-${id}`).value);
+            const newQty = parseInt(document.getElementById(`edit-qty-${id}`).value) || 1;
             
             if(!newName || isNaN(newAmountEur)) return;
 
             try {
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id), {
-                    name: newName, amount: newAmountEur
+                    name: newName, amount: newAmountEur, qty: newQty
                 });
             } catch(e) { console.error(e); alert("Errore modifica"); }
         };
         
-        window.cancelExpenseEdit = (id, name, amountEur) => {
+        window.cancelExpenseEdit = (id, name, amountEur, qty) => {
              const amountUsd = amountEur * currentExchangeRate;
              const row = document.getElementById(`row-${id}`);
+             const qtyBadge = qty > 1 
+                    ? `<span class="text-[10px] bg-stone-100 text-stone-500 font-bold px-1.5 py-0.5 rounded ml-1 border border-stone-200">x${qty}</span>` 
+                    : '';
+
              row.innerHTML = `
                 <div class="flex-grow pr-2">
                     <div class="font-bold text-stone-700 text-sm break-words">${name}</div>
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="flex gap-4 text-right">
-                        <span class="font-mono font-bold text-emerald-600 w-16">${amountEur.toFixed(2)} €</span>
+                        <span class="font-mono font-bold text-emerald-600 w-16 flex justify-end items-center">${amountEur.toFixed(2)} € ${qtyBadge}</span>
                         <span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>
                     </div>
                     <div class="flex gap-1">
-                        <button onclick="enableEditMode('${id}', '${name.replace(/'/g, "\\'")}', ${amountEur})" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
+                        <button onclick="enableEditMode('${id}', '${name.replace(/'/g, "\\'")}', ${amountEur}, ${qty})" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
                         <button onclick="deleteExpense('${id}')" class="p-1.5 text-stone-400 hover:text-red-500 rounded hover:bg-red-50"><i class="ph-bold ph-trash"></i></button>
                     </div>
                 </div>
@@ -866,20 +902,22 @@
             const daysView = document.getElementById('days-view');
             const summaryView = document.getElementById('summary-view');
             const expensesView = document.getElementById('expenses-view'); 
+            const budgetView = document.getElementById('budget-view'); // NEW
             
             const tabDays = document.getElementById('tab-days');
             const tabSummary = document.getElementById('tab-summary');
             const tabExpenses = document.getElementById('tab-expenses');
+            const tabBudget = document.getElementById('tab-budget'); // NEW
 
             // Helper to reset tabs
             const resetTabs = () => {
-                [tabDays, tabSummary, tabExpenses].forEach(t => {
+                [tabDays, tabSummary, tabExpenses, tabBudget].forEach(t => {
                     t.classList.add('text-stone-400');
                     t.classList.remove('text-orange-500', 'text-emerald-600');
                     t.querySelector('i').classList.add('ph-bold');
                     t.querySelector('i').classList.remove('ph-fill');
                 });
-                [daysView, summaryView, expensesView].forEach(v => v.classList.add('hidden'));
+                [daysView, summaryView, expensesView, budgetView].forEach(v => v.classList.add('hidden'));
             };
             
             resetTabs();
@@ -904,6 +942,14 @@
                 tabExpenses.querySelector('i').classList.remove('ph-bold');
                 tabExpenses.querySelector('i').classList.add('ph-fill');
                 // Ensure listener is active
+                if(!unsubscribeExpenses && expensesColName) loadExpenses();
+            } else if (tabName === 'budget') {
+                budgetView.classList.remove('hidden');
+                tabBudget.classList.remove('text-stone-400');
+                tabBudget.classList.add('text-emerald-600'); 
+                tabBudget.querySelector('i').classList.remove('ph-bold');
+                tabBudget.querySelector('i').classList.add('ph-fill');
+                // Ensure listener is active so totals are correct
                 if(!unsubscribeExpenses && expensesColName) loadExpenses();
             }
         };
@@ -1001,7 +1047,12 @@
                         if(diff < 0) diff += 1440; 
                         stage.driveTime = Math.max(0, diff - p);
                     }
-                    if(field === 'miles') stage.km = (parseFloat(value) * 1.60934).toFixed(1);
+                    if(field === 'miles') {
+                         stage.km = (parseFloat(value) * 1.60934).toFixed(1);
+                    }
+                    if(field === 'km') {
+                         stage.miles = (parseFloat(value) / 1.60934).toFixed(1);
+                    }
                 } 
 
                 if (field === 'end') recalculateCascade(index);
@@ -1058,12 +1109,15 @@
 
         const renderStages = () => {
             const container = document.getElementById('stages-container');
+            const useMiles = document.getElementById('use-miles-toggle')?.checked ?? true; 
+
             container.innerHTML = '';
             currentStages.forEach((stage, index) => {
                 const div = document.createElement('div');
                 div.className = "bg-stone-50 border border-stone-200 rounded-lg p-3 relative group";
                 
                 const autoDetailsClass = stage.isVisit ? 'hidden' : 'grid';
+                const milesInputDisplay = useMiles ? 'block' : 'none';
 
                 div.innerHTML = `
                     <button onclick="removeStage(${stage.id})" class="absolute top-2 right-2 text-stone-300 hover:text-red-500 transition-colors"><i class="ph ph-trash"></i></button>
@@ -1089,8 +1143,11 @@
                     </div>
                     
                     <div class="${autoDetailsClass} grid-cols-4 gap-2 items-center bg-white p-2 rounded border border-stone-200 transition-all duration-300">
-                        <div class="col-span-1"><label class="text-[10px] uppercase text-stone-400">Miglia</label><input type="number" step="0.1" value="${stage.miles}" onchange="updateStageField(${stage.id}, 'miles', this.value)" class="w-full text-sm font-bold border-b border-stone-200 focus:outline-none text-orange-500"></div>
-                        <div class="col-span-1 text-center border-l border-stone-100"><label class="text-[10px] uppercase text-stone-400">Km</label><div class="text-sm font-bold text-stone-600">${stage.km || 0}</div></div>
+                        <div class="col-span-1" style="display: ${milesInputDisplay}"><label class="text-[10px] uppercase text-stone-400">Miglia</label><input type="number" step="0.1" value="${stage.miles}" onchange="updateStageField(${stage.id}, 'miles', this.value)" class="w-full text-sm font-bold border-b border-stone-200 focus:outline-none text-orange-500"></div>
+                        <div class="col-span-${useMiles ? '1' : '2'} text-center border-l border-stone-100">
+                            <label class="text-[10px] uppercase text-stone-400">Km</label>
+                            <input type="number" step="0.1" value="${stage.km}" onchange="updateStageField(${stage.id}, 'km', this.value)" class="w-full text-sm font-bold border-b border-transparent focus:border-stone-200 focus:outline-none text-stone-600 text-center bg-transparent">
+                        </div>
                         <div class="col-span-2 text-right"><label class="text-[10px] uppercase text-stone-400">Ore Auto</label><div class="text-sm font-bold text-green-600">${minsToTimeStr(stage.driveTime || 0)}</div></div>
                     </div>
 
@@ -1136,6 +1193,13 @@
                 currentStages = [];
             }
             renderStages();
+            
+            // Add listener here to ensure element exists when modal is open
+            const toggle = document.getElementById('use-miles-toggle');
+            if(toggle) {
+                toggle.onchange = () => renderStages();
+            }
+            
             calculateTotals();
         };
         window.closeModal = () => document.getElementById('day-modal').classList.add('hidden');
@@ -1402,7 +1466,7 @@
             document.getElementById('days-view').classList.remove('hidden');
             document.getElementById('notes-view').classList.add('hidden');
             document.getElementById('back-btn').classList.remove('hidden');
-            document.getElementById('bottom-nav').classList.remove('hidden'); // Show Nav back
+            document.getElementById('bottom-nav').classList.remove('hidden'); 
             document.getElementById('header-title').textContent = "Travel Planner";
             if(unsubscribeNotes) unsubscribeNotes();
         };
