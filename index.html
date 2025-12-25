@@ -31,8 +31,8 @@
 </head>
 <body class="bg-stone-50 text-stone-700 font-sans h-screen overflow-hidden flex flex-col">
 
-    <!-- App Container -->
-    <div class="max-w-md mx-auto w-full h-full bg-white shadow-2xl relative flex flex-col border-x border-stone-200">
+    <!-- App Container (Full Width) -->
+    <div class="w-full h-full bg-white shadow-2xl relative flex flex-col">
         
         <!-- Header -->
         <header class="bg-orange-400 text-white p-4 shadow-md z-20 flex items-center justify-between transition-colors duration-300" id="main-header">
@@ -72,16 +72,16 @@
                 <h2 class="text-2xl font-bold mb-2 text-stone-800">Travel Planner</h2>
                 <p class="text-stone-500 mb-6 text-sm">Accedi con la tua chiave segreta.</p>
                 
-                <div class="w-full max-w-xs mb-4 relative">
+                <div class="w-full max-w-xs mb-4 relative mx-auto">
                     <input type="text" id="secret-key-input" class="w-full p-4 pl-12 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none font-bold text-stone-700 tracking-wide placeholder-stone-400" placeholder="es. USA2025">
                     <i class="ph ph-key absolute left-4 top-1/2 transform -translate-y-1/2 text-stone-400 text-xl"></i>
                 </div>
                 
-                <button id="login-btn" class="bg-orange-400 hover:bg-orange-500 text-white w-full max-w-xs py-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 mb-4 transition-transform active:scale-95">
+                <button id="login-btn" class="bg-orange-400 hover:bg-orange-500 text-white w-full max-w-xs py-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 mb-4 transition-transform active:scale-95 mx-auto">
                     <span>Entra</span> <i class="ph ph-arrow-right"></i>
                 </button>
 
-                <div id="auth-loader" class="hidden loader border-t-orange-400 mt-4"></div>
+                <div id="auth-loader" class="hidden loader border-t-orange-400 mt-4 mx-auto"></div>
                 <p id="login-error" class="hidden text-red-500 text-sm mt-2"></p>
             </div>
 
@@ -99,7 +99,7 @@
                         <i class="ph ph-road-horizon text-5xl mb-3 text-stone-300"></i>
                         <p>Nessun giorno pianificato.</p>
                     </div>
-                    <div id="days-list" class="space-y-3"></div>
+                    <div id="days-list" class="space-y-3 max-w-3xl mx-auto"></div>
                 </div>
 
                 <!-- Pulsante flottante -->
@@ -111,108 +111,109 @@
             <!-- VIEW 3: Riepilogo Totale (Stats) -->
             <div id="summary-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-0 bg-stone-100">
                 <div class="flex-grow overflow-y-auto custom-scroll p-4 pb-28"> 
-                    
-                    <!-- NEW GLOBAL SETTINGS TOGGLES -->
-                    <div class="space-y-3 mb-6">
-                        <!-- Miles Toggle -->
-                        <div class="bg-white rounded-xl p-4 shadow-sm border border-stone-200 flex justify-between items-center">
-                            <div class="flex items-center gap-2">
-                                <i class="ph-bold ph-gear text-stone-400"></i>
-                                <span class="text-sm font-bold text-stone-700">Abilita unità Miglia (USA/UK)</span>
+                    <div class="max-w-4xl mx-auto">
+                        <!-- NEW GLOBAL SETTINGS TOGGLES -->
+                        <div class="space-y-3 mb-6">
+                            <!-- Miles Toggle -->
+                            <div class="bg-white rounded-xl p-4 shadow-sm border border-stone-200 flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph-bold ph-gear text-stone-400"></i>
+                                    <span class="text-sm font-bold text-stone-700">Abilita unità Miglia (USA/UK)</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="global-miles-toggle" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                                </label>
                             </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="global-miles-toggle" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
-                            </label>
-                        </div>
 
-                        <!-- USD Toggle -->
-                        <div class="bg-white rounded-xl p-4 shadow-sm border border-stone-200 flex justify-between items-center">
-                            <div class="flex items-center gap-2">
-                                <i class="ph-bold ph-currency-dollar text-stone-400"></i>
-                                <span class="text-sm font-bold text-stone-700">Abilita valuta USD</span>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="global-usd-toggle" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-2xl shadow-xl p-6 border border-stone-200 w-full mb-6">
-                        <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
-                            <div>
-                                <h2 class="text-2xl font-bold text-stone-800">Riepilogo Viaggio</h2>
-                                <p class="text-sm text-stone-400">Statistiche generali</p>
-                            </div>
-                            <div class="bg-orange-100 p-3 rounded-full text-orange-500">
-                                <i class="ph-fill ph-chart-pie-slice text-2xl"></i>
+                            <!-- USD Toggle -->
+                            <div class="bg-white rounded-xl p-4 shadow-sm border border-stone-200 flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph-bold ph-currency-dollar text-stone-400"></i>
+                                    <span class="text-sm font-bold text-stone-700">Abilita valuta USD</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="global-usd-toggle" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                </label>
                             </div>
                         </div>
 
-                        <!-- NEW ROW: Counts -->
-                        <div class="grid grid-cols-2 gap-4 mb-6">
-                            <!-- Card Stati -->
-                            <div class="bg-purple-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-purple-100">
-                                <div class="bg-purple-100 p-2 rounded-full text-purple-600 mb-2"><i class="ph-bold ph-flag text-xl"></i></div>
-                                <span class="text-[10px] font-bold text-stone-500 uppercase">Stati Visitati</span>
-                                <span class="text-2xl font-black text-purple-600" id="summ-view-states">0</span>
+                        <div class="bg-white rounded-2xl shadow-xl p-6 border border-stone-200 w-full mb-6">
+                            <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
+                                <div>
+                                    <h2 class="text-2xl font-bold text-stone-800">Riepilogo Viaggio</h2>
+                                    <p class="text-sm text-stone-400">Statistiche generali</p>
+                                </div>
+                                <div class="bg-orange-100 p-3 rounded-full text-orange-500">
+                                    <i class="ph-fill ph-chart-pie-slice text-2xl"></i>
+                                </div>
                             </div>
-                            <!-- Card Tappe Uniche -->
-                            <div class="bg-pink-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-pink-100">
-                                <div class="bg-pink-100 p-2 rounded-full text-pink-600 mb-2"><i class="ph-bold ph-map-pin text-xl"></i></div>
-                                <span class="text-[10px] font-bold text-stone-500 uppercase">Luoghi Unici</span>
-                                <span class="text-2xl font-black text-pink-600" id="summ-view-stages">0</span>
+
+                            <!-- NEW ROW: Counts -->
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <!-- Card Stati -->
+                                <div class="bg-purple-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-purple-100">
+                                    <div class="bg-purple-100 p-2 rounded-full text-purple-600 mb-2"><i class="ph-bold ph-flag text-xl"></i></div>
+                                    <span class="text-[10px] font-bold text-stone-500 uppercase">Stati Visitati</span>
+                                    <span class="text-2xl font-black text-purple-600" id="summ-view-states">0</span>
+                                </div>
+                                <!-- Card Tappe Uniche -->
+                                <div class="bg-pink-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-pink-100">
+                                    <div class="bg-pink-100 p-2 rounded-full text-pink-600 mb-2"><i class="ph-bold ph-map-pin text-xl"></i></div>
+                                    <span class="text-[10px] font-bold text-stone-500 uppercase">Luoghi Unici</span>
+                                    <span class="text-2xl font-black text-pink-600" id="summ-view-stages">0</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <!-- Card Auto -->
+                                <div class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center">
+                                    <div class="bg-amber-100 p-3 rounded-full text-amber-600 mb-2"><i class="ph-bold ph-car text-2xl"></i></div>
+                                    <span class="text-xs font-bold text-stone-500 uppercase">Ore Guida</span>
+                                    <span class="text-2xl font-bold text-amber-500" id="summ-view-drive">--</span>
+                                </div>
+                                <!-- Card Miglia (CONDITIONAL) -->
+                                <div id="card-miles-container" class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center">
+                                    <div class="bg-blue-100 p-3 rounded-full text-blue-600 mb-2"><i class="ph-bold ph-signpost text-2xl"></i></div>
+                                    <span class="text-xs font-bold text-stone-500 uppercase">Miglia Totali</span>
+                                    <span class="text-2xl font-bold text-stone-700" id="summ-view-miles">--</span>
+                                </div>
+                                <!-- Card Km -->
+                                <div class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border-l-4 border-green-500">
+                                    <div class="bg-green-100 p-3 rounded-full text-green-600 mb-2"><i class="ph-bold ph-globe text-2xl"></i></div>
+                                    <span class="text-xs font-bold text-stone-500 uppercase">Km Totali</span>
+                                    <span class="text-3xl font-black text-green-600" id="summ-view-km">--</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                            <!-- Card Auto -->
-                            <div class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center">
-                                <div class="bg-amber-100 p-3 rounded-full text-amber-600 mb-2"><i class="ph-bold ph-car text-2xl"></i></div>
-                                <span class="text-xs font-bold text-stone-500 uppercase">Ore Guida</span>
-                                <span class="text-2xl font-bold text-amber-500" id="summ-view-drive">--</span>
+                        <!-- CHART SECTION -->
+                        <div class="bg-white rounded-2xl shadow-xl p-4 border border-stone-200 w-full mb-6">
+                            <h3 class="text-sm font-bold text-stone-600 uppercase mb-4 pl-2 border-l-4 border-orange-400">Analisi Giornaliera</h3>
+                            <div class="h-96 w-full">
+                                <canvas id="activityChart"></canvas>
                             </div>
-                            <!-- Card Miglia (CONDITIONAL) -->
-                            <div id="card-miles-container" class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center">
-                                <div class="bg-blue-100 p-3 rounded-full text-blue-600 mb-2"><i class="ph-bold ph-signpost text-2xl"></i></div>
-                                <span class="text-xs font-bold text-stone-500 uppercase">Miglia Totali</span>
-                                <span class="text-2xl font-bold text-stone-700" id="summ-view-miles">--</span>
-                            </div>
-                            <!-- Card Km -->
-                            <div class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border-l-4 border-green-500">
-                                <div class="bg-green-100 p-3 rounded-full text-green-600 mb-2"><i class="ph-bold ph-globe text-2xl"></i></div>
-                                <span class="text-xs font-bold text-stone-500 uppercase">Km Totali</span>
-                                <span class="text-3xl font-black text-green-600" id="summ-view-km">--</span>
-                            </div>
+                            <p class="text-[10px] text-center text-stone-400 mt-2">
+                                <span class="inline-block w-2 h-2 rounded-full bg-orange-400 mr-1"></span>Ore Guida
+                                <span class="inline-block w-2 h-2 rounded-full bg-stone-400 ml-3 mr-1"></span>Durata Totale Giornata
+                            </p>
                         </div>
-                    </div>
 
-                    <!-- CHART SECTION -->
-                    <div class="bg-white rounded-2xl shadow-xl p-4 border border-stone-200 w-full mb-6">
-                        <h3 class="text-sm font-bold text-stone-600 uppercase mb-4 pl-2 border-l-4 border-orange-400">Analisi Giornaliera</h3>
-                        <div class="h-96 w-full">
-                            <canvas id="activityChart"></canvas>
-                        </div>
-                        <p class="text-[10px] text-center text-stone-400 mt-2">
-                            <span class="inline-block w-2 h-2 rounded-full bg-orange-400 mr-1"></span>Ore Guida
-                            <span class="inline-block w-2 h-2 rounded-full bg-stone-400 ml-3 mr-1"></span>Durata Totale Giornata
-                        </p>
-                    </div>
-
-                    <!-- HIGHLIGHTS SECTION -->
-                    <div class="grid grid-cols-2 gap-4 w-full">
-                        <div class="bg-red-50 p-4 rounded-xl border border-red-100 flex flex-col items-center text-center shadow-sm">
-                            <div class="bg-red-100 text-red-500 p-2 rounded-full mb-2"><i class="ph-fill ph-fire text-xl"></i></div>
-                            <span class="text-[10px] font-bold text-stone-500 uppercase">Giorno Più Intenso</span>
-                            <div class="font-bold text-red-600 text-lg mt-1" id="high-intense-day">--</div>
-                            <div class="text-xs text-stone-400 font-mono" id="high-intense-val">--</div>
-                        </div>
-                        <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 flex flex-col items-center text-center shadow-sm">
-                            <div class="bg-amber-100 text-amber-500 p-2 rounded-full mb-2"><i class="ph-fill ph-steering-wheel text-xl"></i></div>
-                            <span class="text-[10px] font-bold text-stone-500 uppercase">Più Ore Auto</span>
-                            <div class="font-bold text-amber-600 text-lg mt-1" id="high-drive-day">--</div>
-                            <div class="text-xs text-stone-400 font-mono" id="high-drive-val">--</div>
+                        <!-- HIGHLIGHTS SECTION -->
+                        <div class="grid grid-cols-2 gap-4 w-full">
+                            <div class="bg-red-50 p-4 rounded-xl border border-red-100 flex flex-col items-center text-center shadow-sm">
+                                <div class="bg-red-100 text-red-500 p-2 rounded-full mb-2"><i class="ph-fill ph-fire text-xl"></i></div>
+                                <span class="text-[10px] font-bold text-stone-500 uppercase">Giorno Più Intenso</span>
+                                <div class="font-bold text-red-600 text-lg mt-1" id="high-intense-day">--</div>
+                                <div class="text-xs text-stone-400 font-mono" id="high-intense-val">--</div>
+                            </div>
+                            <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 flex flex-col items-center text-center shadow-sm">
+                                <div class="bg-amber-100 text-amber-500 p-2 rounded-full mb-2"><i class="ph-fill ph-steering-wheel text-xl"></i></div>
+                                <span class="text-[10px] font-bold text-stone-500 uppercase">Più Ore Auto</span>
+                                <div class="font-bold text-amber-600 text-lg mt-1" id="high-drive-day">--</div>
+                                <div class="text-xs text-stone-400 font-mono" id="high-drive-val">--</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -321,24 +322,24 @@
         </main>
 
         <!-- BOTTOM TAB BAR (Navigation) -->
-        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full z-20 flex justify-center items-center h-12 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden pb-safe">
-            <div class="flex w-full max-w-4xl">
-                <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/4 h-full text-orange-500 transition-colors">
+        <nav id="bottom-nav" class="bg-white border-t border-stone-200 absolute bottom-0 w-full z-20 flex justify-center items-center h-auto min-h-[3rem] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden pb-safe">
+            <div class="flex w-full">
+                <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/4 py-1 text-orange-500 transition-colors">
                     <i class="ph-fill ph-calendar-blank text-xl mb-0.5"></i>
                     <span class="text-[9px] font-bold uppercase tracking-wider">Diario</span>
                 </button>
                 
-                <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/4 h-full text-stone-400 hover:text-stone-600 transition-colors">
+                <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/4 py-1 text-stone-400 hover:text-stone-600 transition-colors">
                     <i class="ph-bold ph-chart-pie-slice text-xl mb-0.5"></i>
                     <span class="text-[9px] font-bold uppercase tracking-wider">Riepilogo</span>
                 </button>
 
-                <button onclick="switchTab('expenses')" id="tab-expenses" class="flex flex-col items-center justify-center w-1/4 h-full text-stone-400 hover:text-emerald-600 transition-colors">
+                <button onclick="switchTab('expenses')" id="tab-expenses" class="flex flex-col items-center justify-center w-1/4 py-1 text-stone-400 hover:text-emerald-600 transition-colors">
                     <i class="ph-bold ph-receipt text-xl mb-0.5"></i>
                     <span class="text-[9px] font-bold uppercase tracking-wider">Spese</span>
                 </button>
 
-                <button onclick="switchTab('budget')" id="tab-budget" class="flex flex-col items-center justify-center w-1/4 h-full text-stone-400 hover:text-emerald-600 transition-colors">
+                <button onclick="switchTab('budget')" id="tab-budget" class="flex flex-col items-center justify-center w-1/4 py-1 text-stone-400 hover:text-emerald-600 transition-colors">
                     <i class="ph-bold ph-wallet text-xl mb-0.5"></i>
                     <span class="text-[9px] font-bold uppercase tracking-wider">Totali</span>
                 </button>
@@ -560,6 +561,8 @@
                     const date = data.timestamp ? data.timestamp.toDate() : new Date();
                     const formattedDate = date.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
                     
+                    const locationDisplay = data.location || 'N/D';
+
                     const item = document.createElement('div');
                     item.className = "flex justify-between items-center py-3 border-b border-stone-100 last:border-0";
                     item.innerHTML = `
@@ -607,17 +610,20 @@
                     });
 
                     const sortedStages = [...day.stages].sort((a,b) => timeToMins(a.start) - timeToMins(b.start));
-                    const first = sortedStages[0];
-                    const last = sortedStages[sortedStages.length - 1];
-                    const start = timeToMins(first.start);
+                    const start = timeToMins(sortedStages[0].start);
                     let end = 0;
-
-                    if (last.isVisit) {
-                        end = timeToMins(last.start) + timeToMins(last.pause);
+                    
+                    // FIXED: Logic for last stage end time calculation
+                    const lastStage = sortedStages[sortedStages.length - 1];
+                    if (lastStage.isVisit) {
+                         // If last is visit, end = start + pause
+                         end = timeToMins(lastStage.start) + timeToMins(lastStage.pause);
                     } else {
-                        end = timeToMins(last.end);
+                         // If driving, use end time
+                         end = timeToMins(lastStage.end);
                     }
-                    if (end < start) end += 1440;
+                    
+                    if (end < start) end += 1440; // Handle midnight crossing
 
                     dayDurationMins = end - start;
                 }
