@@ -31,8 +31,8 @@
 </head>
 <body class="bg-stone-50 text-stone-700 font-sans h-screen overflow-hidden flex flex-col">
 
-    <!-- App Container -->
-    <div class="max-w-md mx-auto w-full h-full bg-white shadow-2xl relative flex flex-col border-x border-stone-200">
+    <!-- App Container (Full Width/Height) -->
+    <div class="w-full h-full bg-white relative flex flex-col">
         
         <!-- Header -->
         <header class="bg-orange-400 text-white p-4 shadow-md z-20 flex items-center justify-between transition-colors duration-300" id="main-header">
@@ -72,16 +72,16 @@
                 <h2 class="text-2xl font-bold mb-2 text-stone-800">Travel Planner</h2>
                 <p class="text-stone-500 mb-6 text-sm">Accedi con la tua chiave segreta.</p>
                 
-                <div class="w-full max-w-xs mb-4 relative">
+                <div class="w-full max-w-xs mb-4 relative mx-auto">
                     <input type="text" id="secret-key-input" class="w-full p-4 pl-12 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none font-bold text-stone-700 tracking-wide placeholder-stone-400" placeholder="es. USA2025">
                     <i class="ph ph-key absolute left-4 top-1/2 transform -translate-y-1/2 text-stone-400 text-xl"></i>
                 </div>
                 
-                <button id="login-btn" class="bg-orange-400 hover:bg-orange-500 text-white w-full max-w-xs py-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 mb-4 transition-transform active:scale-95">
+                <button id="login-btn" class="bg-orange-400 hover:bg-orange-500 text-white w-full max-w-xs py-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 mb-4 transition-transform active:scale-95 mx-auto">
                     <span>Entra</span> <i class="ph ph-arrow-right"></i>
                 </button>
 
-                <div id="auth-loader" class="hidden loader border-t-orange-400 mt-4"></div>
+                <div id="auth-loader" class="hidden loader border-t-orange-400 mt-4 mx-auto"></div>
                 <p id="login-error" class="hidden text-red-500 text-sm mt-2"></p>
             </div>
 
@@ -99,7 +99,7 @@
                         <i class="ph ph-road-horizon text-5xl mb-3 text-stone-300"></i>
                         <p>Nessun giorno pianificato.</p>
                     </div>
-                    <div id="days-list" class="space-y-3"></div>
+                    <div id="days-list" class="space-y-3 max-w-3xl mx-auto"></div>
                 </div>
 
                 <!-- Pulsante flottante -->
@@ -111,80 +111,109 @@
             <!-- VIEW 3: Riepilogo Totale (Stats) -->
             <div id="summary-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-0 bg-stone-100">
                 <div class="flex-grow overflow-y-auto custom-scroll p-4 pb-28"> 
-                    <div class="bg-white rounded-2xl shadow-xl p-6 border border-stone-200 w-full mb-6">
-                        <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
-                            <div>
-                                <h2 class="text-2xl font-bold text-stone-800">Riepilogo Viaggio</h2>
-                                <p class="text-sm text-stone-400">Statistiche generali</p>
+                    <div class="max-w-4xl mx-auto">
+                        <!-- NEW GLOBAL SETTINGS TOGGLES -->
+                        <div class="space-y-3 mb-6">
+                            <!-- Miles Toggle -->
+                            <div class="bg-white rounded-xl p-4 shadow-sm border border-stone-200 flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph-bold ph-gear text-stone-400"></i>
+                                    <span class="text-sm font-bold text-stone-700">Abilita unità Miglia (USA/UK)</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="global-miles-toggle" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                                </label>
                             </div>
-                            <div class="bg-orange-100 p-3 rounded-full text-orange-500">
-                                <i class="ph-fill ph-chart-pie-slice text-2xl"></i>
+
+                            <!-- USD Toggle -->
+                            <div class="bg-white rounded-xl p-4 shadow-sm border border-stone-200 flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph-bold ph-currency-dollar text-stone-400"></i>
+                                    <span class="text-sm font-bold text-stone-700">Abilita valuta USD</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="global-usd-toggle" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                </label>
                             </div>
                         </div>
 
-                        <!-- NEW ROW: Counts -->
-                        <div class="grid grid-cols-2 gap-4 mb-6">
-                            <!-- Card Stati -->
-                            <div class="bg-purple-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-purple-100">
-                                <div class="bg-purple-100 p-2 rounded-full text-purple-600 mb-2"><i class="ph-bold ph-flag text-xl"></i></div>
-                                <span class="text-[10px] font-bold text-stone-500 uppercase">Stati Visitati</span>
-                                <span class="text-2xl font-black text-purple-600" id="summ-view-states">0</span>
+                        <div class="bg-white rounded-2xl shadow-xl p-6 border border-stone-200 w-full mb-6">
+                            <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
+                                <div>
+                                    <h2 class="text-2xl font-bold text-stone-800">Riepilogo Viaggio</h2>
+                                    <p class="text-sm text-stone-400">Statistiche generali</p>
+                                </div>
+                                <div class="bg-orange-100 p-3 rounded-full text-orange-500">
+                                    <i class="ph-fill ph-chart-pie-slice text-2xl"></i>
+                                </div>
                             </div>
-                            <!-- Card Tappe Uniche -->
-                            <div class="bg-pink-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-pink-100">
-                                <div class="bg-pink-100 p-2 rounded-full text-pink-600 mb-2"><i class="ph-bold ph-map-pin text-xl"></i></div>
-                                <span class="text-[10px] font-bold text-stone-500 uppercase">Luoghi Unici</span>
-                                <span class="text-2xl font-black text-pink-600" id="summ-view-stages">0</span>
+
+                            <!-- NEW ROW: Counts -->
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <!-- Card Stati -->
+                                <div class="bg-purple-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-purple-100">
+                                    <div class="bg-purple-100 p-2 rounded-full text-purple-600 mb-2"><i class="ph-bold ph-flag text-xl"></i></div>
+                                    <span class="text-[10px] font-bold text-stone-500 uppercase">Stati Visitati</span>
+                                    <span class="text-2xl font-black text-purple-600" id="summ-view-states">0</span>
+                                </div>
+                                <!-- Card Tappe Uniche -->
+                                <div class="bg-pink-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-pink-100">
+                                    <div class="bg-pink-100 p-2 rounded-full text-pink-600 mb-2"><i class="ph-bold ph-map-pin text-xl"></i></div>
+                                    <span class="text-[10px] font-bold text-stone-500 uppercase">Luoghi Unici</span>
+                                    <span class="text-2xl font-black text-pink-600" id="summ-view-stages">0</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <!-- Card Auto -->
+                                <div class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center">
+                                    <div class="bg-amber-100 p-3 rounded-full text-amber-600 mb-2"><i class="ph-bold ph-car text-2xl"></i></div>
+                                    <span class="text-xs font-bold text-stone-500 uppercase">Ore Guida</span>
+                                    <span class="text-2xl font-bold text-amber-500" id="summ-view-drive">--</span>
+                                </div>
+                                <!-- Card Miglia (CONDITIONAL) -->
+                                <div id="card-miles-container" class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center">
+                                    <div class="bg-blue-100 p-3 rounded-full text-blue-600 mb-2"><i class="ph-bold ph-signpost text-2xl"></i></div>
+                                    <span class="text-xs font-bold text-stone-500 uppercase">Miglia Totali</span>
+                                    <span class="text-2xl font-bold text-stone-700" id="summ-view-miles">--</span>
+                                </div>
+                                <!-- Card Km -->
+                                <div class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border-l-4 border-green-500">
+                                    <div class="bg-green-100 p-3 rounded-full text-green-600 mb-2"><i class="ph-bold ph-globe text-2xl"></i></div>
+                                    <span class="text-xs font-bold text-stone-500 uppercase">Km Totali</span>
+                                    <span class="text-3xl font-black text-green-600" id="summ-view-km">--</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                            <!-- Card Auto -->
-                            <div class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center">
-                                <div class="bg-amber-100 p-3 rounded-full text-amber-600 mb-2"><i class="ph-bold ph-car text-2xl"></i></div>
-                                <span class="text-xs font-bold text-stone-500 uppercase">Ore Guida</span>
-                                <span class="text-2xl font-bold text-amber-500" id="summ-view-drive">--</span>
+                        <!-- CHART SECTION -->
+                        <div class="bg-white rounded-2xl shadow-xl p-4 border border-stone-200 w-full mb-6">
+                            <h3 class="text-sm font-bold text-stone-600 uppercase mb-4 pl-2 border-l-4 border-orange-400">Analisi Giornaliera</h3>
+                            <div class="h-96 w-full">
+                                <canvas id="activityChart"></canvas>
                             </div>
-                            <!-- Card Miglia -->
-                            <div class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center">
-                                <div class="bg-blue-100 p-3 rounded-full text-blue-600 mb-2"><i class="ph-bold ph-signpost text-2xl"></i></div>
-                                <span class="text-xs font-bold text-stone-500 uppercase">Miglia Totali</span>
-                                <span class="text-2xl font-bold text-stone-700" id="summ-view-miles">--</span>
-                            </div>
-                            <!-- Card Km -->
-                            <div class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border-l-4 border-green-500">
-                                <div class="bg-green-100 p-3 rounded-full text-green-600 mb-2"><i class="ph-bold ph-globe text-2xl"></i></div>
-                                <span class="text-xs font-bold text-stone-500 uppercase">Km Totali</span>
-                                <span class="text-3xl font-black text-green-600" id="summ-view-km">--</span>
-                            </div>
+                            <p class="text-[10px] text-center text-stone-400 mt-2">
+                                <span class="inline-block w-2 h-2 rounded-full bg-orange-400 mr-1"></span>Ore Guida
+                                <span class="inline-block w-2 h-2 rounded-full bg-stone-400 ml-3 mr-1"></span>Durata Totale Giornata
+                            </p>
                         </div>
-                    </div>
 
-                    <!-- CHART SECTION -->
-                    <div class="bg-white rounded-2xl shadow-xl p-4 border border-stone-200 w-full mb-6">
-                        <h3 class="text-sm font-bold text-stone-600 uppercase mb-4 pl-2 border-l-4 border-orange-400">Analisi Giornaliera</h3>
-                        <div class="h-96 w-full">
-                            <canvas id="activityChart"></canvas>
-                        </div>
-                        <p class="text-[10px] text-center text-stone-400 mt-2">
-                            <span class="inline-block w-2 h-2 rounded-full bg-orange-400 mr-1"></span>Ore Guida
-                            <span class="inline-block w-2 h-2 rounded-full bg-stone-400 ml-3 mr-1"></span>Durata Totale Giornata
-                        </p>
-                    </div>
-
-                    <!-- HIGHLIGHTS SECTION -->
-                    <div class="grid grid-cols-2 gap-4 w-full">
-                        <div class="bg-red-50 p-4 rounded-xl border border-red-100 flex flex-col items-center text-center shadow-sm">
-                            <div class="bg-red-100 text-red-500 p-2 rounded-full mb-2"><i class="ph-fill ph-fire text-xl"></i></div>
-                            <span class="text-[10px] font-bold text-stone-500 uppercase">Giorno Più Intenso</span>
-                            <div class="font-bold text-red-600 text-lg mt-1" id="high-intense-day">--</div>
-                            <div class="text-xs text-stone-400 font-mono" id="high-intense-val">--</div>
-                        </div>
-                        <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 flex flex-col items-center text-center shadow-sm">
-                            <div class="bg-amber-100 text-amber-500 p-2 rounded-full mb-2"><i class="ph-fill ph-steering-wheel text-xl"></i></div>
-                            <span class="text-[10px] font-bold text-stone-500 uppercase">Più Ore Auto</span>
-                            <div class="font-bold text-amber-600 text-lg mt-1" id="high-drive-day">--</div>
-                            <div class="text-xs text-stone-400 font-mono" id="high-drive-val">--</div>
+                        <!-- HIGHLIGHTS SECTION -->
+                        <div class="grid grid-cols-2 gap-4 w-full">
+                            <div class="bg-red-50 p-4 rounded-xl border border-red-100 flex flex-col items-center text-center shadow-sm">
+                                <div class="bg-red-100 text-red-500 p-2 rounded-full mb-2"><i class="ph-fill ph-fire text-xl"></i></div>
+                                <span class="text-[10px] font-bold text-stone-500 uppercase">Giorno Più Intenso</span>
+                                <div class="font-bold text-red-600 text-lg mt-1" id="high-intense-day">--</div>
+                                <div class="text-xs text-stone-400 font-mono" id="high-intense-val">--</div>
+                            </div>
+                            <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 flex flex-col items-center text-center shadow-sm">
+                                <div class="bg-amber-100 text-amber-500 p-2 rounded-full mb-2"><i class="ph-fill ph-steering-wheel text-xl"></i></div>
+                                <span class="text-[10px] font-bold text-stone-500 uppercase">Più Ore Auto</span>
+                                <div class="font-bold text-amber-600 text-lg mt-1" id="high-drive-day">--</div>
+                                <div class="text-xs text-stone-400 font-mono" id="high-drive-val">--</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -193,53 +222,55 @@
             <!-- VIEW 5: SPESE LISTA (Tab 3) -->
             <div id="expenses-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10">
                 <!-- Header Colonne Lista - ADDED ID -->
-                <div id="expenses-header" class="bg-white p-3 shadow-sm border-b border-stone-200 z-20 flex justify-between text-[10px] uppercase font-bold text-stone-400">
+                <div id="expenses-header" class="bg-white p-3 shadow-sm border-b border-stone-200 z-20 flex justify-between text-[10px] uppercase font-bold text-stone-400 max-w-4xl mx-auto w-full">
                     <span class="w-1/3">Voce</span>
                     <div class="flex gap-4 w-2/3 justify-end pr-14">
                         <span>Euro (€)</span>
-                        <span>USD ($)</span>
+                        <span id="expenses-header-usd">USD ($)</span> <!-- ADDED ID -->
                     </div>
                 </div>
 
                 <!-- Lista Spese -->
-                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-32" id="expenses-list-container">
+                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-32 w-full" id="expenses-list-container">
                     <div id="loading-expenses" class="hidden flex justify-center mt-10"><div class="loader border-t-emerald-400"></div></div>
                     <div id="empty-expenses" class="hidden flex flex-col items-center justify-center mt-10 text-stone-400">
                         <i class="ph ph-receipt text-5xl mb-3 text-stone-300"></i>
                         <p class="text-sm">Nessuna spesa registrata.</p>
                     </div>
-                    <div id="expenses-list" class="space-y-2"></div>
+                    <div id="expenses-list" class="space-y-2 max-w-4xl mx-auto"></div>
                 </div>
 
                 <!-- Input Bar (Fixed Bottom) -->
-                <div class="absolute bottom-12 left-0 w-full bg-white p-2 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 flex gap-2 items-center">
-                    <input type="text" id="expense-name-input" class="flex-grow p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Voce spesa..." autocomplete="off">
-                    
-                    <!-- Moltiplicatore (Qtà) -->
-                    <div class="relative w-12 flex-shrink-0">
-                        <label class="absolute -top-2 left-1 text-[8px] text-stone-400 font-bold bg-white px-1">Qtà</label>
-                        <input type="number" id="expense-qty-input" min="1" max="20" value="1" class="w-full p-2 text-center rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-bold text-stone-600">
-                    </div>
+                <div class="absolute bottom-12 left-0 w-full bg-white p-2 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
+                    <div class="max-w-4xl mx-auto flex gap-2 items-center">
+                        <input type="text" id="expense-name-input" class="flex-grow p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Voce spesa..." autocomplete="off">
+                        
+                        <!-- Moltiplicatore (Qtà) -->
+                        <div class="relative w-12 flex-shrink-0">
+                            <label class="absolute -top-2 left-1 text-[8px] text-stone-400 font-bold bg-white px-1">Qtà</label>
+                            <input type="number" id="expense-qty-input" min="1" max="20" value="1" class="w-full p-2 text-center rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-bold text-stone-600">
+                        </div>
 
-                    <div class="relative w-16 flex-shrink-0">
-                        <input type="number" step="0.01" id="expense-amount-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono" placeholder="0">
-                        <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">€</span>
-                    </div>
+                        <div class="relative w-16 flex-shrink-0">
+                            <input type="number" step="0.01" id="expense-amount-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono" placeholder="0">
+                            <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">€</span>
+                        </div>
 
-                    <div class="relative w-16 flex-shrink-0">
-                        <input type="number" step="0.01" id="expense-amount-usd-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono bg-stone-50" placeholder="0">
-                        <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">$</span>
-                    </div>
+                        <div id="expenses-input-usd" class="relative w-16 flex-shrink-0"> <!-- ADDED ID -->
+                            <input type="number" step="0.01" id="expense-amount-usd-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono bg-stone-50" placeholder="0">
+                            <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">$</span>
+                        </div>
 
-                    <button id="add-expense-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg shadow-md active:scale-95 transition-transform flex-shrink-0">
-                        <i class="ph ph-plus text-lg font-bold"></i>
-                    </button>
+                        <button id="add-expense-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg shadow-md active:scale-95 transition-transform flex-shrink-0">
+                            <i class="ph ph-plus text-lg font-bold"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- VIEW 6: BUDGET / TOTALI (Tab 4) -->
             <div id="budget-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10 p-6 overflow-y-auto pb-24">
-                <div class="bg-white p-6 rounded-2xl shadow-xl border border-stone-200">
+                <div class="bg-white p-6 rounded-2xl shadow-xl border border-stone-200 max-w-4xl mx-auto w-full">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="p-3 bg-emerald-100 rounded-full text-emerald-600"><i class="ph-fill ph-wallet text-2xl"></i></div>
                         <div>
@@ -254,14 +285,14 @@
                         <div class="text-4xl font-black text-emerald-600 mt-1" id="total-expenses">0.00 <span class="text-2xl">€</span></div>
                     </div>
 
-                    <!-- Totale Dollari -->
-                    <div class="mb-6 pb-6 border-b border-stone-100">
+                    <!-- Totale Dollari (CONDITIONAL) -->
+                    <div id="budget-total-usd" class="mb-6 pb-6 border-b border-stone-100"> <!-- ADDED ID -->
                         <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Totale in Dollari</span>
                         <div class="text-2xl font-bold text-stone-600 mt-1 font-mono" id="total-expenses-usd">0.00 $</div>
                     </div>
 
-                    <!-- Tasso Cambio -->
-                    <div>
+                    <!-- Tasso Cambio (CONDITIONAL) -->
+                    <div id="budget-exchange-rate"> <!-- ADDED ID -->
                         <label class="block text-xs font-bold text-stone-500 uppercase mb-2">Tasso di Cambio Attuale</label>
                         <div class="flex items-center gap-3 bg-stone-50 p-3 rounded-xl border border-stone-200">
                             <span class="font-bold text-stone-700">1 € = </span>
@@ -276,39 +307,43 @@
             <!-- VIEW 4: Dettaglio Giorno -->
             <div id="notes-view" class="absolute inset-0 flex flex-col hidden bg-white z-30">
                 <div class="flex-grow overflow-y-auto custom-scroll" id="notes-list-container">
-                    <div id="day-detail-content" class="p-4 bg-white border-b border-stone-100 shadow-sm pb-24"></div>
+                    <div id="day-detail-content" class="p-4 bg-white border-b border-stone-100 shadow-sm pb-24 max-w-4xl mx-auto"></div>
                 </div>
                 <div class="p-3 bg-stone-100 border-t border-stone-200 flex gap-2 items-center z-20">
-                    <input type="text" id="note-input" class="flex-grow p-3 rounded-xl border-none focus:ring-2 focus:ring-orange-400 shadow-sm text-stone-700" placeholder="Aggiungi una nota..." autocomplete="off">
-                    <button id="add-note-btn" class="bg-orange-400 hover:bg-orange-500 text-white p-3 rounded-xl shadow-md active:scale-95 transition-transform">
-                        <i class="ph ph-paper-plane-right text-xl"></i>
-                    </button>
+                    <div class="max-w-4xl mx-auto w-full flex gap-2">
+                        <input type="text" id="note-input" class="flex-grow p-3 rounded-xl border-none focus:ring-2 focus:ring-orange-400 shadow-sm text-stone-700" placeholder="Aggiungi una nota..." autocomplete="off">
+                        <button id="add-note-btn" class="bg-orange-400 hover:bg-orange-500 text-white p-3 rounded-xl shadow-md active:scale-95 transition-transform">
+                            <i class="ph ph-paper-plane-right text-xl"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
         </main>
 
         <!-- BOTTOM TAB BAR (Navigation) -->
-        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full max-w-md z-20 flex justify-between items-center h-12 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden pb-safe">
-            <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/4 h-full text-orange-500 transition-colors">
-                <i class="ph-fill ph-calendar-blank text-xl mb-0.5"></i>
-                <span class="text-[9px] font-bold uppercase tracking-wider">Diario</span>
-            </button>
-            
-            <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/4 h-full text-stone-400 hover:text-stone-600 transition-colors">
-                <i class="ph-bold ph-chart-pie-slice text-xl mb-0.5"></i>
-                <span class="text-[9px] font-bold uppercase tracking-wider">Riepilogo</span>
-            </button>
+        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full z-20 flex justify-center items-center h-12 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden pb-safe">
+            <div class="flex w-full max-w-4xl">
+                <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/4 h-full text-orange-500 transition-colors">
+                    <i class="ph-fill ph-calendar-blank text-xl mb-0.5"></i>
+                    <span class="text-[9px] font-bold uppercase tracking-wider">Diario</span>
+                </button>
+                
+                <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/4 h-full text-stone-400 hover:text-stone-600 transition-colors">
+                    <i class="ph-bold ph-chart-pie-slice text-xl mb-0.5"></i>
+                    <span class="text-[9px] font-bold uppercase tracking-wider">Riepilogo</span>
+                </button>
 
-            <button onclick="switchTab('expenses')" id="tab-expenses" class="flex flex-col items-center justify-center w-1/4 h-full text-stone-400 hover:text-emerald-600 transition-colors">
-                <i class="ph-bold ph-receipt text-xl mb-0.5"></i>
-                <span class="text-[9px] font-bold uppercase tracking-wider">Spese</span>
-            </button>
+                <button onclick="switchTab('expenses')" id="tab-expenses" class="flex flex-col items-center justify-center w-1/4 h-full text-stone-400 hover:text-emerald-600 transition-colors">
+                    <i class="ph-bold ph-receipt text-xl mb-0.5"></i>
+                    <span class="text-[9px] font-bold uppercase tracking-wider">Spese</span>
+                </button>
 
-            <button onclick="switchTab('budget')" id="tab-budget" class="flex flex-col items-center justify-center w-1/4 h-full text-stone-400 hover:text-emerald-600 transition-colors">
-                <i class="ph-bold ph-wallet text-xl mb-0.5"></i>
-                <span class="text-[9px] font-bold uppercase tracking-wider">Totali</span>
-            </button>
+                <button onclick="switchTab('budget')" id="tab-budget" class="flex flex-col items-center justify-center w-1/4 h-full text-stone-400 hover:text-emerald-600 transition-colors">
+                    <i class="ph-bold ph-wallet text-xl mb-0.5"></i>
+                    <span class="text-[9px] font-bold uppercase tracking-wider">Totali</span>
+                </button>
+            </div>
         </nav>
 
         <!-- Debug Footer -->
@@ -357,11 +392,6 @@
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-2">
                             <label class="text-sm font-bold text-orange-500 uppercase flex items-center gap-1"><i class="ph ph-flag-checkered"></i> Tappe & Percorso</label>
-                            <!-- NEW TOGGLE -->
-                            <label class="flex items-center gap-1 cursor-pointer">
-                                <span class="text-[10px] font-bold text-stone-400">USA MIGLIA</span>
-                                <input type="checkbox" id="use-miles-toggle" class="form-checkbox h-4 w-4 text-orange-500 rounded border-gray-300 focus:ring-orange-500" checked>
-                            </label>
                         </div>
                         <div id="stages-container" class="space-y-4 mb-4"></div>
                         <button onclick="addStageUI()" class="w-full py-3 bg-orange-50 border-2 border-dashed border-orange-200 rounded-xl text-orange-500 font-bold hover:bg-orange-100 transition-colors flex items-center justify-center gap-2">
@@ -374,7 +404,7 @@
                         <div class="grid grid-cols-2 gap-4 text-sm">
                             <div><p class="text-stone-400 text-xs">Ore Auto Totali</p><p id="sum-drive-time" class="font-mono text-lg font-bold text-amber-400">0h 00m</p></div>
                             <div><p class="text-stone-400 text-xs">Durata Giornata</p><p id="sum-day-time" class="font-mono text-lg font-bold">0h 00m</p></div>
-                            <div><p class="text-stone-400 text-xs">Totale Miglia</p><p id="sum-miles" class="font-mono font-bold">0 mi</p></div>
+                            <div id="sum-miles-container"><p class="text-stone-400 text-xs">Totale Miglia</p><p id="sum-miles" class="font-mono font-bold">0 mi</p></div>
                             <div><p class="text-stone-400 text-xs">Totale Km</p><p id="sum-km" class="font-mono font-bold text-green-400">0 km</p></div>
                         </div>
                     </div>
@@ -435,6 +465,8 @@
         let cachedExpenses = []; 
         let activityChart = null; 
         let currentExchangeRate = 1.05; // Default
+        let globalShowMiles = true; 
+        let globalShowUSD = true; // NEW STATE
 
         // --- Helpers ---
         const generateColNames = (key) => {
@@ -489,22 +521,13 @@
 
         const logAccess = async () => {
              if(!logsColName) return;
-             
-             let locationStr = "Posizione non disponibile";
-             
              try {
                  const res = await fetch('https://ipapi.co/json/');
+                 let locationStr = "Posizione non disponibile";
                  if(res.ok) {
                      const data = await res.json();
-                     if(data.city) {
-                        locationStr = `${data.city}, ${data.country_name}`;
-                     }
+                     if(data.city) locationStr = `${data.city}, ${data.country_name}`;
                  }
-             } catch(e) {
-                 console.log("Geo IP fallito", e);
-             }
-
-             try {
                  await addDoc(collection(db, 'artifacts', appId, 'public', 'data', logsColName), {
                      timestamp: serverTimestamp(),
                      device: getDeviceType(),
@@ -533,15 +556,13 @@
                     const date = data.timestamp ? data.timestamp.toDate() : new Date();
                     const formattedDate = date.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
                     
-                    const locationDisplay = data.location || 'N/D';
-
                     const item = document.createElement('div');
                     item.className = "flex justify-between items-center py-3 border-b border-stone-100 last:border-0";
                     item.innerHTML = `
                         <div class="flex flex-col">
                             <span class="font-bold text-sm text-stone-700 flex items-center gap-1">
                                 ${data.device || 'Sconosciuto'} 
-                                <span class="text-[10px] font-normal text-stone-500 bg-stone-100 px-1 rounded ml-1 flex items-center gap-0.5"><i class="ph-bold ph-map-pin"></i> ${locationDisplay}</span>
+                                <span class="text-[10px] font-normal text-stone-500 bg-stone-100 px-1 rounded ml-1 flex items-center gap-0.5"><i class="ph-bold ph-map-pin"></i> ${data.location || 'N/D'}</span>
                             </span>
                             <span class="text-[10px] text-stone-400 truncate w-40">${data.userAgent}</span>
                         </div>
@@ -552,8 +573,7 @@
             });
         };
 
-        const logsBtn = document.getElementById('logs-btn');
-        if(logsBtn) logsBtn.onclick = showLogs;
+        if(document.getElementById('logs-btn')) document.getElementById('logs-btn').onclick = showLogs;
 
 
         // --- CHART LOGIC ---
@@ -665,22 +685,59 @@
             });
         };
 
+        // --- GLOBAL SETTINGS TOGGLE LOGIC ---
+        const milesToggle = document.getElementById('global-miles-toggle');
+        if(milesToggle) {
+            milesToggle.addEventListener('change', (e) => {
+                globalShowMiles = e.target.checked;
+                localStorage.setItem(`showMiles_${activeSecretKey}`, globalShowMiles);
+                updateGlobalVisibility();
+                if(cachedDays.length > 0) loadDays(); 
+            });
+        }
+
+        const usdToggle = document.getElementById('global-usd-toggle');
+        if(usdToggle) {
+            usdToggle.addEventListener('change', (e) => {
+                globalShowUSD = e.target.checked;
+                localStorage.setItem(`showUSD_${activeSecretKey}`, globalShowUSD);
+                updateGlobalVisibility();
+                if(cachedExpenses.length > 0) renderExpensesList();
+            });
+        }
+
+        const updateGlobalVisibility = () => {
+            // Miles visibility
+            const milesCard = document.getElementById('card-miles-container');
+            if(milesCard) milesCard.style.display = globalShowMiles ? 'flex' : 'none';
+            const sumMilesContainer = document.getElementById('sum-miles-container');
+            if(sumMilesContainer) sumMilesContainer.style.display = globalShowMiles ? 'block' : 'none';
+
+            // USD visibility
+            const expensesHeaderUsd = document.getElementById('expenses-header-usd');
+            if(expensesHeaderUsd) expensesHeaderUsd.style.display = globalShowUSD ? 'block' : 'none';
+
+            const expensesInputUsd = document.getElementById('expenses-input-usd');
+            if(expensesInputUsd) expensesInputUsd.style.display = globalShowUSD ? 'block' : 'none';
+
+            const budgetTotalUsd = document.getElementById('budget-total-usd');
+            if(budgetTotalUsd) budgetTotalUsd.style.display = globalShowUSD ? 'block' : 'none';
+
+            const budgetRate = document.getElementById('budget-exchange-rate');
+            if(budgetRate) budgetRate.style.display = globalShowUSD ? 'block' : 'none';
+        }
+
         // --- EXPENSES LOGIC ---
-        
-        // 1. GLOBAL RATE LISTENER
         const rateInput = document.getElementById('global-exchange-rate');
         rateInput.addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             if(!isNaN(val) && val > 0) {
                 currentExchangeRate = val;
-                // Save to local storage for persistence across reloads for this user
                 localStorage.setItem(`rate_${activeSecretKey}`, val);
-                // Re-render expenses without re-fetching
                 renderExpensesList();
             }
         });
 
-        // 2. LOAD EXPENSES (Fetch once, then local filter/render)
         const loadExpenses = () => {
             const list = document.getElementById('expenses-list');
             const loading = document.getElementById('loading-expenses');
@@ -701,36 +758,36 @@
 
                 if(cachedExpenses.length === 0) { 
                     empty.classList.remove('hidden'); 
-                    if(header) header.classList.add('hidden'); // Safety check
+                    if(header) header.classList.add('hidden');
                     updateTotalExpenses(0);
                     list.innerHTML = '';
                     return; 
                 }
                 
                 empty.classList.add('hidden');
-                if(header) header.classList.remove('hidden'); // Safety check
+                if(header) header.classList.remove('hidden');
                 renderExpensesList();
 
             }, (err) => { console.error(err); loading.classList.add('hidden'); });
         };
 
-        // 3. RENDER FUNCTION (Handles dynamic rate)
         const renderExpensesList = () => {
             const list = document.getElementById('expenses-list');
             list.innerHTML = '';
             let totalEur = 0;
 
             cachedExpenses.forEach(data => {
-                const qty = data.qty || 1; // Default to 1 if missing
+                const qty = data.qty || 1; 
                 const amountEur = parseFloat(data.amount || 0);
                 const amountUsd = amountEur * currentExchangeRate;
-                
-                // Add total cost (unit * qty) to overall total
                 totalEur += (amountEur * qty);
 
-                // Badge for QTY if > 1
                 const qtyBadge = qty > 1 
                     ? `<span class="text-[10px] bg-stone-100 text-stone-500 font-bold px-1.5 py-0.5 rounded ml-1 border border-stone-200">x${qty}</span>` 
+                    : '';
+
+                const usdDisplay = globalShowUSD 
+                    ? `<span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>` 
                     : '';
 
                 const row = document.createElement('div');
@@ -743,7 +800,7 @@
                     <div class="flex items-center gap-3">
                         <div class="flex gap-4 text-right">
                             <span class="font-mono font-bold text-emerald-600 w-16 flex justify-end items-center">${amountEur.toFixed(2)} € ${qtyBadge}</span>
-                            <span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>
+                            ${usdDisplay}
                         </div>
                         <div class="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                             <button onclick="enableEditMode('${data.id}', '${data.name.replace(/'/g, "\\'")}', ${amountEur}, ${qty})" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
@@ -789,7 +846,7 @@
             const nameIn = document.getElementById('expense-name-input');
             const qtyIn = document.getElementById('expense-qty-input');
             const name = nameIn.value.trim();
-            const amount = parseFloat(eurInput.value); // Always save in EUR
+            const amount = parseFloat(eurInput.value); 
             const qty = parseInt(qtyIn.value) || 1;
 
             if(!name || isNaN(amount)) return;
@@ -797,7 +854,7 @@
             nameIn.value = ''; 
             eurInput.value = '';
             usdInput.value = '';
-            qtyIn.value = '1'; // Reset qty
+            qtyIn.value = '1'; 
             
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), {
@@ -818,6 +875,7 @@
             if(!row) return;
             
             const currentAmountUsd = (currentAmountEur * currentExchangeRate).toFixed(2);
+            const usdInputDisplay = globalShowUSD ? 'block' : 'none';
 
             row.innerHTML = `
                 <div class="flex gap-2 w-full items-center flex-wrap sm:flex-nowrap bg-stone-50 p-2 rounded">
@@ -830,7 +888,7 @@
                             <input type="number" step="0.01" id="edit-eur-${id}" value="${currentAmountEur}" oninput="syncEditCurrency('${id}', 'eur')" class="w-full p-2 pl-5 rounded border border-stone-300 text-sm font-mono focus:border-emerald-400 focus:outline-none">
                             <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">€</span>
                         </div>
-                        <div class="relative w-20">
+                        <div class="relative w-20" style="display: ${usdInputDisplay}">
                             <input type="number" step="0.01" id="edit-usd-${id}" value="${currentAmountUsd}" oninput="syncEditCurrency('${id}', 'usd')" class="w-full p-2 pl-5 rounded border border-stone-300 text-sm font-mono focus:border-emerald-400 focus:outline-none bg-stone-100">
                             <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">$</span>
                         </div>
@@ -878,6 +936,9 @@
              const qtyBadge = qty > 1 
                     ? `<span class="text-[10px] bg-stone-100 text-stone-500 font-bold px-1.5 py-0.5 rounded ml-1 border border-stone-200">x${qty}</span>` 
                     : '';
+             const usdDisplay = globalShowUSD 
+                    ? `<span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>` 
+                    : '';
 
              row.innerHTML = `
                 <div class="flex-grow pr-2">
@@ -886,7 +947,7 @@
                 <div class="flex items-center gap-3">
                     <div class="flex gap-4 text-right">
                         <span class="font-mono font-bold text-emerald-600 w-16 flex justify-end items-center">${amountEur.toFixed(2)} € ${qtyBadge}</span>
-                        <span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>
+                        ${usdDisplay}
                     </div>
                     <div class="flex gap-1">
                         <button onclick="enableEditMode('${id}', '${name.replace(/'/g, "\\'")}', ${amountEur}, ${qty})" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
@@ -902,14 +963,13 @@
             const daysView = document.getElementById('days-view');
             const summaryView = document.getElementById('summary-view');
             const expensesView = document.getElementById('expenses-view'); 
-            const budgetView = document.getElementById('budget-view'); // NEW
+            const budgetView = document.getElementById('budget-view'); 
             
             const tabDays = document.getElementById('tab-days');
             const tabSummary = document.getElementById('tab-summary');
             const tabExpenses = document.getElementById('tab-expenses');
-            const tabBudget = document.getElementById('tab-budget'); // NEW
+            const tabBudget = document.getElementById('tab-budget'); 
 
-            // Helper to reset tabs
             const resetTabs = () => {
                 [tabDays, tabSummary, tabExpenses, tabBudget].forEach(t => {
                     t.classList.add('text-stone-400');
@@ -1109,15 +1169,14 @@
 
         const renderStages = () => {
             const container = document.getElementById('stages-container');
-            const useMiles = document.getElementById('use-miles-toggle')?.checked ?? true; 
-
+            // Remove local useMiles check, use globalShowMiles instead
             container.innerHTML = '';
             currentStages.forEach((stage, index) => {
                 const div = document.createElement('div');
                 div.className = "bg-stone-50 border border-stone-200 rounded-lg p-3 relative group";
                 
                 const autoDetailsClass = stage.isVisit ? 'hidden' : 'grid';
-                const milesInputDisplay = useMiles ? 'block' : 'none';
+                const milesInputDisplay = globalShowMiles ? 'block' : 'none'; // Use global state
 
                 div.innerHTML = `
                     <button onclick="removeStage(${stage.id})" class="absolute top-2 right-2 text-stone-300 hover:text-red-500 transition-colors"><i class="ph ph-trash"></i></button>
@@ -1144,7 +1203,7 @@
                     
                     <div class="${autoDetailsClass} grid-cols-4 gap-2 items-center bg-white p-2 rounded border border-stone-200 transition-all duration-300">
                         <div class="col-span-1" style="display: ${milesInputDisplay}"><label class="text-[10px] uppercase text-stone-400">Miglia</label><input type="number" step="0.1" value="${stage.miles}" onchange="updateStageField(${stage.id}, 'miles', this.value)" class="w-full text-sm font-bold border-b border-stone-200 focus:outline-none text-orange-500"></div>
-                        <div class="col-span-${useMiles ? '1' : '2'} text-center border-l border-stone-100">
+                        <div class="col-span-${globalShowMiles ? '1' : '2'} text-center border-l border-stone-100">
                             <label class="text-[10px] uppercase text-stone-400">Km</label>
                             <input type="number" step="0.1" value="${stage.km}" onchange="updateStageField(${stage.id}, 'km', this.value)" class="w-full text-sm font-bold border-b border-transparent focus:border-stone-200 focus:outline-none text-stone-600 text-center bg-transparent">
                         </div>
@@ -1193,13 +1252,7 @@
                 currentStages = [];
             }
             renderStages();
-            
-            // Add listener here to ensure element exists when modal is open
-            const toggle = document.getElementById('use-miles-toggle');
-            if(toggle) {
-                toggle.onchange = () => renderStages();
-            }
-            
+            // Removed local toggle listener since it's global now
             calculateTotals();
         };
         window.closeModal = () => document.getElementById('day-modal').classList.add('hidden');
@@ -1257,6 +1310,21 @@
                     document.getElementById('global-exchange-rate').value = currentExchangeRate;
                 }
 
+                // RESTORE MILES PREFERENCE
+                const savedMiles = localStorage.getItem(`showMiles_${activeSecretKey}`);
+                if (savedMiles !== null) {
+                    globalShowMiles = (savedMiles === 'true');
+                    document.getElementById('global-miles-toggle').checked = globalShowMiles;
+                }
+
+                // RESTORE USD PREFERENCE (NEW)
+                const savedUSD = localStorage.getItem(`showUSD_${activeSecretKey}`);
+                if (savedUSD !== null) {
+                    globalShowUSD = (savedUSD === 'true');
+                    document.getElementById('global-usd-toggle').checked = globalShowUSD;
+                }
+
+                updateGlobalVisibility();
                 logAccess(); 
                 loadDays();
             } catch(e) { 
@@ -1312,10 +1380,20 @@
                     if(dateStr !== 'N/D') dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
 
                     let totKm = 0;
+                    let dayMiles = 0; 
+                    let visitCount = 0; 
+                    let tripCount = 0; 
+
                     if (day.stages) {
                         day.stages.forEach(s => {
                             if(s.name) stagesSet.add(s.name.trim());
-                            if (!s.isVisit) {
+                            
+                            // Logic change here
+                            if (s.isVisit) {
+                                visitCount++;
+                            } else {
+                                tripCount++;
+                                // Existing calc logic
                                 const stageKm = parseFloat(s.km || 0);
                                 const stageMiles = parseFloat(s.miles || 0);
                                 const stageDrive = parseInt(s.driveTime || 0);
@@ -1323,6 +1401,7 @@
                                 gKm += stageKm;
                                 gMiles += stageMiles;
                                 gDrive += stageDrive;
+                                dayMiles += stageMiles; 
                             }
                         });
                     }
@@ -1341,9 +1420,11 @@
                             <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-xs font-bold text-center min-w-[60px] flex-shrink-0">${dateStr}</div>
                         </div>
                         <p class="text-sm text-stone-600 mb-3">${day.description || 'Nessuna descrizione.'}</p>
-                        <div class="flex items-center gap-4 text-xs font-bold text-black border-t border-stone-100 pt-2">
-                            <span class="flex items-center gap-1"><i class="ph-fill ph-flag-checkered text-orange-600"></i> ${day.stages ? day.stages.length : 0} Tappe</span>
+                        <div class="flex items-center gap-3 text-xs font-bold text-black border-t border-stone-100 pt-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                            <span class="flex items-center gap-1"><i class="ph-fill ph-flag-checkered text-orange-600"></i> ${visitCount} Tappe</span>
+                            ${tripCount > 0 ? `<span class="flex items-center gap-1"><i class="ph-fill ph-car text-orange-600"></i> ${tripCount} Road Trip</span>` : ''}
                             <span class="flex items-center gap-1"><i class="ph-fill ph-road-horizon text-orange-600"></i> ${totKm.toFixed(0)} km</span>
+                            ${globalShowMiles ? `<span class="flex items-center gap-1 text-stone-400 font-mono">(${dayMiles.toFixed(0)} mi)</span>` : ''}
                         </div>
                     `;
                     card.onclick = () => openDayDetail(day);
@@ -1413,6 +1494,8 @@
                     ? '' 
                     : `<div class="font-mono text-stone-400 text-xs">${parseFloat(s.km).toFixed(0)} km</div>`;
 
+                let milesDisplay = (globalShowMiles && !s.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${s.miles} mi</div>` : ''; // CONDITIONAL MILES IN STAGE
+
                 stagesHtml += `
                     <div class="border-b border-stone-100 last:border-0">
                         <div class="p-3 bg-white hover:bg-stone-50 cursor-pointer flex flex-col gap-2" onclick="document.getElementById('stage-detail-${idx}').classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-180')">
@@ -1425,16 +1508,26 @@
                                     ${typeIcon}
                                     ${pauseDisplay}
                                 </div>
-                                ${kmDisplay}
+                                <div class="text-right">
+                                    ${kmDisplay}
+                                    ${milesDisplay}
+                                </div>
                             </div>
-                            <div class="flex justify-center -mt-2 opacity-50"><i class="chevron ph-bold ph-caret-down text-stone-400 transition-transform duration-200"></i></div>
+                            <div class="flex justify-center -mt-2 opacity-50"><i class="chevron ph-bold ph-caret-down text-stone-400 transition-transform duration-200 rotate-180"></i></div>
                         </div>
-                        <div id="stage-detail-${idx}" class="hidden bg-stone-50 p-4 text-sm text-stone-700 border-t border-stone-100 shadow-inner">
+                        <div id="stage-detail-${idx}" class="bg-stone-50 p-4 text-sm text-stone-700 border-t border-stone-100 shadow-inner">
                             <div class="mb-2"><span class="text-[10px] uppercase font-bold text-stone-400">Descrizione</span><p class="mt-1">${s.desc || '<span class="italic text-stone-400">Nessuna descrizione.</span>'}</p></div>
-                            ${!s.isVisit ? `<div class="flex gap-4 text-xs font-mono text-stone-500 border-t border-stone-200 pt-2 mt-2"><div>Miglia: <span class="font-bold text-stone-800">${s.miles}</span></div><div>Km esatti: <span class="font-bold text-stone-800">${s.km}</span></div></div>` : ''}
+                            ${!s.isVisit ? `<div class="flex gap-4 text-xs font-mono text-stone-500 border-t border-stone-200 pt-2 mt-2">
+                                ${globalShowMiles ? `<div>Miglia: <span class="font-bold text-stone-800">${s.miles}</span></div>` : ''}
+                                <div>Km esatti: <span class="font-bold text-stone-800">${s.km}</span></div>
+                            </div>` : ''}
                         </div>
                     </div>`;
             });
+
+            // Adjust grid columns based on miles visibility
+            const gridCols = globalShowMiles ? 'grid-cols-4' : 'grid-cols-3';
+            const milesStat = globalShowMiles ? `<div><div class="text-[10px] text-stone-400 uppercase">Miglia</div><div class="font-bold text-sm sm:text-base">${totMiles.toFixed(1)}</div></div>` : '';
 
             detailContainer.innerHTML = `
                 <div class="mb-4"><p class="text-stone-600 text-sm italic border-l-4 border-orange-400 pl-3 py-1 bg-orange-50/50 rounded-r">${day.description || 'Nessuna descrizione generale.'}</p></div>
@@ -1449,10 +1542,10 @@
                 </div>
 
                 <div class="bg-gradient-to-r from-stone-800 to-stone-900 text-white rounded-xl p-4 shadow-lg mb-6">
-                    <div class="grid grid-cols-4 gap-2 text-center divide-x divide-stone-700">
+                    <div class="grid ${gridCols} gap-2 text-center divide-x divide-stone-700">
                         <div><div class="text-[10px] text-stone-400 uppercase">Auto</div><div class="font-bold text-amber-400 text-sm sm:text-base">${minsToTimeStr(totDrive)}</div></div>
                         <div><div class="text-[10px] text-stone-400 uppercase">Durata</div><div class="font-bold text-sm sm:text-base">${minsToTimeStr(dayDur)}</div></div>
-                        <div><div class="text-[10px] text-stone-400 uppercase">Miglia</div><div class="font-bold text-sm sm:text-base">${totMiles.toFixed(1)}</div></div>
+                        ${milesStat}
                         <div><div class="text-[10px] text-stone-400 uppercase">Km</div><div class="font-bold text-green-400 text-sm sm:text-base">${totKm.toFixed(1)}</div></div>
                     </div>
                 </div>
@@ -1466,7 +1559,7 @@
             document.getElementById('days-view').classList.remove('hidden');
             document.getElementById('notes-view').classList.add('hidden');
             document.getElementById('back-btn').classList.remove('hidden');
-            document.getElementById('bottom-nav').classList.remove('hidden'); 
+            document.getElementById('bottom-nav').classList.remove('hidden'); // Show Nav back
             document.getElementById('header-title').textContent = "Travel Planner";
             if(unsubscribeNotes) unsubscribeNotes();
         };
