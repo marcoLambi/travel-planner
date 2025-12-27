@@ -243,7 +243,10 @@
                 <!-- Input Bar (Fixed Bottom) -->
                 <div class="absolute bottom-12 left-0 w-full bg-white p-2 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
                     <div class="max-w-4xl mx-auto flex gap-2 items-center">
-                        <input type="text" id="expense-name-input" class="flex-grow p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Voce spesa..." autocomplete="off">
+                        <div class="flex-grow flex gap-1">
+                            <input type="text" id="expense-name-input" class="w-1/2 p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Voce spesa..." autocomplete="off">
+                            <input type="text" id="expense-link-input" class="w-1/2 p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Link (opz.)" autocomplete="off">
+                        </div>
                         
                         <!-- Moltiplicatore (Qtà) -->
                         <div class="relative w-12 flex-shrink-0">
@@ -809,12 +812,25 @@
                     ? `<span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>` 
                     : '';
 
+                // NEW: Add link icon if link exists
+                let linkHtml = '';
+                if (data.link) {
+                    let safeLink = data.link.trim();
+                    if (!/^https?:\/\//i.test(safeLink)) {
+                        safeLink = 'http://' + safeLink;
+                    }
+                    linkHtml = `<a href="${safeLink}" target="_blank" class="text-stone-400 hover:text-blue-500 ml-1" title="Apri link"><i class="ph-bold ph-link"></i></a>`;
+                }
+
                 const row = document.createElement('div');
                 row.className = "flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm hover:shadow-md transition-shadow group";
                 row.id = `row-${data.id}`;
                 row.innerHTML = `
                     <div class="flex-grow pr-2">
-                        <div class="font-bold text-stone-700 text-sm break-words">${data.name}</div>
+                        <div class="font-bold text-stone-700 text-sm break-words">
+                            ${data.name}
+                            ${linkHtml}
+                        </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <div class="flex gap-4 text-right">
@@ -822,7 +838,7 @@
                             ${usdDisplay}
                         </div>
                         <div class="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                            <button onclick="enableEditMode('${data.id}', '${data.name.replace(/'/g, "\\'")}', ${amountEur}, ${qty})" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button onclick="enableEditMode('${data.id}', '${data.name.replace(/'/g, "\\'")}', ${amountEur}, ${qty}, '${data.link ? data.link.replace(/'/g, "\\'") : ''}')" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
                             <button onclick="deleteExpense('${data.id}')" class="p-1.5 text-stone-400 hover:text-red-500 rounded hover:bg-red-50"><i class="ph-bold ph-trash"></i></button>
                         </div>
                     </div>
@@ -863,21 +879,24 @@
 
         window.addExpense = async () => {
             const nameIn = document.getElementById('expense-name-input');
+            const linkIn = document.getElementById('expense-link-input'); // NEW
             const qtyIn = document.getElementById('expense-qty-input');
             const name = nameIn.value.trim();
+            const link = linkIn.value.trim(); // NEW
             const amount = parseFloat(eurInput.value); 
             const qty = parseInt(qtyIn.value) || 1;
 
             if(!name || isNaN(amount)) return;
             
             nameIn.value = ''; 
+            linkIn.value = ''; // NEW
             eurInput.value = '';
             usdInput.value = '';
             qtyIn.value = '1'; 
             
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), {
-                    name, amount, qty, createdAt: serverTimestamp()
+                    name, link, amount, qty, createdAt: serverTimestamp()
                 });
             } catch(e) { console.error(e); alert("Errore aggiunta spesa"); }
         };
@@ -889,16 +908,21 @@
             }
         };
 
-        window.enableEditMode = (id, currentName, currentAmountEur, currentQty) => {
+        // Modified enableEditMode to accept link
+        window.enableEditMode = (id, currentName, currentAmountEur, currentQty, currentLink) => {
             const row = document.getElementById(`row-${id}`);
             if(!row) return;
             
             const currentAmountUsd = (currentAmountEur * currentExchangeRate).toFixed(2);
             const usdInputDisplay = globalShowUSD ? 'block' : 'none';
 
+            // Modified layout to include link input
             row.innerHTML = `
                 <div class="flex gap-2 w-full items-center flex-wrap sm:flex-nowrap bg-stone-50 p-2 rounded">
-                    <input type="text" id="edit-name-${id}" value="${currentName}" class="flex-grow p-2 rounded border border-stone-300 text-sm focus:border-emerald-400 focus:outline-none w-full sm:w-auto">
+                    <div class="flex-grow flex gap-1 w-full sm:w-auto">
+                        <input type="text" id="edit-name-${id}" value="${currentName}" class="w-1/2 p-2 rounded border border-stone-300 text-sm focus:border-emerald-400 focus:outline-none" placeholder="Voce">
+                        <input type="text" id="edit-link-${id}" value="${currentLink || ''}" class="w-1/2 p-2 rounded border border-stone-300 text-sm focus:border-emerald-400 focus:outline-none" placeholder="Link">
+                    </div>
                     <div class="flex gap-2 w-full sm:w-auto">
                         <div class="relative w-12 flex-shrink-0">
                             <input type="number" id="edit-qty-${id}" value="${currentQty}" min="1" class="w-full p-2 text-center rounded border border-stone-300 text-sm font-bold text-stone-600 focus:border-emerald-400 focus:outline-none">
@@ -914,7 +938,7 @@
                     </div>
                     <div class="flex gap-1 ml-auto">
                         <button onclick="saveExpenseEdit('${id}')" class="p-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 shadow-sm"><i class="ph-bold ph-check"></i></button>
-                        <button onclick="cancelExpenseEdit('${id}', '${currentName.replace(/'/g, "\\'")}', ${currentAmountEur}, ${currentQty})" class="p-2 text-stone-400 hover:bg-stone-200 rounded"><i class="ph-bold ph-x"></i></button>
+                        <button onclick="cancelExpenseEdit('${id}', '${currentName.replace(/'/g, "\\'")}', ${currentAmountEur}, ${currentQty}, '${currentLink ? currentLink.replace(/'/g, "\\'") : ''}')" class="p-2 text-stone-400 hover:bg-stone-200 rounded"><i class="ph-bold ph-x"></i></button>
                     </div>
                 </div>
             `;
@@ -937,6 +961,7 @@
 
         window.saveExpenseEdit = async (id) => {
             const newName = document.getElementById(`edit-name-${id}`).value.trim();
+            const newLink = document.getElementById(`edit-link-${id}`).value.trim(); // NEW
             const newAmountEur = parseFloat(document.getElementById(`edit-eur-${id}`).value);
             const newQty = parseInt(document.getElementById(`edit-qty-${id}`).value) || 1;
             
@@ -944,12 +969,12 @@
 
             try {
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id), {
-                    name: newName, amount: newAmountEur, qty: newQty
+                    name: newName, link: newLink, amount: newAmountEur, qty: newQty
                 });
             } catch(e) { console.error(e); alert("Errore modifica"); }
         };
         
-        window.cancelExpenseEdit = (id, name, amountEur, qty) => {
+        window.cancelExpenseEdit = (id, name, amountEur, qty, link) => {
              const amountUsd = amountEur * currentExchangeRate;
              const row = document.getElementById(`row-${id}`);
              const qtyBadge = qty > 1 
@@ -958,10 +983,23 @@
              const usdDisplay = globalShowUSD 
                     ? `<span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>` 
                     : '';
+             
+             // NEW: restore link icon logic
+             let linkHtml = '';
+             if (link) {
+                let safeLink = link.trim();
+                if (!/^https?:\/\//i.test(safeLink)) {
+                    safeLink = 'http://' + safeLink;
+                }
+                linkHtml = `<a href="${safeLink}" target="_blank" class="text-stone-400 hover:text-blue-500 ml-1" title="Apri link"><i class="ph-bold ph-link"></i></a>`;
+             }
 
              row.innerHTML = `
                 <div class="flex-grow pr-2">
-                    <div class="font-bold text-stone-700 text-sm break-words">${name}</div>
+                    <div class="font-bold text-stone-700 text-sm break-words">
+                        ${name}
+                        ${linkHtml}
+                    </div>
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="flex gap-4 text-right">
@@ -969,7 +1007,7 @@
                         ${usdDisplay}
                     </div>
                     <div class="flex gap-1">
-                        <button onclick="enableEditMode('${id}', '${name.replace(/'/g, "\\'")}', ${amountEur}, ${qty})" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
+                        <button onclick="enableEditMode('${id}', '${name.replace(/'/g, "\\'")}', ${amountEur}, ${qty}, '${link ? link.replace(/'/g, "\\'") : ''}')" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
                         <button onclick="deleteExpense('${id}')" class="p-1.5 text-stone-400 hover:text-red-500 rounded hover:bg-red-50"><i class="ph-bold ph-trash"></i></button>
                     </div>
                 </div>
@@ -1258,6 +1296,28 @@
                 
                 const autoDetailsClass = stage.isVisit ? 'hidden' : 'grid';
                 const milesInputDisplay = globalShowMiles ? 'block' : 'none'; // Use global state
+
+                let mapButtonHtml = '';
+                if (stage.mapsLink) {
+                    const safeUrl = getMapsUrl(stage.mapsLink);
+                    mapButtonHtml = `
+                        <a href="${safeUrl}" target="_blank" class="block mt-3 w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 rounded-lg text-center text-sm font-bold transition-colors flex items-center justify-center gap-2">
+                            <i class="ph-fill ph-map-pin"></i> Vedi su Google Maps
+                        </a>
+                    `;
+                }
+
+                let pauseDisplay = stage.pause && stage.pause !== '00:00' ? `<span class="flex items-center gap-1 text-amber-500 font-bold"><i class="ph-bold ph-coffee"></i> ${stage.pause.replace(':', 'h ')}m</span>` : '<span class="text-stone-300 flex items-center gap-1"><i class="ph ph-coffee"></i> --</span>';
+                
+                let typeIcon = stage.isVisit 
+                    ? `<span class="text-orange-600 font-bold flex items-center gap-1 text-xs bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100"><i class="ph-fill ph-ticket"></i> VISITA</span>` 
+                    : `<span class="flex items-center gap-1 text-green-700 font-medium text-xs"><i class="ph-bold ph-car"></i> ${minsToTimeStr(stage.driveTime)}</span>`;
+
+                let kmDisplay = stage.isVisit 
+                    ? '' 
+                    : `<div class="font-mono text-stone-400 text-xs">${parseFloat(stage.km).toFixed(0)} km</div>`;
+
+                let milesDisplay = (globalShowMiles && !stage.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${stage.miles} mi</div>` : ''; 
 
                 div.innerHTML = `
                     <button onclick="removeStage(${stage.id})" class="absolute top-2 right-2 text-stone-300 hover:text-red-500 transition-colors"><i class="ph ph-trash"></i></button>
@@ -1568,8 +1628,9 @@
 
             let stagesHtml = '';
             stages.forEach((s, idx) => {
+                // MODIFICA: Logica Anteprima Mappa
                 const safeUrl = getMapsUrl(s.mapsLink);
-                let linkHtml = safeUrl ? `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="ml-2 text-[10px] font-bold text-orange-500 border border-orange-200 bg-orange-50 hover:bg-orange-100 px-1.5 py-0.5 rounded transition-colors uppercase tracking-wider" onclick="event.stopPropagation()">MAPS</a>` : '';
+                
                 let pauseDisplay = s.pause && s.pause !== '00:00' ? `<span class="flex items-center gap-1 text-amber-500 font-bold"><i class="ph-bold ph-coffee"></i> ${s.pause.replace(':', 'h ')}m</span>` : '<span class="text-stone-300 flex items-center gap-1"><i class="ph ph-coffee"></i> --</span>';
                 
                 let typeIcon = s.isVisit 
@@ -1580,13 +1641,24 @@
                     ? '' 
                     : `<div class="font-mono text-stone-400 text-xs">${parseFloat(s.km).toFixed(0)} km</div>`;
 
-                let milesDisplay = (globalShowMiles && !s.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${s.miles} mi</div>` : ''; // CONDITIONAL MILES IN STAGE
+                let milesDisplay = (globalShowMiles && !s.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${s.miles} mi</div>` : ''; 
+
+                // NEW: Use Button Instead of Iframe Preview
+                let mapButtonHtml = '';
+                if (s.mapsLink) {
+                    const safeUrl = getMapsUrl(s.mapsLink);
+                    mapButtonHtml = `
+                        <a href="${safeUrl}" target="_blank" class="block mt-3 w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 rounded-lg text-center text-sm font-bold transition-colors flex items-center justify-center gap-2">
+                            <i class="ph-fill ph-map-pin"></i> Vedi su Google Maps
+                        </a>
+                    `;
+                }
 
                 stagesHtml += `
                     <div class="border-b border-stone-100 last:border-0">
                         <div class="p-3 bg-white hover:bg-stone-50 cursor-pointer flex flex-col gap-2" onclick="document.getElementById('stage-detail-${idx}').classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-180')">
                             <div class="flex justify-between items-start">
-                                <div class="font-bold text-stone-800 text-sm flex items-center gap-1"><span class="text-orange-500 mr-1">${idx + 1}.</span> ${s.name} ${linkHtml}</div>
+                                <div class="font-bold text-stone-800 text-sm flex items-center gap-1"><span class="text-orange-500 mr-1">${idx + 1}.</span> ${s.name}</div>
                                 <div class="text-xs text-stone-500 font-mono bg-stone-100 px-2 py-1 rounded">${s.start} <span class="text-stone-300">➜</span> ${s.end}</div>
                             </div>
                             <div class="flex items-center justify-between text-xs text-stone-500 mt-1">
@@ -1607,6 +1679,7 @@
                                 ${globalShowMiles ? `<div>Miglia: <span class="font-bold text-stone-800">${s.miles}</span></div>` : ''}
                                 <div>Km esatti: <span class="font-bold text-stone-800">${s.km}</span></div>
                             </div>` : ''}
+                            ${mapButtonHtml} 
                         </div>
                     </div>`;
             });
@@ -1615,11 +1688,21 @@
             const gridCols = globalShowMiles ? 'grid-cols-4' : 'grid-cols-3';
             const milesStat = globalShowMiles ? `<div><div class="text-[10px] text-stone-400 uppercase">Miglia</div><div class="font-bold text-sm sm:text-base">${totMiles.toFixed(1)}</div></div>` : '';
 
-            // MODIFICA: Aggiunti pulsanti Modifica/Elimina in cima alla vista dettaglio
+            // NEW: Add formatted date display logic
+            let dateDisplay = 'Data non impostata';
+            if(day.dateString) {
+                const d = new Date(day.dateString);
+                dateDisplay = d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            }
+
+            // MODIFICA: Aggiunti pulsanti Modifica/Elimina in cima alla vista dettaglio e DATA
             detailContainer.innerHTML = `
-                <div class="flex justify-end gap-2 mb-2">
-                    <button onclick="editDayFromDetail('${day.id}')" class="px-3 py-1.5 bg-orange-50 text-orange-600 border border-orange-100 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-orange-100 transition-colors"><i class="ph-bold ph-pencil-simple"></i> Modifica</button>
-                    <button onclick="deleteDayFromDetail('${day.id}')" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-100 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-red-100 transition-colors"><i class="ph-bold ph-trash"></i> Elimina</button>
+                <div class="flex justify-between items-center mb-4 border-b border-stone-100 pb-2">
+                    <div class="text-lg font-bold text-orange-500">${dateDisplay}</div>
+                    <div class="flex gap-2">
+                        <button onclick="editDayFromDetail('${day.id}')" class="px-3 py-1.5 bg-orange-50 text-orange-600 border border-orange-100 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-orange-100 transition-colors"><i class="ph-bold ph-pencil-simple"></i> Modifica</button>
+                        <button onclick="deleteDayFromDetail('${day.id}')" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-100 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-red-100 transition-colors"><i class="ph-bold ph-trash"></i> Elimina</button>
+                    </div>
                 </div>
                 <div class="mb-4"><p class="text-stone-600 text-sm italic border-l-4 border-orange-400 pl-3 py-1 bg-orange-50/50 rounded-r">${day.description || 'Nessuna descrizione generale.'}</p></div>
                 
