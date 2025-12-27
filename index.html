@@ -322,7 +322,7 @@
         </main>
 
         <!-- BOTTOM TAB BAR (Navigation) -->
-        <nav id="bottom-nav" class="bg-white border-t border-stone-200 absolute bottom-0 w-full z-20 flex justify-center items-center h-auto min-h-[3rem] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden pb-safe">
+        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full z-20 flex justify-center items-center h-auto min-h-[3rem] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden pb-safe">
             <div class="flex w-full">
                 <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/4 py-1 text-orange-500 transition-colors">
                     <i class="ph-fill ph-calendar-blank text-xl mb-0.5"></i>
@@ -1509,12 +1509,7 @@
                         </div>
                     `;
                     card.onclick = () => openDayDetail(day);
-                    const actions = document.createElement('div');
-                    actions.className = "absolute top-12 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity";
-                    actions.innerHTML = `<button class="p-2 bg-white/90 rounded-full shadow hover:text-orange-500 text-stone-400 border border-stone-100" id="edit-${day.id}"><i class="ph ph-pencil-simple"></i></button><button class="p-2 bg-white/90 rounded-full shadow hover:text-red-600 text-stone-400 border border-stone-100" id="del-${day.id}"><i class="ph ph-trash"></i></button>`;
-                    card.appendChild(actions);
-                    card.querySelector(`#edit-${day.id}`).onclick = (e) => { e.stopPropagation(); openModal(day); };
-                    card.querySelector(`#del-${day.id}`).onclick = (e) => { e.stopPropagation(); if(confirm('Eliminare?')) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, day.id)); };
+                    // MODIFICA: Rimossi pulsanti edit/delete dalla card qui.
                     list.appendChild(card);
                 });
 
@@ -1620,7 +1615,12 @@
             const gridCols = globalShowMiles ? 'grid-cols-4' : 'grid-cols-3';
             const milesStat = globalShowMiles ? `<div><div class="text-[10px] text-stone-400 uppercase">Miglia</div><div class="font-bold text-sm sm:text-base">${totMiles.toFixed(1)}</div></div>` : '';
 
+            // MODIFICA: Aggiunti pulsanti Modifica/Elimina in cima alla vista dettaglio
             detailContainer.innerHTML = `
+                <div class="flex justify-end gap-2 mb-2">
+                    <button onclick="editDayFromDetail('${day.id}')" class="px-3 py-1.5 bg-orange-50 text-orange-600 border border-orange-100 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-orange-100 transition-colors"><i class="ph-bold ph-pencil-simple"></i> Modifica</button>
+                    <button onclick="deleteDayFromDetail('${day.id}')" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-100 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-red-100 transition-colors"><i class="ph-bold ph-trash"></i> Elimina</button>
+                </div>
                 <div class="mb-4"><p class="text-stone-600 text-sm italic border-l-4 border-orange-400 pl-3 py-1 bg-orange-50/50 rounded-r">${day.description || 'Nessuna descrizione generale.'}</p></div>
                 
                 <div class="mb-6">
@@ -1646,6 +1646,24 @@
             loadNotes(day.id);
             // SCROLL RESET FOR DETAIL VIEW
             document.getElementById('notes-list-container').scrollTop = 0;
+        };
+
+        // NEW HELPERS FOR DETAIL VIEW EDIT/DELETE
+        window.editDayFromDetail = (id) => {
+            const day = cachedDays.find(d => d.id === id);
+            if(day) openModal(day);
+        };
+
+        window.deleteDayFromDetail = async (id) => {
+            if(confirm('Eliminare questa giornata e tutti i suoi dati?')) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, id));
+                    document.getElementById('back-btn').click(); // Return to list
+                } catch(e) {
+                    console.error(e);
+                    alert("Errore durante l'eliminazione");
+                }
+            }
         };
 
         document.getElementById('back-btn').onclick = () => {
