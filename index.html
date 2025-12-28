@@ -277,7 +277,7 @@
                 </div>
 
                 <!-- Lista Spese -->
-                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-32 w-full" id="expenses-list-container">
+                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-40 w-full" id="expenses-list-container">
                     <div id="loading-expenses" class="hidden flex justify-center mt-10"><div class="loader border-t-emerald-400"></div></div>
                     <div id="empty-expenses" class="hidden flex flex-col items-center justify-center mt-10 text-stone-400">
                         <i class="ph ph-receipt text-5xl mb-3 text-stone-300"></i>
@@ -288,31 +288,42 @@
 
                 <!-- Input Bar (Fixed Bottom) -->
                 <div class="absolute bottom-12 left-0 w-full bg-white p-2 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
-                    <div class="max-w-4xl mx-auto flex gap-2 items-center">
-                        <div class="flex-grow flex gap-1">
-                            <input type="text" id="expense-name-input" class="w-1/2 p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Voce spesa..." autocomplete="off">
-                            <input type="text" id="expense-link-input" class="w-1/2 p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Link (opz.)" autocomplete="off">
+                    <div class="max-w-4xl mx-auto flex flex-col gap-2">
+                        <!-- Row 1: Inputs -->
+                        <div class="flex gap-2 items-center">
+                            <div class="flex-grow flex gap-1">
+                                <input type="text" id="expense-name-input" class="w-1/2 p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Voce spesa..." autocomplete="off">
+                                <input type="text" id="expense-link-input" class="w-1/2 p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Link (opz.)" autocomplete="off">
+                            </div>
+                            
+                            <!-- Moltiplicatore (Qtà) -->
+                            <div class="relative w-12 flex-shrink-0">
+                                <label class="absolute -top-2 left-1 text-[8px] text-stone-400 font-bold bg-white px-1">Qtà</label>
+                                <input type="number" id="expense-qty-input" min="1" max="20" value="1" class="w-full p-2 text-center rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-bold text-stone-600">
+                            </div>
+
+                            <div class="relative w-16 flex-shrink-0">
+                                <input type="number" step="0.01" id="expense-amount-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono" placeholder="0">
+                                <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">€</span>
+                            </div>
+
+                            <div id="expenses-input-usd" class="relative w-16 flex-shrink-0"> <!-- ADDED ID -->
+                                <input type="number" step="0.01" id="expense-amount-usd-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono bg-stone-50" placeholder="0">
+                                <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">$</span>
+                            </div>
+
+                            <button id="add-expense-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg shadow-md active:scale-95 transition-transform flex-shrink-0">
+                                <i class="ph ph-plus text-lg font-bold"></i>
+                            </button>
                         </div>
                         
-                        <!-- Moltiplicatore (Qtà) -->
-                        <div class="relative w-12 flex-shrink-0">
-                            <label class="absolute -top-2 left-1 text-[8px] text-stone-400 font-bold bg-white px-1">Qtà</label>
-                            <input type="number" id="expense-qty-input" min="1" max="20" value="1" class="w-full p-2 text-center rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-bold text-stone-600">
+                        <!-- Row 2: Categories (New) -->
+                        <div class="flex gap-3 text-[10px] font-bold text-stone-500 overflow-x-auto pb-1">
+                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Pernottamenti" class="accent-emerald-500"> Pernottamenti</label>
+                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Attrazioni" class="accent-emerald-500"> Attrazioni</label>
+                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Pass e Tasse" class="accent-emerald-500"> Pass e Tasse</label>
+                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Altro" class="accent-emerald-500" checked> Altro</label>
                         </div>
-
-                        <div class="relative w-16 flex-shrink-0">
-                            <input type="number" step="0.01" id="expense-amount-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono" placeholder="0">
-                            <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">€</span>
-                        </div>
-
-                        <div id="expenses-input-usd" class="relative w-16 flex-shrink-0"> <!-- ADDED ID -->
-                            <input type="number" step="0.01" id="expense-amount-usd-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono bg-stone-50" placeholder="0">
-                            <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">$</span>
-                        </div>
-
-                        <button id="add-expense-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg shadow-md active:scale-95 transition-transform flex-shrink-0">
-                            <i class="ph ph-plus text-lg font-bold"></i>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -338,6 +349,17 @@
                     <div id="budget-total-usd" class="mb-6 pb-6 border-b border-stone-100"> <!-- ADDED ID -->
                         <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Totale in Dollari</span>
                         <div class="text-2xl font-bold text-stone-600 mt-1 font-mono" id="total-expenses-usd">0.00 $</div>
+                    </div>
+
+                    <!-- Dettaglio Categorie (NEW) -->
+                    <div class="mb-6 border-b border-stone-100 pb-6">
+                        <h3 class="text-sm font-bold text-stone-600 mb-3 uppercase">Spese per Categoria</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Pernottamenti</span><span id="cat-total-Pernottamenti" class="font-mono font-bold text-stone-700">0.00 €</span></div>
+                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Attrazioni</span><span id="cat-total-Attrazioni" class="font-mono font-bold text-stone-700">0.00 €</span></div>
+                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Pass e Tasse</span><span id="cat-total-Pass e Tasse" class="font-mono font-bold text-stone-700">0.00 €</span></div>
+                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Altro</span><span id="cat-total-Altro" class="font-mono font-bold text-stone-700">0.00 €</span></div>
+                        </div>
                     </div>
 
                     <!-- Tasso Cambio (CONDITIONAL) -->
@@ -888,12 +910,19 @@
             const list = document.getElementById('expenses-list');
             list.innerHTML = '';
             let totalEur = 0;
+            // NEW: Init category sums
+            const catSums = { 'Pernottamenti': 0, 'Attrazioni': 0, 'Pass e Tasse': 0, 'Altro': 0 };
 
             cachedExpenses.forEach(data => {
                 const qty = data.qty || 1; 
                 const amountEur = parseFloat(data.amount || 0);
                 const amountUsd = amountEur * currentExchangeRate;
                 totalEur += (amountEur * qty);
+
+                // Accumulate Category
+                const cat = data.category || 'Altro';
+                if(catSums[cat] !== undefined) catSums[cat] += (amountEur * qty);
+                else catSums['Altro'] += (amountEur * qty);
 
                 const qtyBadge = qty > 1 
                     ? `<span class="text-[10px] bg-stone-100 text-stone-500 font-bold px-1.5 py-0.5 rounded ml-1 border border-stone-200">x${qty}</span>` 
@@ -913,6 +942,8 @@
                     linkHtml = `<a href="${safeLink}" target="_blank" class="text-stone-400 hover:text-blue-500 ml-1" title="Apri link"><i class="ph-bold ph-link"></i></a>`;
                 }
 
+                const catLabel = cat !== 'Altro' ? `<span class="text-[9px] text-stone-400 bg-stone-100 px-1 rounded ml-1">${cat}</span>` : '';
+
                 const row = document.createElement('div');
                 row.className = "flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm hover:shadow-md transition-shadow group";
                 row.id = `row-${data.id}`;
@@ -921,6 +952,7 @@
                         <div class="font-bold text-stone-700 text-sm break-words">
                             ${data.name}
                             ${linkHtml}
+                            ${catLabel}
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
@@ -936,14 +968,22 @@
                 `;
                 list.appendChild(row);
             });
-            updateTotalExpenses(totalEur);
+            updateTotalExpenses(totalEur, catSums);
         };
 
-        const updateTotalExpenses = (totalEur) => {
+        const updateTotalExpenses = (totalEur, catSums) => {
             const totalEl = document.getElementById('total-expenses');
             const totalElUsd = document.getElementById('total-expenses-usd');
             if(totalEl) totalEl.innerHTML = `${totalEur.toFixed(2)} <span class="text-2xl">€</span>`;
             if(totalElUsd) totalElUsd.textContent = `${(totalEur * currentExchangeRate).toFixed(2)} $`;
+
+            // Update Categories
+            if (catSums) {
+                for (const [key, val] of Object.entries(catSums)) {
+                    const el = document.getElementById(`cat-total-${key}`);
+                    if (el) el.textContent = `${val.toFixed(2)} €`;
+                }
+            }
         };
 
         // Auto Conversion Logic for Input Bar
@@ -972,10 +1012,14 @@
             const nameIn = document.getElementById('expense-name-input');
             const linkIn = document.getElementById('expense-link-input'); // NEW
             const qtyIn = document.getElementById('expense-qty-input');
+            // Get Category
+            const catIn = document.querySelector('input[name="new-expense-cat"]:checked');
+            
             const name = nameIn.value.trim();
             const link = linkIn.value.trim(); // NEW
             const amount = parseFloat(eurInput.value); 
             const qty = parseInt(qtyIn.value) || 1;
+            const category = catIn ? catIn.value : 'Altro';
 
             if(!name || isNaN(amount)) return;
             
@@ -987,7 +1031,7 @@
             
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), {
-                    name, link, amount, qty, createdAt: serverTimestamp()
+                    name, link, amount, qty, category, createdAt: serverTimestamp()
                 });
             } catch(e) { console.error(e); alert("Errore aggiunta spesa"); }
         };
@@ -1426,15 +1470,10 @@
 
                 let pauseDisplay = stage.pause && stage.pause !== '00:00' ? `<span class="flex items-center gap-1 text-amber-500 font-bold"><i class="ph-bold ph-coffee"></i> ${stage.pause.replace(':', 'h ')}m</span>` : '<span class="text-stone-300 flex items-center gap-1"><i class="ph ph-coffee"></i> --</span>';
                 
+                // FIXED: Variable s -> stage
                 let typeIcon = stage.isVisit 
                     ? `<span class="text-orange-600 font-bold flex items-center gap-1 text-xs bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100"><i class="ph-fill ph-ticket"></i> VISITA</span>` 
-                    : `<span class="flex items-center gap-1 text-green-700 font-medium text-xs"><i class="ph-bold ph-car"></i> ${minsToTimeStr(s.driveTime)}</span>`; // Fixed s.driveTime to stage.driveTime
-
-                // Fixed: typeIcon used "s.driveTime" but variable is "stage"
-                typeIcon = stage.isVisit 
-                    ? `<span class="text-orange-600 font-bold flex items-center gap-1 text-xs bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100"><i class="ph-fill ph-ticket"></i> VISITA</span>` 
                     : `<span class="flex items-center gap-1 text-green-700 font-medium text-xs"><i class="ph-bold ph-car"></i> ${minsToTimeStr(stage.driveTime)}</span>`;
-
 
                 let kmDisplay = stage.isVisit 
                     ? '' 
