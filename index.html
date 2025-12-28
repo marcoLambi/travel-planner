@@ -235,8 +235,22 @@
                                 <h3 class="text-xl font-bold flex items-center gap-2 mb-2"><i class="ph-fill ph-film-strip"></i> Travel Reel</h3>
                                 <p class="text-sm text-orange-50 mb-4 pr-10">Rivivi il tuo viaggio! Guarda l'animazione del percorso sulla mappa.</p>
                                 
-                                <div id="map-video-container" class="w-full h-64 bg-white rounded-xl shadow-inner mb-4 hidden overflow-hidden relative">
+                                <div id="map-video-container" class="w-full h-64 bg-white rounded-xl shadow-inner mb-4 hidden overflow-hidden relative group">
                                     <div id="travel-video-map" class="w-full h-full z-0"></div>
+                                    
+                                    <!-- Controlli Video -->
+                                    <div id="video-controls" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 flex items-center gap-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <div class="flex gap-1 bg-white/20 rounded-lg p-1">
+                                            <button onclick="setVideoSpeed(0.5)" class="text-[10px] font-bold px-2 py-1 rounded hover:bg-white/30 transition-colors speed-btn" id="btn-speed-05">0.5x</button>
+                                            <button onclick="setVideoSpeed(1)" class="text-[10px] font-bold px-2 py-1 rounded bg-white text-black transition-colors speed-btn" id="btn-speed-1">1x</button>
+                                            <button onclick="setVideoSpeed(2)" class="text-[10px] font-bold px-2 py-1 rounded hover:bg-white/30 transition-colors speed-btn" id="btn-speed-2">2x</button>
+                                        </div>
+                                        <div class="w-px h-6 bg-white/30"></div>
+                                        <button onclick="toggleVideoFullscreen()" class="hover:text-orange-300 transition-colors" title="Schermo Intero">
+                                            <i class="ph-bold ph-arrows-out text-xl"></i>
+                                        </button>
+                                    </div>
+
                                     <div id="video-overlay-msg" class="absolute inset-0 flex flex-col items-center justify-center bg-black/50 z-20 hidden">
                                         <div class="text-white font-bold text-lg" id="video-status-text">Caricamento mappa...</div>
                                     </div>
@@ -1386,7 +1400,7 @@
                 
                 let typeIcon = stage.isVisit 
                     ? `<span class="text-orange-600 font-bold flex items-center gap-1 text-xs bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100"><i class="ph-fill ph-ticket"></i> VISITA</span>` 
-                    : `<span class="flex items-center gap-1 text-green-700 font-medium text-xs"><i class="ph-bold ph-car"></i> ${minsToTimeStr(stage.driveTime)}</span>`;
+                    : `<span class="flex items-center gap-1 text-green-700 font-medium text-xs"><i class="ph-bold ph-car"></i> ${minsToTimeStr(s.driveTime)}</span>`;
 
                 let kmDisplay = stage.isVisit 
                     ? '' 
@@ -1885,6 +1899,7 @@
         let routePolyline = null;
         let isPlaying = false;
         let animInterval = null; // Store interval ID globally for clearing
+        let videoSpeed = 1; // Default speed
         
         // Icona Auto Custom
         const carIcon = L.divIcon({
@@ -1896,6 +1911,54 @@
 
         // Delay helper
         const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+        
+        // Functions for UI controls
+        window.setVideoSpeed = (speed) => {
+            videoSpeed = speed;
+            // Update UI
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-black');
+                btn.classList.add('hover:bg-white/30', 'text-white'); // Reset active style
+            });
+            
+            // Set active
+            const btnId = speed === 0.5 ? 'btn-speed-05' : (speed === 2 ? 'btn-speed-2' : 'btn-speed-1');
+            const activeBtn = document.getElementById(btnId);
+            if(activeBtn) {
+                activeBtn.classList.remove('hover:bg-white/30', 'text-white');
+                activeBtn.classList.add('bg-white', 'text-black');
+            }
+        };
+        
+        window.toggleVideoFullscreen = () => {
+            const container = document.getElementById('map-video-container');
+            const isFakeFullscreen = container.classList.contains('fixed');
+
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else if (isFakeFullscreen) {
+                 // Exit Fake Fullscreen
+                 container.classList.remove('fixed', 'inset-0', 'z-[60]', 'h-screen', 'w-screen', 'rounded-none');
+                 container.classList.add('h-64', 'rounded-xl', 'mb-4');
+                 if(mapInstance) setTimeout(() => { mapInstance.invalidateSize(); }, 100);
+            } else {
+                // Try Native Fullscreen
+                container.requestFullscreen().catch(err => {
+                    console.warn("Native fullscreen failed, using CSS fallback:", err);
+                    // Enter Fake Fullscreen
+                    container.classList.remove('h-64', 'rounded-xl', 'mb-4');
+                    container.classList.add('fixed', 'inset-0', 'z-[60]', 'h-screen', 'w-screen', 'rounded-none');
+                    if(mapInstance) setTimeout(() => { mapInstance.invalidateSize(); }, 100);
+                });
+            }
+        };
+
+        // Listen for fullscreen change to resize map
+        document.addEventListener('fullscreenchange', () => {
+             if(mapInstance) {
+                 setTimeout(() => { mapInstance.invalidateSize(); }, 100);
+             }
+        });
 
         window.playTravelVideo = async () => {
             const container = document.getElementById('map-video-container');
@@ -2037,13 +2100,14 @@
             // Animate using Distance interpolation for fluidity
             const duration = 80000; // 80 seconds
             const intervalTime = 20; // 50fps
-            const distPerStep = totalDist / (duration / intervalTime);
+            const baseDistPerStep = totalDist / (duration / intervalTime);
             let traveled = 0;
 
             if (animInterval) clearInterval(animInterval);
 
             animInterval = setInterval(() => {
-                traveled += distPerStep;
+                // Apply speed multiplier
+                traveled += baseDistPerStep * videoSpeed;
                 
                 if (traveled >= totalDist) {
                     // End
@@ -2078,6 +2142,8 @@
                 carMarker.setLatLng(pos);
                 
                 // Update view without forcing zoom level (keeps user zoom)
+                // Only pan if car is getting close to edge? Or just setView every frame?
+                // setView every frame at 50fps might be heavy but usually smooth on modern browsers
                 mapInstance.setView(pos, mapInstance.getZoom(), { animate: false }); 
             }, intervalTime);
         };
