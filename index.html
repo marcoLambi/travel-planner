@@ -913,7 +913,7 @@
             // NEW: Init category sums
             const catSums = { 'Pernottamenti': 0, 'Attrazioni': 0, 'Pass e Tasse': 0, 'Altro': 0 };
 
-            cachedExpenses.forEach(data => {
+            cachedExpenses.forEach((data, index) => { // ADDED index
                 const qty = data.qty || 1; 
                 const amountEur = parseFloat(data.amount || 0);
                 const amountUsd = amountEur * currentExchangeRate;
@@ -944,12 +944,26 @@
 
                 const catLabel = cat !== 'Altro' ? `<span class="text-[9px] text-stone-400 bg-stone-100 px-1 rounded ml-1">${cat}</span>` : '';
 
+                // NEW: Sorting Buttons Logic
+                const upBtn = index > 0 
+                    ? `<button onclick="moveExpenseUp('${data.id}')" class="text-stone-300 hover:text-orange-500 p-0.5 leading-none"><i class="ph-bold ph-caret-up"></i></button>` 
+                    : `<span class="w-3 h-3"></span>`;
+                const downBtn = index < cachedExpenses.length - 1
+                    ? `<button onclick="moveExpenseDown('${data.id}')" class="text-stone-300 hover:text-orange-500 p-0.5 leading-none"><i class="ph-bold ph-caret-down"></i></button>`
+                    : `<span class="w-3 h-3"></span>`;
+
                 const row = document.createElement('div');
                 row.className = "flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm hover:shadow-md transition-shadow group";
                 row.id = `row-${data.id}`;
+                
+                // MODIFIED: Layout to include arrows next to name
                 row.innerHTML = `
-                    <div class="flex-grow pr-2">
-                        <div class="font-bold text-stone-700 text-sm break-words">
+                    <div class="flex-grow pr-2 flex items-start gap-3">
+                        <div class="flex flex-col justify-center items-center gap-0.5 mt-0.5 bg-stone-50 rounded border border-stone-100 p-0.5 flex-shrink-0">
+                            ${upBtn}
+                            ${downBtn}
+                        </div>
+                        <div class="font-bold text-stone-700 text-sm break-words pt-1">
                             ${data.name}
                             ${linkHtml}
                             ${catLabel}
@@ -969,6 +983,45 @@
                 list.appendChild(row);
             });
             updateTotalExpenses(totalEur, catSums);
+        };
+
+        // NEW: Move Expense Up (Swaps createdAt with previous item)
+        window.moveExpenseUp = async (id) => {
+            const index = cachedExpenses.findIndex(e => e.id === id);
+            if (index > 0) {
+                const curr = cachedExpenses[index];
+                const prev = cachedExpenses[index - 1];
+                
+                try {
+                    const batch = writeBatch(db);
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', expensesColName);
+                    
+                    // Swap creation timestamps to reorder in the query
+                    batch.update(doc(colRef, curr.id), { createdAt: prev.createdAt });
+                    batch.update(doc(colRef, prev.id), { createdAt: curr.createdAt });
+                    
+                    await batch.commit();
+                } catch(e) { console.error("Error moving up", e); }
+            }
+        };
+
+        // NEW: Move Expense Down (Swaps createdAt with next item)
+        window.moveExpenseDown = async (id) => {
+            const index = cachedExpenses.findIndex(e => e.id === id);
+            if (index < cachedExpenses.length - 1) {
+                const curr = cachedExpenses[index];
+                const next = cachedExpenses[index + 1];
+                
+                try {
+                    const batch = writeBatch(db);
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', expensesColName);
+                    
+                    batch.update(doc(colRef, curr.id), { createdAt: next.createdAt });
+                    batch.update(doc(colRef, next.id), { createdAt: curr.createdAt });
+                    
+                    await batch.commit();
+                } catch(e) { console.error("Error moving down", e); }
+            }
         };
 
         const updateTotalExpenses = (totalEur, catSums) => {
@@ -1293,27 +1346,71 @@
             calculateTotals();
         };
 
-        // NEW: Move Stage Up
+        // NEW: Helper to shift time preserving duration
+        const shiftStageTime = (stage, newStart) => {
+            if(!newStart || stage.start === newStart) return;
+            
+            const oldStartMins = timeToMins(stage.start);
+            const newStartMins = timeToMins(newStart);
+            const diff = newStartMins - oldStartMins;
+            
+            stage.start = newStart;
+            
+            // If it has an end time (Drive), shift it to maintain duration
+            if(stage.end) {
+                const oldEndMins = timeToMins(stage.end);
+                let newEndMins = oldEndMins + diff;
+                // Handle day wrap simply by mod 1440
+                if (newEndMins < 0) newEndMins += 1440;
+                stage.end = minsToHHMM(newEndMins);
+            }
+        };
+
+        // NEW: Move Stage Up with Time Snap
         window.moveStageUp = (id) => {
             const index = currentStages.findIndex(s => s.id === id);
             if (index > 0) {
-                // Swap
-                [currentStages[index], currentStages[index-1]] = [currentStages[index-1], currentStages[index]];
-                // Recalculate times from the previous index
+                const prevStage = currentStages[index-1];
+                const currStage = currentStages[index];
+                
+                // 1. Capture the start time slot of the upper element (the slot we are moving into)
+                const slotStartTime = prevStage.start;
+                
+                // 2. Swap
+                currentStages[index-1] = currStage;
+                currentStages[index] = prevStage;
+                
+                // 3. Snap the moved-up stage to the slot start
+                shiftStageTime(currStage, slotStartTime);
+                
+                // 4. Cascade from the new index of the moved-up stage (index-1)
                 recalculateCascade(index-1);
+                
                 renderStages();
                 calculateTotals();
             }
         };
 
-        // NEW: Move Stage Down
+        // NEW: Move Stage Down with Time Snap
         window.moveStageDown = (id) => {
             const index = currentStages.findIndex(s => s.id === id);
             if (index < currentStages.length - 1) {
-                // Swap
-                [currentStages[index], currentStages[index+1]] = [currentStages[index+1], currentStages[index]];
-                // Recalculate times from the current index
+                const currStage = currentStages[index];
+                const nextStage = currentStages[index+1];
+                
+                // 1. The one coming up (nextStage) should take the start time of the current slot
+                const slotStartTime = currStage.start;
+                
+                // 2. Swap
+                currentStages[index] = nextStage;
+                currentStages[index+1] = currStage;
+                
+                // 3. Snap the moved-up stage (nextStage is now at index)
+                shiftStageTime(nextStage, slotStartTime);
+                
+                // 4. Cascade from the new upper stage (index)
                 recalculateCascade(index);
+                
                 renderStages();
                 calculateTotals();
             }
@@ -1481,25 +1578,24 @@
 
                 let milesDisplay = (globalShowMiles && !stage.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${stage.miles} mi</div>` : ''; 
 
-                // ADDED: Up/Down Buttons
-                // Only show Up if index > 0, Down if index < length - 1
+                // MODIFIED: More visible Up/Down Buttons
                 const upBtn = index > 0 
-                    ? `<button onclick="moveStageUp(${stage.id})" class="p-1 hover:bg-stone-100 rounded text-stone-400 hover:text-stone-600"><i class="ph-bold ph-caret-up"></i></button>`
-                    : `<span class="p-1 w-6"></span>`; // spacer
+                    ? `<button onclick="moveStageUp(${stage.id})" class="w-8 h-8 flex items-center justify-center bg-white border border-stone-200 rounded-lg text-stone-500 hover:text-orange-500 hover:border-orange-300 hover:bg-orange-50 transition-all shadow-sm" title="Sposta Su"><i class="ph-bold ph-arrow-up"></i></button>`
+                    : `<div class="w-8 h-8"></div>`; // spacer
                 
                 const downBtn = index < currentStages.length - 1
-                    ? `<button onclick="moveStageDown(${stage.id})" class="p-1 hover:bg-stone-100 rounded text-stone-400 hover:text-stone-600"><i class="ph-bold ph-caret-down"></i></button>`
-                    : `<span class="p-1 w-6"></span>`; // spacer
+                    ? `<button onclick="moveStageDown(${stage.id})" class="w-8 h-8 flex items-center justify-center bg-white border border-stone-200 rounded-lg text-stone-500 hover:text-orange-500 hover:border-orange-300 hover:bg-orange-50 transition-all shadow-sm" title="Sposta Giù"><i class="ph-bold ph-arrow-down"></i></button>`
+                    : `<div class="w-8 h-8"></div>`; // spacer
 
                 div.innerHTML = `
-                    <div class="absolute top-2 right-2 flex items-center gap-1">
-                        <div class="flex flex-col gap-0.5 mr-2 bg-stone-100/50 rounded p-0.5">
+                    <div class="absolute top-2 right-2 flex items-center gap-2">
+                        <div class="flex gap-1 mr-2">
                             ${upBtn}
                             ${downBtn}
                         </div>
-                        <button onclick="removeStage(${stage.id})" class="text-stone-300 hover:text-red-500 transition-colors p-1"><i class="ph ph-trash text-lg"></i></button>
+                        <button onclick="removeStage(${stage.id})" class="w-8 h-8 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 border border-red-100 rounded-lg transition-colors shadow-sm" title="Elimina Tappa"><i class="ph ph-trash text-lg"></i></button>
                     </div>
-                    <div class="text-xs font-bold text-stone-400 mb-2 flex justify-between items-center pr-16">
+                    <div class="text-xs font-bold text-stone-400 mb-2 flex justify-between items-center pr-28">
                         <span>TAPPA ${index + 1}</span>
                         <label class="flex items-center gap-1 cursor-pointer">
                             <input type="checkbox" ${stage.isVisit ? 'checked' : ''} onchange="updateStageField(${stage.id}, 'isVisit', this.checked)" class="form-checkbox h-3 w-3 text-orange-500 rounded border-gray-300 focus:ring-orange-500">
@@ -1527,12 +1623,6 @@
                             <input type="number" step="0.1" value="${stage.km}" onchange="updateStageField(${stage.id}, 'km', this.value)" class="w-full text-sm font-bold border-b border-transparent focus:border-stone-200 focus:outline-none text-stone-600 text-center bg-transparent">
                         </div>
                         <div class="col-span-2 text-right"><label class="text-[10px] uppercase text-stone-400">Ore Auto</label><div class="text-sm font-bold text-green-600">${minsToTimeStr(stage.driveTime || 0)}</div></div>
-                    </div>
-
-                    <div class="mt-3 pt-2 border-t border-stone-200 flex justify-end">
-                        <button onclick="removeStage(${stage.id})" class="text-xs text-red-500 hover:text-red-700 font-bold flex items-center gap-1 bg-red-50 px-2 py-1 rounded transition-colors border border-red-100">
-                            <i class="ph-bold ph-trash"></i> Rimuovi Tappa
-                        </button>
                     </div>
                 `;
                 container.appendChild(div);
