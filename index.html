@@ -158,10 +158,10 @@
                                     <span class="text-[10px] font-bold text-stone-500 uppercase">Stati Visitati</span>
                                     <span class="text-2xl font-black text-purple-600" id="summ-view-states">0</span>
                                 </div>
-                                <!-- Card Tappe Uniche -->
+                                <!-- Card Tappe Uniche (RENAMED TO TAPPE VISITATE) -->
                                 <div class="bg-pink-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-pink-100">
                                     <div class="bg-pink-100 p-2 rounded-full text-pink-600 mb-2"><i class="ph-bold ph-map-pin text-xl"></i></div>
-                                    <span class="text-[10px] font-bold text-stone-500 uppercase">Luoghi Unici</span>
+                                    <span class="text-[10px] font-bold text-stone-500 uppercase">Tappe Visitate</span>
                                     <span class="text-2xl font-black text-pink-600" id="summ-view-stages">0</span>
                                 </div>
                             </div>
@@ -195,8 +195,8 @@
                                 <canvas id="activityChart"></canvas>
                             </div>
                             <p class="text-[10px] text-center text-stone-400 mt-2">
-                                <span class="inline-block w-2 h-2 rounded-full bg-orange-400 mr-1"></span>Ore Guida
-                                <span class="inline-block w-2 h-2 rounded-full bg-stone-400 ml-3 mr-1"></span>Durata Totale Giornata
+                                <span class="inline-block w-2 h-2 rounded-full bg-orange-400 mr-1"></span>% Ore Guida
+                                <span class="inline-block w-2 h-2 rounded-full bg-stone-300 ml-3 mr-1"></span>% Resto della Giornata
                             </p>
                         </div>
 
@@ -591,8 +591,9 @@
             if (!cachedDays || cachedDays.length === 0) return;
 
             const labels = [];
-            const driveData = [];
-            const durationData = [];
+            const driveData = []; // Pure numbers for chart
+            const restData = [];  // Pure numbers for chart
+            const metaData = [];  // Stores raw hours for tooltip
 
             let maxDriveVal = 0;
             let maxDriveLabel = '--';
@@ -641,8 +642,25 @@
                     maxIntenseLabel = `Giorno ${day.chronoId}`;
                 }
 
-                driveData.push(parseFloat((dayDriveMins / 60).toFixed(1)));
-                durationData.push(parseFloat((dayDurationMins / 60).toFixed(1)));
+                // Calculate proportions for 100% stacked chart
+                const driveHours = (dayDriveMins / 60).toFixed(1);
+                const totalHours = (dayDurationMins / 60).toFixed(1);
+                
+                let driveP = 0;
+                if (dayDurationMins > 0) {
+                    driveP = (dayDriveMins / dayDurationMins) * 100;
+                } else if (dayDriveMins > 0) {
+                    driveP = 100; // Edge case
+                }
+                
+                if (driveP > 100) driveP = 100;
+                if (driveP < 0) driveP = 0;
+                
+                const restP = 100 - driveP;
+
+                driveData.push(driveP);
+                restData.push(restP);
+                metaData.push({ drive: driveHours, total: totalHours, pct: Math.round(driveP) });
             });
 
             // Update Highlights DOM (Safe Checks)
@@ -676,32 +694,57 @@
                             backgroundColor: '#fb923c', // orange-400
                             borderRadius: 4,
                             stack: 'Stack 0',
-                            barPercentage: 0.8,
+                            barPercentage: 0.6,
                             categoryPercentage: 0.9
                         },
                         {
-                            label: 'Durata Totale (h)',
-                            data: durationData,
-                            backgroundColor: '#a8a29e', // stone-400
+                            label: 'Resto Giornata',
+                            data: restData,
+                            backgroundColor: '#d6d3d1', // stone-300
                             borderRadius: 4,
-                            stack: 'Stack 1', 
-                            barPercentage: 0.8,
+                            stack: 'Stack 0', 
+                            barPercentage: 0.6,
                             categoryPercentage: 0.9
                         }
                     ]
                 },
                 options: {
-                    indexAxis: 'y', // --- HORIZONTAL BAR CHART ---
+                    indexAxis: 'y', // Horizontal bars
                     responsive: true,
                     maintainAspectRatio: false,
                     interaction: { mode: 'index', axis: 'y', intersect: false },
                     plugins: {
                         legend: { display: false }, 
-                        tooltip: { mode: 'index', intersect: false, position: 'nearest' }
+                        tooltip: { 
+                            mode: 'index', 
+                            intersect: false, 
+                            position: 'nearest',
+                            callbacks: {
+                                label: function(context) {
+                                    const meta = metaData[context.dataIndex];
+                                    if (!meta) return '';
+                                    if (context.datasetIndex === 0) {
+                                        return `Guida: ${meta.drive}h (${meta.pct}%)`;
+                                    } else {
+                                        return `Totale Giornata: ${meta.total}h`;
+                                    }
+                                }
+                            }
+                        }
                     },
                     scales: {
-                        x: { beginAtZero: true, title: { display: true, text: 'Ore' }, grid: { color: '#f5f5f4' } },
-                        y: { grid: { display: false } }
+                        x: { 
+                            stacked: true, 
+                            min: 0, 
+                            max: 100, 
+                            title: { display: true, text: 'Percentuale Giornata (%)' }, 
+                            grid: { color: '#f5f5f4' },
+                            ticks: { callback: function(value) { return value + "%" } }
+                        },
+                        y: { 
+                            stacked: true, 
+                            grid: { display: false } 
+                        }
                     }
                 }
             });
@@ -1509,11 +1552,12 @@
                 days.forEach((d, i) => d.chronoId = i + 1);
                 
                 let gDrive = 0, gMiles = 0, gKm = 0;
+                let visitedStagesCount = 0; // NEW COUNT LOGIC
                 const statesSet = new Set();
-                const stagesSet = new Set();
 
                 days.forEach(day => {
-                    if(day.title) statesSet.add(day.title.trim());
+                    // NEW: Case insensitive state counting
+                    if(day.title) statesSet.add(day.title.trim().toUpperCase());
 
                     const card = document.createElement('div');
                     card.className = "bg-white p-4 rounded-xl shadow-sm border border-stone-200 hover:shadow-md transition-all cursor-pointer relative group";
@@ -1527,10 +1571,9 @@
 
                     if (day.stages) {
                         day.stages.forEach(s => {
-                            if(s.name) stagesSet.add(s.name.trim());
-                            
-                            // Logic change here
+                            // NEW COUNT LOGIC: Only count if isVisit is checked
                             if (s.isVisit) {
+                                visitedStagesCount++;
                                 visitCount++;
                             } else {
                                 tripCount++;
@@ -1583,7 +1626,8 @@
                 const elStates = document.getElementById('summ-view-states');
                 if(elStates) elStates.textContent = statesSet.size;
                 const elStages = document.getElementById('summ-view-stages');
-                if(elStages) elStages.textContent = statesSet.size;
+                // NEW: Use count of visited stages instead of unique names
+                if(elStages) elStages.textContent = visitedStagesCount;
 
                 updateSummaryChart();
 
