@@ -1247,6 +1247,32 @@
             calculateTotals();
         };
 
+        // NEW: Move Stage Up
+        window.moveStageUp = (id) => {
+            const index = currentStages.findIndex(s => s.id === id);
+            if (index > 0) {
+                // Swap
+                [currentStages[index], currentStages[index-1]] = [currentStages[index-1], currentStages[index]];
+                // Recalculate times from the previous index
+                recalculateCascade(index-1);
+                renderStages();
+                calculateTotals();
+            }
+        };
+
+        // NEW: Move Stage Down
+        window.moveStageDown = (id) => {
+            const index = currentStages.findIndex(s => s.id === id);
+            if (index < currentStages.length - 1) {
+                // Swap
+                [currentStages[index], currentStages[index+1]] = [currentStages[index+1], currentStages[index]];
+                // Recalculate times from the current index
+                recalculateCascade(index);
+                renderStages();
+                calculateTotals();
+            }
+        };
+
         window.updateStageField = (id, field, value) => {
             const index = currentStages.findIndex(s => s.id === id);
             const stage = currentStages[index];
@@ -1400,7 +1426,7 @@
                 
                 let typeIcon = stage.isVisit 
                     ? `<span class="text-orange-600 font-bold flex items-center gap-1 text-xs bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100"><i class="ph-fill ph-ticket"></i> VISITA</span>` 
-                    : `<span class="flex items-center gap-1 text-green-700 font-medium text-xs"><i class="ph-bold ph-car"></i> ${minsToTimeStr(s.driveTime)}</span>`;
+                    : `<span class="flex items-center gap-1 text-green-700 font-medium text-xs"><i class="ph-bold ph-car"></i> ${minsToTimeStr(stage.driveTime)}</span>`;
 
                 let kmDisplay = stage.isVisit 
                     ? '' 
@@ -1408,9 +1434,25 @@
 
                 let milesDisplay = (globalShowMiles && !stage.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${stage.miles} mi</div>` : ''; 
 
+                // ADDED: Up/Down Buttons
+                // Only show Up if index > 0, Down if index < length - 1
+                const upBtn = index > 0 
+                    ? `<button onclick="moveStageUp(${stage.id})" class="p-1 hover:bg-stone-100 rounded text-stone-400 hover:text-stone-600"><i class="ph-bold ph-caret-up"></i></button>`
+                    : `<span class="p-1 w-6"></span>`; // spacer
+                
+                const downBtn = index < currentStages.length - 1
+                    ? `<button onclick="moveStageDown(${stage.id})" class="p-1 hover:bg-stone-100 rounded text-stone-400 hover:text-stone-600"><i class="ph-bold ph-caret-down"></i></button>`
+                    : `<span class="p-1 w-6"></span>`; // spacer
+
                 div.innerHTML = `
-                    <button onclick="removeStage(${stage.id})" class="absolute top-2 right-2 text-stone-300 hover:text-red-500 transition-colors"><i class="ph ph-trash"></i></button>
-                    <div class="text-xs font-bold text-stone-400 mb-2 flex justify-between items-center">
+                    <div class="absolute top-2 right-2 flex items-center gap-1">
+                        <div class="flex flex-col gap-0.5 mr-2 bg-stone-100/50 rounded p-0.5">
+                            ${upBtn}
+                            ${downBtn}
+                        </div>
+                        <button onclick="removeStage(${stage.id})" class="text-stone-300 hover:text-red-500 transition-colors p-1"><i class="ph ph-trash text-lg"></i></button>
+                    </div>
+                    <div class="text-xs font-bold text-stone-400 mb-2 flex justify-between items-center pr-16">
                         <span>TAPPA ${index + 1}</span>
                         <label class="flex items-center gap-1 cursor-pointer">
                             <input type="checkbox" ${stage.isVisit ? 'checked' : ''} onchange="updateStageField(${stage.id}, 'isVisit', this.checked)" class="form-checkbox h-3 w-3 text-orange-500 rounded border-gray-300 focus:ring-orange-500">
