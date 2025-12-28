@@ -513,9 +513,11 @@
         let editingDayId = null;
         let unsubscribeDays = null;
         let unsubscribeNotes = null;
+        let unsubscribeAllNotes = null; // NEW: Listener for all notes
         let unsubscribeExpenses = null; 
         let currentStages = []; 
         let cachedDays = []; 
+        let cachedGlobalNotes = []; // NEW: Cache for all notes
         let cachedExpenses = []; 
         let activityChart = null; 
         let currentExchangeRate = 1.05; // Default
@@ -803,7 +805,7 @@
                 globalShowMiles = e.target.checked;
                 localStorage.setItem(`showMiles_${activeSecretKey}`, globalShowMiles);
                 updateGlobalVisibility();
-                if(cachedDays.length > 0) loadDays(); 
+                if(cachedDays.length > 0) renderDaysUI(); 
             });
         }
 
@@ -1426,7 +1428,13 @@
                 
                 let typeIcon = stage.isVisit 
                     ? `<span class="text-orange-600 font-bold flex items-center gap-1 text-xs bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100"><i class="ph-fill ph-ticket"></i> VISITA</span>` 
+                    : `<span class="flex items-center gap-1 text-green-700 font-medium text-xs"><i class="ph-bold ph-car"></i> ${minsToTimeStr(s.driveTime)}</span>`; // Fixed s.driveTime to stage.driveTime
+
+                // Fixed: typeIcon used "s.driveTime" but variable is "stage"
+                typeIcon = stage.isVisit 
+                    ? `<span class="text-orange-600 font-bold flex items-center gap-1 text-xs bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100"><i class="ph-fill ph-ticket"></i> VISITA</span>` 
                     : `<span class="flex items-center gap-1 text-green-700 font-medium text-xs"><i class="ph-bold ph-car"></i> ${minsToTimeStr(stage.driveTime)}</span>`;
+
 
                 let kmDisplay = stage.isVisit 
                     ? '' 
@@ -1598,6 +1606,10 @@
 
                 updateGlobalVisibility();
                 logAccess(); 
+                
+                // NEW: Load notes in background first, then days, or parallel
+                // Better to start both listeners
+                loadGlobalNotes();
                 loadDays();
             } catch(e) { 
                 console.error(e);
@@ -1615,18 +1627,35 @@
         document.getElementById('logout-btn').addEventListener('click', () => location.reload());
 
         // --- View Logic ---
+        
+        // NEW FUNCTION: Fetch all notes for dashboard
+        const loadGlobalNotes = () => {
+            const q = collection(db, 'artifacts', appId, 'public', 'data', notesColName);
+            unsubscribeAllNotes = onSnapshot(q, (snapshot) => {
+                cachedGlobalNotes = [];
+                snapshot.forEach(d => cachedGlobalNotes.push({id: d.id, ...d.data()}));
+                // When notes update, re-render the list if days are already loaded
+                if(cachedDays.length > 0) renderDaysUI();
+            });
+        };
+
         const loadDays = () => {
-            const list = document.getElementById('days-list');
             const loading = document.getElementById('loading-days');
             const empty = document.getElementById('empty-days');
-            loading.classList.remove('hidden'); empty.classList.add('hidden'); list.innerHTML = '';
+            loading.classList.remove('hidden'); empty.classList.add('hidden'); 
             
             const q = collection(db, 'artifacts', appId, 'public', 'data', daysColName);
             
             unsubscribeDays = onSnapshot(q, (snapshot) => {
-                loading.classList.add('hidden'); list.innerHTML = '';
-                if(snapshot.empty) { empty.classList.remove('hidden'); return; }
+                loading.classList.add('hidden'); 
+                
+                if(snapshot.empty) { 
+                    empty.classList.remove('hidden'); 
+                    document.getElementById('days-list').innerHTML = ''; // Clear list if empty
+                    return; 
+                }
                 empty.classList.add('hidden');
+                
                 const days = [];
                 snapshot.forEach(d => days.push({id: d.id, ...d.data()}));
                 
@@ -1637,94 +1666,117 @@
                 });
 
                 cachedDays = days; 
-                days.forEach((d, i) => d.chronoId = i + 1);
-                
-                let gDrive = 0, gMiles = 0, gKm = 0;
-                let visitedStagesCount = 0; // NEW COUNT LOGIC
-                const statesSet = new Set();
-
-                days.forEach(day => {
-                    // MODIFIED: Split states by hyphen for counting
-                    if(day.title) {
-                        const parts = day.title.split('-').map(s => s.trim().toUpperCase());
-                        parts.forEach(s => {
-                            if(s) statesSet.add(s);
-                        });
-                    }
-
-                    const card = document.createElement('div');
-                    card.className = "bg-white p-4 rounded-xl shadow-sm border border-stone-200 hover:shadow-md transition-all cursor-pointer relative group";
-                    let dateStr = day.dateString ? new Date(day.dateString).toLocaleDateString('it-IT', {weekday: 'short', day: 'numeric', month: 'short'}) : 'N/D';
-                    if(dateStr !== 'N/D') dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-
-                    let totKm = 0;
-                    let dayMiles = 0; 
-                    let visitCount = 0; 
-                    let tripCount = 0; 
-
-                    if (day.stages) {
-                        day.stages.forEach(s => {
-                            // NEW COUNT LOGIC: Only count if isVisit is checked
-                            if (s.isVisit) {
-                                visitedStagesCount++;
-                                visitCount++;
-                            } else {
-                                tripCount++;
-                                // Existing calc logic
-                                const stageKm = parseFloat(s.km || 0);
-                                const stageMiles = parseFloat(s.miles || 0);
-                                const stageDrive = parseInt(s.driveTime || 0);
-                                totKm += stageKm; 
-                                gKm += stageKm;
-                                gMiles += stageMiles;
-                                gDrive += stageDrive;
-                                dayMiles += stageMiles; 
-                            }
-                        });
-                    }
-
-                    const stagesList = day.stages && day.stages.length > 0 
-                        ? day.stages.map(s => s.name).join(' - ')
-                        : 'Nessuna tappa';
-
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="flex-grow pr-2">
-                                <span class="text-[10px] font-black text-orange-500 uppercase tracking-widest">GIORNO ${day.chronoId}</span>
-                                <h3 class="font-bold text-stone-800 text-lg leading-tight mb-1">${stagesList}</h3>
-                                <div class="text-stone-500 text-sm font-medium uppercase tracking-wide">${day.title || 'Stato non indicato'}</div>
-                            </div>
-                            <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-xs font-bold text-center min-w-[60px] flex-shrink-0">${dateStr}</div>
-                        </div>
-                        <p class="text-sm text-stone-600 mb-3">${day.description || 'Nessuna descrizione.'}</p>
-                        <div class="flex items-center gap-3 text-xs font-bold text-black border-t border-stone-100 pt-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
-                            <span class="flex items-center gap-1"><i class="ph-fill ph-flag-checkered text-orange-600"></i> ${visitCount} Tappe</span>
-                            ${tripCount > 0 ? `<span class="flex items-center gap-1"><i class="ph-fill ph-car text-orange-600"></i> ${tripCount} Road Trip</span>` : ''}
-                            <span class="flex items-center gap-1"><i class="ph-fill ph-road-horizon text-orange-600"></i> ${totKm.toFixed(0)} km</span>
-                            ${globalShowMiles ? `<span class="flex items-center gap-1 text-stone-400 font-mono">(${dayMiles.toFixed(0)} mi)</span>` : ''}
-                        </div>
-                    `;
-                    card.onclick = () => openDayDetail(day);
-                    // MODIFICA: Rimossi pulsanti edit/delete dalla card qui.
-                    list.appendChild(card);
-                });
-
-                const elSummDrive = document.getElementById('summ-view-drive');
-                if(elSummDrive) elSummDrive.textContent = minsToTimeStr(gDrive);
-                const elSummMiles = document.getElementById('summ-view-miles');
-                if(elSummMiles) elSummMiles.textContent = `${gMiles.toFixed(0)} mi`;
-                const elSummKm = document.getElementById('summ-view-km');
-                if(elSummKm) elSummKm.textContent = `${gKm.toFixed(0)} km`;
-                
-                const elStates = document.getElementById('summ-view-states');
-                if(elStates) elStates.textContent = statesSet.size;
-                const elStages = document.getElementById('summ-view-stages');
-                // NEW: Use count of visited stages instead of unique names
-                if(elStages) elStages.textContent = visitedStagesCount;
-
-                updateSummaryChart();
+                renderDaysUI(); // Extracted rendering logic
 
             }, (error) => { console.error(error); loading.classList.add('hidden'); });
+        };
+
+        // NEW FUNCTION: Extracted UI Rendering for Days List
+        const renderDaysUI = () => {
+            const list = document.getElementById('days-list');
+            list.innerHTML = '';
+            
+            cachedDays.forEach((d, i) => d.chronoId = i + 1);
+            
+            let gDrive = 0, gMiles = 0, gKm = 0;
+            let visitedStagesCount = 0; 
+            const statesSet = new Set();
+
+            cachedDays.forEach(day => {
+                if(day.title) {
+                    const parts = day.title.split('-').map(s => s.trim().toUpperCase());
+                    parts.forEach(s => {
+                        if(s) statesSet.add(s);
+                    });
+                }
+
+                // Check for notes for this day
+                const dayNotes = cachedGlobalNotes.filter(n => n.dayId === day.id);
+                // Sort notes by timestamp if available? Optional. Firestore doesn't guarantee order in snapshot array unless queried.
+                // In-memory sort:
+                dayNotes.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+
+                let notesHtml = '';
+                if(dayNotes.length > 0) {
+                   notesHtml = '<div class="mt-3 pt-2 border-t border-stone-100 space-y-1">';
+                   dayNotes.forEach(n => {
+                       notesHtml += `<div class="text-xs text-stone-600 bg-yellow-50 p-2 rounded border border-yellow-100 flex items-start gap-2">
+                           <i class="ph-fill ph-note text-yellow-500 mt-0.5 flex-shrink-0"></i>
+                           <span>${n.text}</span>
+                       </div>`;
+                   });
+                   notesHtml += '</div>';
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-stone-200 hover:shadow-md transition-all cursor-pointer relative group";
+                let dateStr = day.dateString ? new Date(day.dateString).toLocaleDateString('it-IT', {weekday: 'short', day: 'numeric', month: 'short'}) : 'N/D';
+                if(dateStr !== 'N/D') dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+
+                let totKm = 0;
+                let dayMiles = 0; 
+                let visitCount = 0; 
+                let tripCount = 0; 
+
+                if (day.stages) {
+                    day.stages.forEach(s => {
+                        if (s.isVisit) {
+                            visitedStagesCount++;
+                            visitCount++;
+                        } else {
+                            tripCount++;
+                            const stageKm = parseFloat(s.km || 0);
+                            const stageMiles = parseFloat(s.miles || 0);
+                            const stageDrive = parseInt(s.driveTime || 0);
+                            totKm += stageKm; 
+                            gKm += stageKm;
+                            gMiles += stageMiles;
+                            gDrive += stageDrive;
+                            dayMiles += stageMiles; 
+                        }
+                    });
+                }
+
+                const stagesList = day.stages && day.stages.length > 0 
+                    ? day.stages.map(s => s.name).join(' - ')
+                    : 'Nessuna tappa';
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex-grow pr-2">
+                            <span class="text-[10px] font-black text-orange-500 uppercase tracking-widest">GIORNO ${day.chronoId}</span>
+                            <h3 class="font-bold text-stone-800 text-lg leading-tight mb-1">${stagesList}</h3>
+                            <div class="text-stone-500 text-sm font-medium uppercase tracking-wide">${day.title || 'Stato non indicato'}</div>
+                        </div>
+                        <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-xs font-bold text-center min-w-[60px] flex-shrink-0">${dateStr}</div>
+                    </div>
+                    <p class="text-sm text-stone-600 mb-3">${day.description || 'Nessuna descrizione.'}</p>
+                    <div class="flex items-center gap-3 text-xs font-bold text-black border-t border-stone-100 pt-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                        <span class="flex items-center gap-1"><i class="ph-fill ph-flag-checkered text-orange-600"></i> ${visitCount} Tappe</span>
+                        ${tripCount > 0 ? `<span class="flex items-center gap-1"><i class="ph-fill ph-car text-orange-600"></i> ${tripCount} Road Trip</span>` : ''}
+                        <span class="flex items-center gap-1"><i class="ph-fill ph-road-horizon text-orange-600"></i> ${totKm.toFixed(0)} km</span>
+                        ${globalShowMiles ? `<span class="flex items-center gap-1 text-stone-400 font-mono">(${dayMiles.toFixed(0)} mi)</span>` : ''}
+                    </div>
+                    ${notesHtml}
+                `;
+                card.onclick = () => openDayDetail(day);
+                list.appendChild(card);
+            });
+
+            // Update stats logic
+            const elSummDrive = document.getElementById('summ-view-drive');
+            if(elSummDrive) elSummDrive.textContent = minsToTimeStr(gDrive);
+            const elSummMiles = document.getElementById('summ-view-miles');
+            if(elSummMiles) elSummMiles.textContent = `${gMiles.toFixed(0)} mi`;
+            const elSummKm = document.getElementById('summ-view-km');
+            if(elSummKm) elSummKm.textContent = `${gKm.toFixed(0)} km`;
+            
+            const elStates = document.getElementById('summ-view-states');
+            if(elStates) elStates.textContent = statesSet.size;
+            const elStages = document.getElementById('summ-view-stages');
+            if(elStages) elStages.textContent = visitedStagesCount;
+
+            updateSummaryChart();
         };
 
         const openDayDetail = (day) => {
