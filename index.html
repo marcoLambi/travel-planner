@@ -599,13 +599,22 @@
 
         const logAccess = async () => {
              if(!logsColName) return;
+             
+             let locationStr = "Posizione non disponibile";
+             
              try {
+                 // Try fetching location, but don't block execution if it fails
                  const res = await fetch('https://ipapi.co/json/');
-                 let locationStr = "Posizione non disponibile";
                  if(res.ok) {
                      const data = await res.json();
                      if(data.city) locationStr = `${data.city}, ${data.country_name}`;
                  }
+             } catch(e) {
+                 // Ignore network errors for location service (CORS/Adblock)
+                 console.log("Location service unavailable, skipping.");
+             }
+
+             try {
                  await addDoc(collection(db, 'artifacts', appId, 'public', 'data', logsColName), {
                      timestamp: serverTimestamp(),
                      device: getDeviceType(),
@@ -1576,7 +1585,7 @@
                     ? '' 
                     : `<div class="font-mono text-stone-400 text-xs">${parseFloat(stage.km).toFixed(0)} km</div>`;
 
-                let milesDisplay = (globalShowMiles && !stage.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${stage.miles} mi</div>` : ''; 
+                let milesDisplay = (globalShowMiles && !s.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${s.miles} mi</div>` : ''; 
 
                 // MODIFIED: More visible Up/Down Buttons
                 const upBtn = index > 0 
@@ -1811,7 +1820,8 @@
             let visitedStagesCount = 0; 
             const statesSet = new Set();
 
-            cachedDays.forEach(day => {
+            // FIXED: Added 'i' index to callback
+            cachedDays.forEach((day, i) => {
                 if(day.title) {
                     const parts = day.title.split('-').map(s => s.trim().toUpperCase());
                     parts.forEach(s => {
@@ -1866,21 +1876,59 @@
                     });
                 }
 
-                const stagesList = day.stages && day.stages.length > 0 
-                    ? day.stages.map(s => s.name).join(' - ')
-                    : 'Nessuna tappa';
+                // COSTRUZIONE LISTA TAPPE ESPANSA (MODIFICA RICHIESTA)
+                let stagesExpandedHtml = '';
+                if (day.stages && day.stages.length > 0) {
+                    stagesExpandedHtml = '<div class="mt-3 border-t border-stone-100 pt-2 space-y-2">';
+                    day.stages.forEach((s, idx) => {
+                         const typeIcon = s.isVisit 
+                            ? `<span class="bg-orange-100 text-orange-600 p-1 rounded-full text-[10px] flex-shrink-0"><i class="ph-fill ph-ticket"></i></span>` 
+                            : `<span class="bg-green-100 text-green-600 p-1 rounded-full text-[10px] flex-shrink-0"><i class="ph-bold ph-car"></i></span>`;
+                         
+                         const timeDisplay = s.start ? `<span class="font-mono text-[10px] text-stone-500 bg-stone-50 border border-stone-200 px-1 rounded ml-auto flex-shrink-0">${s.start}</span>` : '';
+
+                         stagesExpandedHtml += `
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] text-stone-400 font-mono w-4 flex-shrink-0 text-right">${idx+1}.</span>
+                                ${typeIcon}
+                                <span class="text-sm font-bold text-stone-700 leading-tight">${s.name}</span>
+                                ${timeDisplay}
+                            </div>
+                         `;
+                    });
+                    stagesExpandedHtml += '</div>';
+                } else {
+                    stagesExpandedHtml = '<div class="mt-3 text-xs text-stone-400 italic">Nessuna tappa inserita.</div>';
+                }
+
+                // NEW: Pulsanti Su/Giù per i Giorni
+                const upBtnDay = i > 0 
+                    ? `<button onclick="event.stopPropagation(); moveDayUp('${day.id}')" class="p-1 hover:bg-stone-100 rounded text-stone-400 hover:text-orange-500 transition-colors"><i class="ph-bold ph-caret-up text-lg"></i></button>`
+                    : `<div class="w-7 h-7"></div>`; // spacer
+                
+                const downBtnDay = i < cachedDays.length - 1
+                    ? `<button onclick="event.stopPropagation(); moveDayDown('${day.id}')" class="p-1 hover:bg-stone-100 rounded text-stone-400 hover:text-orange-500 transition-colors"><i class="ph-bold ph-caret-down text-lg"></i></button>`
+                    : `<div class="w-7 h-7"></div>`; // spacer
 
                 card.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
+                    <div class="flex justify-between items-start mb-2 gap-2">
+                        <!-- Pulsanti Spostamento -->
+                        <div class="flex flex-col gap-0 border border-stone-100 rounded-lg bg-stone-50/50 p-0.5 flex-shrink-0">
+                            ${upBtnDay}
+                            ${downBtnDay}
+                        </div>
+
                         <div class="flex-grow pr-2">
                             <span class="text-[10px] font-black text-orange-500 uppercase tracking-widest">GIORNO ${day.chronoId}</span>
-                            <h3 class="font-bold text-stone-800 text-lg leading-tight mb-1">${stagesList}</h3>
-                            <div class="text-stone-500 text-sm font-medium uppercase tracking-wide">${day.title || 'Stato non indicato'}</div>
+                            <h3 class="font-bold text-stone-800 text-lg leading-tight mb-1">${day.title || 'Stato non indicato'}</h3>
                         </div>
                         <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-xs font-bold text-center min-w-[60px] flex-shrink-0">${dateStr}</div>
                     </div>
-                    <p class="text-sm text-stone-600 mb-3">${day.description || 'Nessuna descrizione.'}</p>
-                    <div class="flex items-center gap-3 text-xs font-bold text-black border-t border-stone-100 pt-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                    <p class="text-sm text-stone-600 mb-2">${day.description || ''}</p>
+                    
+                    ${stagesExpandedHtml}
+
+                    <div class="flex items-center gap-3 text-xs font-bold text-black border-t border-stone-100 pt-2 mt-3 overflow-x-auto whitespace-nowrap scrollbar-hide">
                         <span class="flex items-center gap-1"><i class="ph-fill ph-flag-checkered text-orange-600"></i> ${visitCount} Tappe</span>
                         ${tripCount > 0 ? `<span class="flex items-center gap-1"><i class="ph-fill ph-car text-orange-600"></i> ${tripCount} Road Trip</span>` : ''}
                         <span class="flex items-center gap-1"><i class="ph-fill ph-road-horizon text-orange-600"></i> ${totKm.toFixed(0)} km</span>
@@ -1906,6 +1954,51 @@
             if(elStages) elStages.textContent = visitedStagesCount;
 
             updateSummaryChart();
+        };
+        
+        // NEW: Logica Spostamento Giorni (Scambio Date)
+        window.moveDayUp = async (id) => {
+            const index = cachedDays.findIndex(d => d.id === id);
+            if (index > 0) {
+                const currentDay = cachedDays[index];
+                const prevDay = cachedDays[index - 1];
+                
+                // Swap dates
+                const dateCurrent = currentDay.dateString;
+                const datePrev = prevDay.dateString;
+                
+                try {
+                    const batch = writeBatch(db);
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', daysColName);
+                    
+                    batch.update(doc(colRef, currentDay.id), { dateString: datePrev });
+                    batch.update(doc(colRef, prevDay.id), { dateString: dateCurrent });
+                    
+                    await batch.commit();
+                } catch(e) { console.error("Error moving day up", e); alert("Errore spostamento"); }
+            }
+        };
+
+        window.moveDayDown = async (id) => {
+            const index = cachedDays.findIndex(d => d.id === id);
+            if (index < cachedDays.length - 1) {
+                const currentDay = cachedDays[index];
+                const nextDay = cachedDays[index + 1];
+                
+                // Swap dates
+                const dateCurrent = currentDay.dateString;
+                const dateNext = nextDay.dateString;
+                
+                try {
+                    const batch = writeBatch(db);
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', daysColName);
+                    
+                    batch.update(doc(colRef, currentDay.id), { dateString: dateNext });
+                    batch.update(doc(colRef, nextDay.id), { dateString: dateCurrent });
+                    
+                    await batch.commit();
+                } catch(e) { console.error("Error moving day down", e); alert("Errore spostamento"); }
+            }
         };
 
         const openDayDetail = (day) => {
