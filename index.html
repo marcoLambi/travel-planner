@@ -109,6 +109,8 @@
                         <i class="ph ph-road-horizon text-5xl mb-3 text-stone-300"></i>
                         <p>Nessun giorno pianificato.</p>
                     </div>
+                    <!-- NEW: Riga conteggio giorni/notti nel diario -->
+                    <div id="diary-duration-line" class="text-xs text-stone-400 font-bold text-center mb-3 hidden"></div>
                     <div id="days-list" class="space-y-3 max-w-3xl mx-auto"></div>
                 </div>
 
@@ -160,15 +162,21 @@
                                 </div>
                             </div>
 
-                            <!-- NEW ROW: Counts -->
-                            <div class="grid grid-cols-2 gap-4 mb-6">
+                            <!-- NEW ROW: Counts (Updated grid to 3 cols or just added one more) -->
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                                <!-- Card Durata (NEW) -->
+                                <div class="bg-orange-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-orange-100 col-span-2 sm:col-span-1">
+                                    <div class="bg-orange-100 p-2 rounded-full text-orange-600 mb-2"><i class="ph-bold ph-calendar text-xl"></i></div>
+                                    <span class="text-[10px] font-bold text-stone-500 uppercase">Durata Totale</span>
+                                    <span class="text-lg font-black text-orange-600" id="summ-view-duration">0gg / 0nt</span>
+                                </div>
                                 <!-- Card Stati -->
                                 <div class="bg-purple-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-purple-100">
                                     <div class="bg-purple-100 p-2 rounded-full text-purple-600 mb-2"><i class="ph-bold ph-flag text-xl"></i></div>
                                     <span class="text-[10px] font-bold text-stone-500 uppercase">Stati Visitati</span>
                                     <span class="text-2xl font-black text-purple-600" id="summ-view-states">0</span>
                                 </div>
-                                <!-- Card Tappe Uniche (RENAMED TO TAPPE VISITATE) -->
+                                <!-- Card Tappe Visitate -->
                                 <div class="bg-pink-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-pink-100">
                                     <div class="bg-pink-100 p-2 rounded-full text-pink-600 mb-2"><i class="ph-bold ph-map-pin text-xl"></i></div>
                                     <span class="text-[10px] font-bold text-stone-500 uppercase">Tappe Visitate</span>
@@ -457,6 +465,14 @@
                         <div>
                             <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Descrizione Generale</label>
                             <textarea id="day-desc-input" rows="2" class="w-full p-2 bg-stone-50 border border-stone-200 rounded-lg resize-none focus:ring-1 focus:ring-orange-400 outline-none" placeholder="Obiettivi della giornata..."></textarea>
+                        </div>
+                        <!-- NEW LINK INPUT -->
+                        <div>
+                            <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Link (es. Hotel/Info)</label>
+                            <div class="relative">
+                                <i class="ph ph-link absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"></i>
+                                <input type="text" id="day-link-input" class="w-full p-2 pl-9 bg-stone-50 border border-stone-200 rounded-lg focus:ring-1 focus:ring-orange-400 outline-none text-xs text-blue-600" placeholder="https://...">
+                            </div>
                         </div>
                     </div>
 
@@ -1585,7 +1601,7 @@
                     ? '' 
                     : `<div class="font-mono text-stone-400 text-xs">${parseFloat(stage.km).toFixed(0)} km</div>`;
 
-                let milesDisplay = (globalShowMiles && !s.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${s.miles} mi</div>` : ''; 
+                let milesDisplay = (globalShowMiles && !stage.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${stage.miles} mi</div>` : ''; 
 
                 // MODIFIED: More visible Up/Down Buttons
                 const upBtn = index > 0 
@@ -1646,6 +1662,7 @@
                 document.getElementById('day-date-input').value = dayData.dateString || '';
                 document.getElementById('day-name-input').value = dayData.title || '';
                 document.getElementById('day-desc-input').value = dayData.description || '';
+                document.getElementById('day-link-input').value = dayData.dayLink || ''; // NEW: Populate Link
                 currentStages = dayData.stages || [];
             } else {
                 editingDayId = null;
@@ -1667,6 +1684,7 @@
 
                 document.getElementById('day-name-input').value = '';
                 document.getElementById('day-desc-input').value = '';
+                document.getElementById('day-link-input').value = ''; // NEW: Clear Link
                 currentStages = [];
             }
             renderStages();
@@ -1679,12 +1697,13 @@
             const dateStr = document.getElementById('day-date-input').value;
             const title = document.getElementById('day-name-input').value;
             const desc = document.getElementById('day-desc-input').value;
+            const link = document.getElementById('day-link-input').value; // NEW: Get Link
             if(!dateStr && !title) { alert("Inserisci Data o Titolo"); return; }
             const stagesClean = currentStages.map(s => ({
                 id: s.id, name: s.name, desc: s.desc, start: s.start, end: s.end, pause: s.pause,
                 miles: s.miles, km: s.km, driveTime: s.driveTime, mapsLink: s.mapsLink || '', isVisit: s.isVisit || false
             }));
-            const payload = { dateString: dateStr, title: title, description: desc, stages: stagesClean, updatedAt: serverTimestamp() };
+            const payload = { dateString: dateStr, title: title, description: desc, dayLink: link, stages: stagesClean, updatedAt: serverTimestamp() }; // Added dayLink to payload
             try {
                 if(editingDayId) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, editingDayId), payload);
                 else { payload.createdAt = serverTimestamp(); await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), payload); }
@@ -1820,6 +1839,26 @@
             let visitedStagesCount = 0; 
             const statesSet = new Set();
 
+            // NEW: Calculate Total Duration
+            const totalDays = cachedDays.length;
+            const totalNights = Math.max(0, totalDays - 1);
+            const durationStr = `${totalDays}gg / ${totalNights}nt`;
+            
+            // Update Summary View
+            const elDuration = document.getElementById('summ-view-duration');
+            if(elDuration) elDuration.textContent = durationStr;
+
+            // Update Diary View (Top Line)
+            const elDiaryDuration = document.getElementById('diary-duration-line');
+            if(elDiaryDuration) {
+                if(totalDays > 0) {
+                    elDiaryDuration.textContent = `Totale Viaggio: ${durationStr}`;
+                    elDiaryDuration.classList.remove('hidden');
+                } else {
+                    elDiaryDuration.classList.add('hidden');
+                }
+            }
+
             // FIXED: Added 'i' index to callback
             cachedDays.forEach((day, i) => {
                 if(day.title) {
@@ -1910,6 +1949,16 @@
                     ? `<button onclick="event.stopPropagation(); moveDayDown('${day.id}')" class="p-1 hover:bg-stone-100 rounded text-stone-400 hover:text-orange-500 transition-colors"><i class="ph-bold ph-caret-down text-lg"></i></button>`
                     : `<div class="w-7 h-7"></div>`; // spacer
 
+                // NEW: Link Display Logic
+                let linkHtml = '';
+                if(day.dayLink) {
+                    let safeLink = day.dayLink.trim();
+                    if (!/^https?:\/\//i.test(safeLink)) {
+                        safeLink = 'http://' + safeLink;
+                    }
+                    linkHtml = `<div class="mt-2 mb-1"><a href="${safeLink}" target="_blank" class="text-xs font-bold text-blue-500 hover:underline flex items-center gap-1"><i class="ph-bold ph-link"></i> Link Utile (Hotel/Info)</a></div>`;
+                }
+
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-2 gap-2">
                         <!-- Pulsanti Spostamento -->
@@ -1924,8 +1973,10 @@
                         </div>
                         <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-xs font-bold text-center min-w-[60px] flex-shrink-0">${dateStr}</div>
                     </div>
-                    <p class="text-sm text-stone-600 mb-2">${day.description || ''}</p>
+                    <p class="text-sm text-stone-600 mb-1">${day.description || ''}</p>
                     
+                    ${linkHtml}
+
                     ${stagesExpandedHtml}
 
                     <div class="flex items-center gap-3 text-xs font-bold text-black border-t border-stone-100 pt-2 mt-3 overflow-x-auto whitespace-nowrap scrollbar-hide">
