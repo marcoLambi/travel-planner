@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SHEETJS FOR EXCEL -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <!-- LEAFLET MAPS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -37,6 +39,11 @@
             transition: transform 0.1s linear; /* Smooth rotation if implemented, or position updates */
             z-index: 1000 !important;
         }
+        /* Map Button Background Pattern */
+        .bg-map-pattern {
+            background-color: #e5e7eb;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239ca3af' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
     </style>
 </head>
 <body class="bg-stone-50 text-stone-700 font-sans h-screen overflow-hidden flex flex-col">
@@ -62,7 +69,13 @@
                 <button id="logs-btn" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors" title="Registro Accessi">
                     <i class="ph-fill ph-eye text-xl"></i>
                 </button>
-                <button id="export-btn" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors" title="Scarica Backup">
+                <!-- IMPORT BUTTON -->
+                <button id="import-btn" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors" title="Importa Excel">
+                    <i class="ph ph-upload-simple text-xl"></i>
+                </button>
+                <input type="file" id="import-input" accept=".xlsx, .xls" class="hidden">
+                
+                <button id="export-btn" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors" title="Scarica Excel">
                     <i class="ph ph-download-simple text-xl"></i>
                 </button>
                 <button id="logout-btn" class="hidden text-xs bg-orange-600/30 hover:bg-orange-600/50 px-3 py-1 rounded transition-colors flex items-center gap-1">
@@ -561,6 +574,7 @@
         let currentExchangeRate = 1.05; // Default
         let globalShowMiles = true; 
         let globalShowUSD = true; // NEW STATE
+        let lastListScroll = 0; // NEW: Store scroll position
 
         // --- Helpers ---
         const generateColNames = (key) => {
@@ -679,6 +693,235 @@
         };
 
         if(document.getElementById('logs-btn')) document.getElementById('logs-btn').onclick = showLogs;
+
+
+        // --- EXPORT TO EXCEL ---
+        document.getElementById('export-btn').onclick = async () => {
+            if (!daysColName || !expensesColName) return;
+            const exportBtn = document.getElementById('export-btn');
+            exportBtn.innerHTML = '<div class="loader w-4 h-4 border-t-white border-white"></div>';
+
+            try {
+                // Fetch Data
+                const daysSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', daysColName));
+                let daysData = daysSnap.docs.map(d => ({ ...d.data(), _id: d.id }));
+                // Sort days by dateString
+                daysData.sort((a,b) => (a.dateString || '9999').localeCompare(b.dateString || '9999'));
+
+                const notesSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', notesColName));
+                const notesData = notesSnap.docs.map(d => d.data());
+
+                const expSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', expensesColName));
+                const expData = expSnap.docs.map(d => d.data());
+
+                // Prepare Sheets
+                const wb = XLSX.utils.book_new();
+
+                // 1. Sheet "Giorni"
+                const daysSheetData = [["Index", "Data", "Stato", "Descrizione", "Link"]];
+                // 2. Sheet "Tappe"
+                const stagesSheetData = [["Index_Giorno", "Ordine", "Nome", "Descrizione", "Link_Maps", "Visita", "Partenza", "Arrivo", "Sosta", "Miglia", "Km", "Ore_Guida"]];
+                // 3. Sheet "Note"
+                const notesSheetData = [["Index_Giorno", "Testo"]];
+                
+                // Map Day ID to Index (1, 2, 3...) for easy reading/restoring
+                const dayIdToIndex = {};
+
+                daysData.forEach((day, index) => {
+                    const idx = index + 1;
+                    dayIdToIndex[day._id] = idx;
+
+                    // Add Day Row
+                    daysSheetData.push([
+                        idx, 
+                        day.dateString || '', 
+                        day.title || '', 
+                        day.description || '', 
+                        day.dayLink || ''
+                    ]);
+
+                    // Add Stages Rows
+                    if(day.stages && day.stages.length > 0) {
+                        day.stages.forEach((s, sIdx) => {
+                            stagesSheetData.push([
+                                idx,
+                                sIdx + 1,
+                                s.name || '',
+                                s.desc || '',
+                                s.mapsLink || '',
+                                s.isVisit ? 'Si' : 'No',
+                                s.start || '',
+                                s.end || '',
+                                s.pause || '',
+                                s.miles || 0,
+                                s.km || 0,
+                                s.driveTime || 0
+                            ]);
+                        });
+                    }
+                });
+
+                // Add Notes Rows
+                notesData.forEach(note => {
+                    const dayIdx = dayIdToIndex[note.dayId];
+                    if (dayIdx) {
+                        notesSheetData.push([dayIdx, note.text || '']);
+                    }
+                });
+
+                // 4. Sheet "Spese"
+                const expensesSheetData = [["Voce", "Link", "Importo_EUR", "Quantita", "Categoria"]];
+                expData.forEach(ex => {
+                    expensesSheetData.push([
+                        ex.name || '',
+                        ex.link || '',
+                        ex.amount || 0,
+                        ex.qty || 1,
+                        ex.category || 'Altro'
+                    ]);
+                });
+
+                // Create Sheets
+                const wsDays = XLSX.utils.aoa_to_sheet(daysSheetData);
+                const wsStages = XLSX.utils.aoa_to_sheet(stagesSheetData);
+                const wsNotes = XLSX.utils.aoa_to_sheet(notesSheetData);
+                const wsExpenses = XLSX.utils.aoa_to_sheet(expensesSheetData);
+
+                XLSX.utils.book_append_sheet(wb, wsDays, "Giorni");
+                XLSX.utils.book_append_sheet(wb, wsStages, "Tappe");
+                XLSX.utils.book_append_sheet(wb, wsNotes, "Note");
+                XLSX.utils.book_append_sheet(wb, wsExpenses, "Spese");
+
+                // Download
+                XLSX.writeFile(wb, `TravelPlan_${activeSecretKey}.xlsx`);
+
+            } catch (error) {
+                console.error("Export failed:", error);
+                alert("Errore durante l'export Excel.");
+            } finally {
+                exportBtn.innerHTML = '<i class="ph ph-download-simple text-xl"></i>';
+            }
+        };
+
+        // --- IMPORT FROM EXCEL ---
+        document.getElementById('import-btn').onclick = () => {
+            document.getElementById('import-input').click();
+        };
+
+        document.getElementById('import-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const confirmImport = confirm("Sei sicuro di voler importare? Questo aggiungerà i dati al diario corrente.");
+            if (!confirmImport) {
+                e.target.value = ''; // Reset input
+                return;
+            }
+
+            const importBtn = document.getElementById('import-btn');
+            importBtn.innerHTML = '<div class="loader w-4 h-4 border-t-white border-white"></div>';
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    // Parse Sheets
+                    const daysSheet = workbook.Sheets["Giorni"];
+                    const stagesSheet = workbook.Sheets["Tappe"];
+                    const notesSheet = workbook.Sheets["Note"];
+                    const expensesSheet = workbook.Sheets["Spese"];
+
+                    const daysJson = XLSX.utils.sheet_to_json(daysSheet);
+                    const stagesJson = stagesSheet ? XLSX.utils.sheet_to_json(stagesSheet) : [];
+                    const notesJson = notesSheet ? XLSX.utils.sheet_to_json(notesSheet) : [];
+                    const expensesJson = expensesSheet ? XLSX.utils.sheet_to_json(expensesSheet) : [];
+
+                    // --- RECONSTRUCT DAYS ---
+                    // Map Excel Index -> New Firestore ID
+                    const excelIndexToNewId = {};
+
+                    const batch = writeBatch(db); 
+                    // Note: Firestore batch limit is 500 ops. For very large imports, this logic should be split. 
+                    // Assuming reasonable travel size here. For robustness, we process simply async loop if batch is too complex.
+                    
+                    // Simple loop async approach safer for mixed collections
+                    
+                    // 1. Process Days & Stages
+                    for (const dayRow of daysJson) {
+                        const idx = dayRow["Index"];
+                        
+                        // Find stages for this day
+                        const dayStages = stagesJson
+                            .filter(s => s["Index_Giorno"] == idx)
+                            .sort((a,b) => (a["Ordine"] || 0) - (b["Ordine"] || 0))
+                            .map(s => ({
+                                id: Date.now() + Math.random(), // generate random UI ID
+                                name: s["Nome"],
+                                desc: s["Descrizione"],
+                                mapsLink: s["Link_Maps"],
+                                isVisit: (s["Visita"] === 'Si'),
+                                start: s["Partenza"],
+                                end: s["Arrivo"],
+                                pause: s["Sosta"],
+                                miles: s["Miglia"],
+                                km: s["Km"],
+                                driveTime: s["Ore_Guida"]
+                            }));
+
+                        const newDocRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), {
+                            dateString: dayRow["Data"],
+                            title: dayRow["Stato"],
+                            description: dayRow["Descrizione"],
+                            dayLink: dayRow["Link"],
+                            stages: dayStages,
+                            createdAt: serverTimestamp(),
+                            updatedAt: serverTimestamp()
+                        });
+
+                        excelIndexToNewId[idx] = newDocRef.id;
+                    }
+
+                    // 2. Process Notes (Link to new Day IDs)
+                    for (const noteRow of notesJson) {
+                        const dayIdx = noteRow["Index_Giorno"];
+                        const newDayId = excelIndexToNewId[dayIdx];
+                        
+                        if (newDayId) {
+                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', notesColName), {
+                                dayId: newDayId,
+                                text: noteRow["Testo"],
+                                createdAt: serverTimestamp()
+                            });
+                        }
+                    }
+
+                    // 3. Process Expenses
+                    for (const expRow of expensesJson) {
+                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), {
+                            name: expRow["Voce"],
+                            link: expRow["Link"],
+                            amount: expRow["Importo_EUR"],
+                            qty: expRow["Quantita"],
+                            category: expRow["Categoria"],
+                            createdAt: serverTimestamp()
+                        });
+                    }
+
+                    alert("Importazione completata con successo!");
+                    // Refresh not strictly needed due to onSnapshot, but good practice if state is heavy
+                    
+                } catch (error) {
+                    console.error("Import error:", error);
+                    alert("Errore durante l'importazione Excel. Verifica il formato del file.");
+                } finally {
+                    importBtn.innerHTML = '<i class="ph ph-upload-simple text-xl"></i>';
+                    document.getElementById('import-input').value = '';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
 
 
         // --- CHART LOGIC ---
@@ -1739,6 +1982,8 @@
                 document.getElementById('logout-btn').classList.remove('hidden');
                 document.getElementById('export-btn').classList.remove('hidden');
                 document.getElementById('logs-btn').classList.remove('hidden'); 
+                // NEW: Show Import Button
+                document.getElementById('import-btn').classList.remove('hidden');
 
                 // RESTORE RATE FROM LOCALSTORAGE
                 const savedRate = localStorage.getItem(`rate_${activeSecretKey}`);
@@ -1854,6 +2099,8 @@
                 if(totalDays > 0) {
                     elDiaryDuration.textContent = `Totale Viaggio: ${durationStr}`;
                     elDiaryDuration.classList.remove('hidden');
+                    // MODIFICATO: Stile più visibile
+                    elDiaryDuration.className = "text-sm font-bold text-orange-600 bg-orange-100 border border-orange-200 p-2 rounded-lg text-center mb-4 shadow-sm";
                 } else {
                     elDiaryDuration.classList.add('hidden');
                 }
@@ -2054,6 +2301,10 @@
 
         const openDayDetail = (day) => {
             currentDayId = day.id;
+            
+            // 1. SAVE SCROLL POS
+            lastListScroll = document.getElementById('days-list-container').scrollTop;
+
             document.getElementById('days-view').classList.add('hidden');
             document.getElementById('notes-view').classList.remove('hidden');
             document.getElementById('back-btn').classList.remove('hidden');
@@ -2105,13 +2356,13 @@
 
                 let milesDisplay = (globalShowMiles && !s.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${s.miles} mi</div>` : ''; 
 
-                // NEW: Use Button Instead of Iframe Preview
+                // NEW: Use Button Instead of Iframe Preview - MODIFIED STYLE (SQUARE)
                 let mapButtonHtml = '';
                 if (s.mapsLink) {
                     const safeUrl = getMapsUrl(s.mapsLink);
                     mapButtonHtml = `
-                        <a href="${safeUrl}" target="_blank" class="block mt-3 w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 rounded-lg text-center text-sm font-bold transition-colors flex items-center justify-center gap-2">
-                            <i class="ph-fill ph-map-pin"></i> Vedi su Google Maps
+                        <a href="${safeUrl}" target="_blank" class="w-16 h-16 flex-shrink-0 rounded-xl shadow-md border-2 border-white flex items-center justify-center bg-map-pattern hover:scale-105 transition-transform" title="Vedi su Google Maps">
+                            <i class="ph-fill ph-map-pin text-3xl text-red-500 drop-shadow-sm"></i>
                         </a>
                     `;
                 }
@@ -2136,12 +2387,16 @@
                             <div class="flex justify-center -mt-2 opacity-50"><i class="chevron ph-bold ph-caret-down text-stone-400 transition-transform duration-200 rotate-180"></i></div>
                         </div>
                         <div id="stage-detail-${idx}" class="bg-stone-50 p-4 text-sm text-stone-700 border-t border-stone-100 shadow-inner">
-                            <div class="mb-2"><span class="text-[10px] uppercase font-bold text-stone-400">Descrizione</span><p class="mt-1">${s.desc || '<span class="italic text-stone-400">Nessuna descrizione.</span>'}</p></div>
-                            ${!s.isVisit ? `<div class="flex gap-4 text-xs font-mono text-stone-500 border-t border-stone-200 pt-2 mt-2">
-                                ${globalShowMiles ? `<div>Miglia: <span class="font-bold text-stone-800">${s.miles}</span></div>` : ''}
-                                <div>Km esatti: <span class="font-bold text-stone-800">${s.km}</span></div>
-                            </div>` : ''}
-                            ${mapButtonHtml} 
+                            <div class="flex justify-between gap-4">
+                                <div class="flex-grow">
+                                    <div class="mb-2"><span class="text-[10px] uppercase font-bold text-stone-400">Descrizione</span><p class="mt-1">${s.desc || '<span class="italic text-stone-400">Nessuna descrizione.</span>'}</p></div>
+                                    ${!s.isVisit ? `<div class="flex gap-4 text-xs font-mono text-stone-500 border-t border-stone-200 pt-2 mt-2">
+                                        ${globalShowMiles ? `<div>Miglia: <span class="font-bold text-stone-800">${s.miles}</span></div>` : ''}
+                                        <div>Km esatti: <span class="font-bold text-stone-800">${s.km}</span></div>
+                                    </div>` : ''}
+                                </div>
+                                ${mapButtonHtml}
+                            </div>
                         </div>
                     </div>`;
             });
@@ -2158,10 +2413,29 @@
             }
 
             // MODIFICA: Aggiunti pulsanti Modifica/Elimina in cima alla vista dettaglio e DATA
+            // MODIFICA 2: Aggiunti pulsanti Navigazione Giorno
+            const currentIndex = cachedDays.findIndex(d => d.id === day.id);
+            const prevDayBtn = currentIndex > 0 
+                ? `<button onclick="openDayDetailWithId('${cachedDays[currentIndex-1].id}')" class="px-2 py-1 bg-stone-100 text-stone-500 hover:bg-stone-200 rounded text-xs font-bold flex items-center gap-1 transition-colors"><i class="ph-bold ph-caret-left"></i> Prev</button>` 
+                : `<div class="w-12"></div>`;
+            
+            const nextDayBtn = currentIndex < cachedDays.length - 1
+                ? `<button onclick="openDayDetailWithId('${cachedDays[currentIndex+1].id}')" class="px-2 py-1 bg-stone-100 text-stone-500 hover:bg-stone-200 rounded text-xs font-bold flex items-center gap-1 transition-colors">Next <i class="ph-bold ph-caret-right"></i></button>`
+                : `<div class="w-12"></div>`;
+
             detailContainer.innerHTML = `
+                <div class="flex justify-between items-center mb-4 bg-stone-50 p-2 rounded-lg border border-stone-100">
+                    ${prevDayBtn}
+                    <div class="text-center">
+                        <div class="text-[10px] font-black text-orange-400 uppercase tracking-widest">GIORNO ${day.chronoId}</div>
+                        <div class="text-lg font-bold text-stone-800 leading-none">${dateDisplay}</div>
+                    </div>
+                    ${nextDayBtn}
+                </div>
+
                 <div class="flex justify-between items-center mb-4 border-b border-stone-100 pb-2">
-                    <div class="text-lg font-bold text-orange-500">${dateDisplay}</div>
-                    <div class="flex gap-2">
+                    <div class="font-bold text-stone-500 text-sm truncate flex-grow mr-2">${day.title || 'Stato non indicato'}</div>
+                    <div class="flex gap-2 flex-shrink-0">
                         <button onclick="editDayFromDetail('${day.id}')" class="px-3 py-1.5 bg-orange-50 text-orange-600 border border-orange-100 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-orange-100 transition-colors"><i class="ph-bold ph-pencil-simple"></i> Modifica</button>
                         <button onclick="deleteDayFromDetail('${day.id}')" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-100 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-red-100 transition-colors"><i class="ph-bold ph-trash"></i> Elimina</button>
                     </div>
@@ -2193,6 +2467,12 @@
             document.getElementById('notes-list-container').scrollTop = 0;
         };
 
+        // NEW: Helper for nav buttons
+        window.openDayDetailWithId = (id) => {
+            const day = cachedDays.find(d => d.id === id);
+            if(day) openDayDetail(day);
+        };
+
         // NEW HELPERS FOR DETAIL VIEW EDIT/DELETE
         window.editDayFromDetail = (id) => {
             const day = cachedDays.find(d => d.id === id);
@@ -2218,8 +2498,12 @@
             document.getElementById('bottom-nav').classList.remove('hidden'); // Show Nav back
             document.getElementById('header-title').textContent = "Travel Planner";
             if(unsubscribeNotes) unsubscribeNotes();
-            // SCROLL RESET FOR DAYS LIST
-            document.getElementById('days-list-container').scrollTop = 0;
+            
+            // 2. RESTORE SCROLL POS
+            // Wait for repaint to ensure container has content height
+            setTimeout(() => {
+                document.getElementById('days-list-container').scrollTop = lastListScroll;
+            }, 0);
         };
 
         const loadNotes = (dayId) => {
