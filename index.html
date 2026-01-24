@@ -128,7 +128,7 @@
                 </div>
 
                 <!-- Pulsante flottante -->
-                <button onclick="openModal(null)" class="absolute bottom-20 right-6 bg-orange-400 hover:bg-orange-500 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-20 border-2 border-white">
+                <button id="floating-plus-btn" onclick="openModal(null)" class="absolute bottom-20 right-6 bg-orange-400 hover:bg-orange-500 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-20 border-2 border-white">
                     <i class="ph ph-plus text-2xl font-bold"></i>
                 </button>
             </div>
@@ -216,6 +216,16 @@
                                     <span class="text-xs font-bold text-stone-500 uppercase">Km Totali</span>
                                     <span class="text-3xl font-black text-green-600" id="summ-view-km">--</span>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- NEW: Riepilogo Tappe (Moved from Totali) -->
+                        <div class="bg-white rounded-2xl shadow-xl p-4 border border-stone-200 w-full mb-6">
+                            <h3 class="text-sm font-bold text-stone-600 mb-4 uppercase flex items-center gap-2 pl-2 border-l-4 border-orange-400">
+                                <i class="ph-bold ph-list-numbers text-orange-500"></i> Riepilogo Tappe Visitate
+                            </h3>
+                            <div id="all-stages-summary" class="space-y-4">
+                                <!-- Popolato da JS -->
                             </div>
                         </div>
 
@@ -384,7 +394,7 @@
                     </div>
 
                     <!-- Tasso Cambio (CONDITIONAL) -->
-                    <div id="budget-exchange-rate"> <!-- ADDED ID -->
+                    <div id="budget-exchange-rate" class="mb-6 pb-6 border-b border-stone-100"> <!-- ADDED ID -->
                         <label class="block text-xs font-bold text-stone-500 uppercase mb-2">Tasso di Cambio Attuale</label>
                         <div class="flex items-center gap-3 bg-stone-50 p-3 rounded-xl border border-stone-200">
                             <span class="font-bold text-stone-700">1 € = </span>
@@ -819,7 +829,7 @@
             }
 
             const importBtn = document.getElementById('import-btn');
-            importBtn.innerHTML = '<div class="loader w-4 h-4 border-t-white border-white"></div>';
+            importBtn.innerHTML = '<div class=\"loader w-4 h-4 border-t-white border-white\"></div>';
 
             const reader = new FileReader();
             reader.onload = async (e) => {
@@ -842,12 +852,6 @@
                     // Map Excel Index -> New Firestore ID
                     const excelIndexToNewId = {};
 
-                    const batch = writeBatch(db); 
-                    // Note: Firestore batch limit is 500 ops. For very large imports, this logic should be split. 
-                    // Assuming reasonable travel size here. For robustness, we process simply async loop if batch is too complex.
-                    
-                    // Simple loop async approach safer for mixed collections
-                    
                     // 1. Process Days & Stages
                     for (const dayRow of daysJson) {
                         const idx = dayRow["Index"];
@@ -910,7 +914,6 @@
                     }
 
                     alert("Importazione completata con successo!");
-                    // Refresh not strictly needed due to onSnapshot, but good practice if state is heavy
                     
                 } catch (error) {
                     console.error("Import error:", error);
@@ -955,13 +958,10 @@
                     const start = timeToMins(sortedStages[0].start);
                     let end = 0;
                     
-                    // FIXED: Logic for last stage end time calculation
                     const lastStage = sortedStages[sortedStages.length - 1];
                     if (lastStage.isVisit) {
-                         // If last is visit, end = start + pause
                          end = timeToMins(lastStage.start) + timeToMins(lastStage.pause);
                     } else {
-                         // If driving, use end time
                          end = timeToMins(lastStage.end);
                     }
                     
@@ -980,7 +980,6 @@
                     maxIntenseLabel = `Giorno ${day.chronoId}`;
                 }
 
-                // Calculate proportions for 100% stacked chart
                 const driveHours = (dayDriveMins / 60).toFixed(1);
                 const totalHours = (dayDurationMins / 60).toFixed(1);
                 
@@ -988,7 +987,7 @@
                 if (dayDurationMins > 0) {
                     driveP = (dayDriveMins / dayDurationMins) * 100;
                 } else if (dayDriveMins > 0) {
-                    driveP = 100; // Edge case
+                    driveP = 100; 
                 }
                 
                 if (driveP > 100) driveP = 100;
@@ -1001,7 +1000,6 @@
                 metaData.push({ drive: driveHours, total: totalHours, pct: Math.round(driveP) });
             });
 
-            // Update Highlights DOM (Safe Checks)
             const highIntenseDay = document.getElementById('high-intense-day');
             const highIntenseVal = document.getElementById('high-intense-val');
             const highDriveDay = document.getElementById('high-drive-day');
@@ -1047,7 +1045,7 @@
                     ]
                 },
                 options: {
-                    indexAxis: 'y', // Horizontal bars
+                    indexAxis: 'y', 
                     responsive: true,
                     maintainAspectRatio: false,
                     interaction: { mode: 'index', axis: 'y', intersect: false },
@@ -1110,13 +1108,11 @@
         }
 
         const updateGlobalVisibility = () => {
-            // Miles visibility
             const milesCard = document.getElementById('card-miles-container');
             if(milesCard) milesCard.style.display = globalShowMiles ? 'flex' : 'none';
             const sumMilesContainer = document.getElementById('sum-miles-container');
             if(sumMilesContainer) sumMilesContainer.style.display = globalShowMiles ? 'block' : 'none';
 
-            // USD visibility
             const expensesHeaderUsd = document.getElementById('expenses-header-usd');
             if(expensesHeaderUsd) expensesHeaderUsd.style.display = globalShowUSD ? 'block' : 'none';
 
@@ -1178,16 +1174,14 @@
             const list = document.getElementById('expenses-list');
             list.innerHTML = '';
             let totalEur = 0;
-            // NEW: Init category sums
             const catSums = { 'Pernottamenti': 0, 'Attrazioni': 0, 'Pass e Tasse': 0, 'Altro': 0 };
 
-            cachedExpenses.forEach((data, index) => { // ADDED index
+            cachedExpenses.forEach((data, index) => { 
                 const qty = data.qty || 1; 
                 const amountEur = parseFloat(data.amount || 0);
                 const amountUsd = amountEur * currentExchangeRate;
                 totalEur += (amountEur * qty);
 
-                // Accumulate Category
                 const cat = data.category || 'Altro';
                 if(catSums[cat] !== undefined) catSums[cat] += (amountEur * qty);
                 else catSums['Altro'] += (amountEur * qty);
@@ -1200,7 +1194,6 @@
                     ? `<span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>` 
                     : '';
 
-                // NEW: Add link icon if link exists
                 let linkHtml = '';
                 if (data.link) {
                     let safeLink = data.link.trim();
@@ -1212,7 +1205,6 @@
 
                 const catLabel = cat !== 'Altro' ? `<span class="text-[9px] text-stone-400 bg-stone-100 px-1 rounded ml-1">${cat}</span>` : '';
 
-                // NEW: Sorting Buttons Logic
                 const upBtn = index > 0 
                     ? `<button onclick="moveExpenseUp('${data.id}')" class="text-stone-300 hover:text-orange-500 p-0.5 leading-none"><i class="ph-bold ph-caret-up"></i></button>` 
                     : `<span class="w-3 h-3"></span>`;
@@ -1224,7 +1216,6 @@
                 row.className = "flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm hover:shadow-md transition-shadow group";
                 row.id = `row-${data.id}`;
                 
-                // MODIFIED: Layout to include arrows next to name
                 row.innerHTML = `
                     <div class="flex-grow pr-2 flex items-start gap-3">
                         <div class="flex flex-col justify-center items-center gap-0.5 mt-0.5 bg-stone-50 rounded border border-stone-100 p-0.5 flex-shrink-0">
@@ -1253,7 +1244,6 @@
             updateTotalExpenses(totalEur, catSums);
         };
 
-        // NEW: Move Expense Up (Swaps createdAt with previous item)
         window.moveExpenseUp = async (id) => {
             const index = cachedExpenses.findIndex(e => e.id === id);
             if (index > 0) {
@@ -1263,17 +1253,13 @@
                 try {
                     const batch = writeBatch(db);
                     const colRef = collection(db, 'artifacts', appId, 'public', 'data', expensesColName);
-                    
-                    // Swap creation timestamps to reorder in the query
                     batch.update(doc(colRef, curr.id), { createdAt: prev.createdAt });
                     batch.update(doc(colRef, prev.id), { createdAt: curr.createdAt });
-                    
                     await batch.commit();
                 } catch(e) { console.error("Error moving up", e); }
             }
         };
 
-        // NEW: Move Expense Down (Swaps createdAt with next item)
         window.moveExpenseDown = async (id) => {
             const index = cachedExpenses.findIndex(e => e.id === id);
             if (index < cachedExpenses.length - 1) {
@@ -1283,10 +1269,8 @@
                 try {
                     const batch = writeBatch(db);
                     const colRef = collection(db, 'artifacts', appId, 'public', 'data', expensesColName);
-                    
                     batch.update(doc(colRef, curr.id), { createdAt: next.createdAt });
                     batch.update(doc(colRef, next.id), { createdAt: curr.createdAt });
-                    
                     await batch.commit();
                 } catch(e) { console.error("Error moving down", e); }
             }
@@ -1298,7 +1282,6 @@
             if(totalEl) totalEl.innerHTML = `${totalEur.toFixed(2)} <span class="text-2xl">€</span>`;
             if(totalElUsd) totalElUsd.textContent = `${(totalEur * currentExchangeRate).toFixed(2)} $`;
 
-            // Update Categories
             if (catSums) {
                 for (const [key, val] of Object.entries(catSums)) {
                     const el = document.getElementById(`cat-total-${key}`);
@@ -1307,7 +1290,6 @@
             }
         };
 
-        // Auto Conversion Logic for Input Bar
         const eurInput = document.getElementById('expense-amount-input');
         const usdInput = document.getElementById('expense-amount-usd-input');
 
@@ -1331,13 +1313,12 @@
 
         window.addExpense = async () => {
             const nameIn = document.getElementById('expense-name-input');
-            const linkIn = document.getElementById('expense-link-input'); // NEW
+            const linkIn = document.getElementById('expense-link-input'); 
             const qtyIn = document.getElementById('expense-qty-input');
-            // Get Category
             const catIn = document.querySelector('input[name="new-expense-cat"]:checked');
             
             const name = nameIn.value.trim();
-            const link = linkIn.value.trim(); // NEW
+            const link = linkIn.value.trim(); 
             const amount = parseFloat(eurInput.value); 
             const qty = parseInt(qtyIn.value) || 1;
             const category = catIn ? catIn.value : 'Altro';
@@ -1345,7 +1326,7 @@
             if(!name || isNaN(amount)) return;
             
             nameIn.value = ''; 
-            linkIn.value = ''; // NEW
+            linkIn.value = ''; 
             eurInput.value = '';
             usdInput.value = '';
             qtyIn.value = '1'; 
@@ -1364,7 +1345,6 @@
             }
         };
 
-        // Modified enableEditMode to accept link
         window.enableEditMode = (id, currentName, currentAmountEur, currentQty, currentLink) => {
             const row = document.getElementById(`row-${id}`);
             if(!row) return;
@@ -1372,7 +1352,6 @@
             const currentAmountUsd = (currentAmountEur * currentExchangeRate).toFixed(2);
             const usdInputDisplay = globalShowUSD ? 'block' : 'none';
 
-            // Modified layout to include link input
             row.innerHTML = `
                 <div class="flex gap-2 w-full items-center flex-wrap sm:flex-nowrap bg-stone-50 p-2 rounded">
                     <div class="flex-grow flex gap-1 w-full sm:w-auto">
@@ -1417,7 +1396,7 @@
 
         window.saveExpenseEdit = async (id) => {
             const newName = document.getElementById(`edit-name-${id}`).value.trim();
-            const newLink = document.getElementById(`edit-link-${id}`).value.trim(); // NEW
+            const newLink = document.getElementById(`edit-link-${id}`).value.trim(); 
             const newAmountEur = parseFloat(document.getElementById(`edit-eur-${id}`).value);
             const newQty = parseInt(document.getElementById(`edit-qty-${id}`).value) || 1;
             
@@ -1440,7 +1419,6 @@
                     ? `<span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>` 
                     : '';
              
-             // NEW: restore link icon logic
              let linkHtml = '';
              if (link) {
                 let safeLink = link.trim();
@@ -1497,7 +1475,6 @@
 
             if (tabName === 'days') {
                 daysView.classList.remove('hidden');
-                // SCROLL RESET
                 document.getElementById('days-list-container').scrollTop = 0;
                 
                 tabDays.classList.remove('text-stone-400');
@@ -1506,7 +1483,6 @@
                 tabDays.querySelector('i').classList.add('ph-fill');
             } else if (tabName === 'summary') {
                 summaryView.classList.remove('hidden');
-                // SCROLL RESET
                 summaryView.querySelector('.custom-scroll').scrollTop = 0;
 
                 tabSummary.classList.remove('text-stone-400');
@@ -1514,27 +1490,25 @@
                 tabSummary.querySelector('i').classList.remove('ph-bold');
                 tabSummary.querySelector('i').classList.add('ph-fill');
                 setTimeout(updateSummaryChart, 100);
+                // Render Path Summary (Visit List)
+                renderPathSummary();
             } else if (tabName === 'expenses') {
                 expensesView.classList.remove('hidden');
-                // SCROLL RESET
                 document.getElementById('expenses-list-container').scrollTop = 0;
 
                 tabExpenses.classList.remove('text-stone-400');
                 tabExpenses.classList.add('text-emerald-600'); 
                 tabExpenses.querySelector('i').classList.remove('ph-bold');
                 tabExpenses.querySelector('i').classList.add('ph-fill');
-                // Ensure listener is active
                 if(!unsubscribeExpenses && expensesColName) loadExpenses();
             } else if (tabName === 'budget') {
                 budgetView.classList.remove('hidden');
-                // SCROLL RESET
                 budgetView.scrollTop = 0;
 
                 tabBudget.classList.remove('text-stone-400');
                 tabBudget.classList.add('text-emerald-600'); 
                 tabBudget.querySelector('i').classList.remove('ph-bold');
                 tabBudget.querySelector('i').classList.add('ph-fill');
-                // Ensure listener is active so totals are correct
                 if(!unsubscribeExpenses && expensesColName) loadExpenses();
             }
         };
@@ -1551,7 +1525,6 @@
                 const notesSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', notesColName));
                 const notesData = notesSnap.docs.map(d => d.data());
                 
-                // Fetch Expenses too
                 const expSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', expensesColName));
                 const expData = expSnap.docs.map(d => d.data());
 
@@ -1586,7 +1559,6 @@
                 let defaultStart = '';
                 if (currentStages.length > 0) {
                     const lastStage = currentStages[currentStages.length - 1];
-                    // Logic change: Check if last stage was Visit to calculate default start
                     if (lastStage.isVisit && lastStage.start && lastStage.pause) {
                          const s = timeToMins(lastStage.start);
                          const p = timeToMins(lastStage.pause);
@@ -1614,7 +1586,6 @@
             calculateTotals();
         };
 
-        // NEW: Helper to shift time preserving duration
         const shiftStageTime = (stage, newStart) => {
             if(!newStart || stage.start === newStart) return;
             
@@ -1624,61 +1595,39 @@
             
             stage.start = newStart;
             
-            // If it has an end time (Drive), shift it to maintain duration
             if(stage.end) {
                 const oldEndMins = timeToMins(stage.end);
                 let newEndMins = oldEndMins + diff;
-                // Handle day wrap simply by mod 1440
                 if (newEndMins < 0) newEndMins += 1440;
                 stage.end = minsToHHMM(newEndMins);
             }
         };
 
-        // NEW: Move Stage Up with Time Snap
         window.moveStageUp = (id) => {
             const index = currentStages.findIndex(s => s.id === id);
             if (index > 0) {
                 const prevStage = currentStages[index-1];
                 const currStage = currentStages[index];
-                
-                // 1. Capture the start time slot of the upper element (the slot we are moving into)
                 const slotStartTime = prevStage.start;
-                
-                // 2. Swap
                 currentStages[index-1] = currStage;
                 currentStages[index] = prevStage;
-                
-                // 3. Snap the moved-up stage to the slot start
                 shiftStageTime(currStage, slotStartTime);
-                
-                // 4. Cascade from the new index of the moved-up stage (index-1)
                 recalculateCascade(index-1);
-                
                 renderStages();
                 calculateTotals();
             }
         };
 
-        // NEW: Move Stage Down with Time Snap
         window.moveStageDown = (id) => {
             const index = currentStages.findIndex(s => s.id === id);
             if (index < currentStages.length - 1) {
                 const currStage = currentStages[index];
                 const nextStage = currentStages[index+1];
-                
-                // 1. The one coming up (nextStage) should take the start time of the current slot
                 const slotStartTime = currStage.start;
-                
-                // 2. Swap
                 currentStages[index] = nextStage;
                 currentStages[index+1] = currStage;
-                
-                // 3. Snap the moved-up stage (nextStage is now at index)
                 shiftStageTime(nextStage, slotStartTime);
-                
-                // 4. Cascade from the new upper stage (index)
                 recalculateCascade(index);
-                
                 renderStages();
                 calculateTotals();
             }
@@ -1735,15 +1684,12 @@
                 let targetStartMins = 0;
                 let shouldUpdate = false;
 
-                // Logic requested by user
                 if (currentStage.isVisit) {
-                    // If Visit: Next Start = Current Start + Current Pause
                     const s = timeToMins(currentStage.start);
                     const p = timeToMins(currentStage.pause);
                     targetStartMins = s + p;
                     shouldUpdate = true;
                 } else {
-                    // If Driving: Next Start = Current End (Existing Logic)
                     if (currentStage.end) {
                         targetStartMins = timeToMins(currentStage.end);
                         shouldUpdate = true;
@@ -1752,22 +1698,15 @@
 
                 if (shouldUpdate) {
                     const newNextStart = minsToHHMM(targetStartMins);
-                    
                     if (nextStage.start !== newNextStart) {
-                        // Calculate current duration of next stage to shift it
                         const nextStartMins = timeToMins(nextStage.start);
                         const nextEndMins = timeToMins(nextStage.end);
-                        
                         let durationMins = 0;
                         if(nextStage.end) {
                              durationMins = nextEndMins - nextStartMins;
                              if (durationMins < 0) durationMins += 1440;
                         }
-
-                        // Apply new start
                         nextStage.start = newNextStart;
-
-                        // Shift end if it existed
                         if(nextStage.end) {
                             let newNextEndMins = targetStartMins + durationMins;
                             nextStage.end = minsToHHMM(newNextEndMins);
@@ -1791,21 +1730,16 @@
                 const sorted = [...currentStages].sort((a,b) => timeToMins(a.start) - timeToMins(b.start));
                 const first = sorted[0];
                 const last = sorted[sorted.length - 1];
-
                 const f = timeToMins(first.start);
                 let l = 0;
-
                 if (last.isVisit) {
                     l = timeToMins(last.start) + timeToMins(last.pause);
                 } else {
                     l = timeToMins(last.end);
                 }
-
-                if (l < f) l += 1440; // Handle midnight crossing
-
+                if (l < f) l += 1440; 
                 dayDuration = Math.max(0, l - f);
             }
-            // Update UI totals immediately in modal
             document.getElementById('sum-drive-time').textContent = minsToTimeStr(totalDrive);
             document.getElementById('sum-day-time').textContent = minsToTimeStr(dayDuration);
             document.getElementById('sum-miles').textContent = totalMiles.toFixed(1) + ' mi';
@@ -1814,15 +1748,12 @@
 
         const renderStages = () => {
             const container = document.getElementById('stages-container');
-            // Remove local useMiles check, use globalShowMiles instead
             container.innerHTML = '';
             currentStages.forEach((stage, index) => {
                 const div = document.createElement('div');
                 div.className = "bg-stone-50 border border-stone-200 rounded-lg p-3 relative group";
-                
                 const autoDetailsClass = stage.isVisit ? 'hidden' : 'grid';
-                const milesInputDisplay = globalShowMiles ? 'block' : 'none'; // Use global state
-
+                const milesInputDisplay = globalShowMiles ? 'block' : 'none'; 
                 let mapButtonHtml = '';
                 if (stage.mapsLink) {
                     const safeUrl = getMapsUrl(stage.mapsLink);
@@ -1833,27 +1764,13 @@
                     `;
                 }
 
-                let pauseDisplay = stage.pause && stage.pause !== '00:00' ? `<span class="flex items-center gap-1 text-amber-500 font-bold"><i class="ph-bold ph-coffee"></i> ${stage.pause.replace(':', 'h ')}m</span>` : '<span class="text-stone-300 flex items-center gap-1"><i class="ph ph-coffee"></i> --</span>';
-                
-                // FIXED: Variable s -> stage
-                let typeIcon = stage.isVisit 
-                    ? `<span class="text-orange-600 font-bold flex items-center gap-1 text-xs bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100"><i class="ph-fill ph-ticket"></i> VISITA</span>` 
-                    : `<span class="flex items-center gap-1 text-green-700 font-medium text-xs"><i class="ph-bold ph-car"></i> ${minsToTimeStr(stage.driveTime)}</span>`;
-
-                let kmDisplay = stage.isVisit 
-                    ? '' 
-                    : `<div class="font-mono text-stone-400 text-xs">${parseFloat(stage.km).toFixed(0)} km</div>`;
-
-                let milesDisplay = (globalShowMiles && !stage.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${stage.miles} mi</div>` : ''; 
-
-                // MODIFIED: More visible Up/Down Buttons
                 const upBtn = index > 0 
                     ? `<button onclick="moveStageUp(${stage.id})" class="w-8 h-8 flex items-center justify-center bg-white border border-stone-200 rounded-lg text-stone-500 hover:text-orange-500 hover:border-orange-300 hover:bg-orange-50 transition-all shadow-sm" title="Sposta Su"><i class="ph-bold ph-arrow-up"></i></button>`
-                    : `<div class="w-8 h-8"></div>`; // spacer
+                    : `<div class="w-8 h-8"></div>`; 
                 
                 const downBtn = index < currentStages.length - 1
                     ? `<button onclick="moveStageDown(${stage.id})" class="w-8 h-8 flex items-center justify-center bg-white border border-stone-200 rounded-lg text-stone-500 hover:text-orange-500 hover:border-orange-300 hover:bg-orange-50 transition-all shadow-sm" title="Sposta Giù"><i class="ph-bold ph-arrow-down"></i></button>`
-                    : `<div class="w-8 h-8"></div>`; // spacer
+                    : `<div class="w-8 h-8"></div>`; 
 
                 div.innerHTML = `
                     <div class="absolute top-2 right-2 flex items-center gap-2">
@@ -1905,13 +1822,11 @@
                 document.getElementById('day-date-input').value = dayData.dateString || '';
                 document.getElementById('day-name-input').value = dayData.title || '';
                 document.getElementById('day-desc-input').value = dayData.description || '';
-                document.getElementById('day-link-input').value = dayData.dayLink || ''; // NEW: Populate Link
+                document.getElementById('day-link-input').value = dayData.dayLink || ''; 
                 currentStages = dayData.stages || [];
             } else {
                 editingDayId = null;
                 document.getElementById('modal-title').textContent = "Nuova Giornata";
-                
-                // --- LOGICA DATA DI DEFAULT AL GIORNO SUCCESSIVO ---
                 if (cachedDays.length > 0) {
                     const lastDateStr = cachedDays[cachedDays.length - 1].dateString;
                     if (lastDateStr) {
@@ -1924,14 +1839,12 @@
                 } else {
                     document.getElementById('day-date-input').valueAsDate = new Date();
                 }
-
                 document.getElementById('day-name-input').value = '';
                 document.getElementById('day-desc-input').value = '';
-                document.getElementById('day-link-input').value = ''; // NEW: Clear Link
+                document.getElementById('day-link-input').value = ''; 
                 currentStages = [];
             }
             renderStages();
-            // Removed local toggle listener since it's global now
             calculateTotals();
         };
         window.closeModal = () => document.getElementById('day-modal').classList.add('hidden');
@@ -1940,13 +1853,13 @@
             const dateStr = document.getElementById('day-date-input').value;
             const title = document.getElementById('day-name-input').value;
             const desc = document.getElementById('day-desc-input').value;
-            const link = document.getElementById('day-link-input').value; // NEW: Get Link
+            const link = document.getElementById('day-link-input').value; 
             if(!dateStr && !title) { alert("Inserisci Data o Titolo"); return; }
             const stagesClean = currentStages.map(s => ({
                 id: s.id, name: s.name, desc: s.desc, start: s.start, end: s.end, pause: s.pause,
                 miles: s.miles, km: s.km, driveTime: s.driveTime, mapsLink: s.mapsLink || '', isVisit: s.isVisit || false
             }));
-            const payload = { dateString: dateStr, title: title, description: desc, dayLink: link, stages: stagesClean, updatedAt: serverTimestamp() }; // Added dayLink to payload
+            const payload = { dateString: dateStr, title: title, description: desc, dayLink: link, stages: stagesClean, updatedAt: serverTimestamp() }; 
             try {
                 if(editingDayId) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, editingDayId), payload);
                 else { payload.createdAt = serverTimestamp(); await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), payload); }
@@ -1954,7 +1867,6 @@
             } catch(e) { console.error(e); alert("Errore Salvataggio"); }
         });
 
-        // --- Auth & Init ---
         const login = async () => {
             const key = document.getElementById('secret-key-input').value;
             const names = generateColNames(key);
@@ -1965,52 +1877,37 @@
                 if (!auth.currentUser) {
                     await signInAnonymously(auth);
                 }
-
                 activeSecretKey = names.display;
                 daysColName = names.days;
                 notesColName = names.notes;
                 logsColName = names.logs; 
-                expensesColName = names.expenses; // Set expenses collection
-                
+                expensesColName = names.expenses; 
                 document.getElementById('app-id-display').textContent = appId.substring(0, 8); 
                 document.getElementById('current-key-display').textContent = activeSecretKey;
                 document.getElementById('login-view').classList.add('hidden');
-                
                 document.getElementById('days-view').classList.remove('hidden');
                 document.getElementById('bottom-nav').classList.remove('hidden'); 
-                
                 document.getElementById('logout-btn').classList.remove('hidden');
                 document.getElementById('export-btn').classList.remove('hidden');
                 document.getElementById('logs-btn').classList.remove('hidden'); 
-                // NEW: Show Import Button
                 document.getElementById('import-btn').classList.remove('hidden');
-
-                // RESTORE RATE FROM LOCALSTORAGE
                 const savedRate = localStorage.getItem(`rate_${activeSecretKey}`);
                 if(savedRate) {
                     currentExchangeRate = parseFloat(savedRate);
                     document.getElementById('global-exchange-rate').value = currentExchangeRate;
                 }
-
-                // RESTORE MILES PREFERENCE
                 const savedMiles = localStorage.getItem(`showMiles_${activeSecretKey}`);
                 if (savedMiles !== null) {
                     globalShowMiles = (savedMiles === 'true');
                     document.getElementById('global-miles-toggle').checked = globalShowMiles;
                 }
-
-                // RESTORE USD PREFERENCE (NEW)
                 const savedUSD = localStorage.getItem(`showUSD_${activeSecretKey}`);
                 if (savedUSD !== null) {
                     globalShowUSD = (savedUSD === 'true');
                     document.getElementById('global-usd-toggle').checked = globalShowUSD;
                 }
-
                 updateGlobalVisibility();
                 logAccess(); 
-                
-                // NEW: Load notes in background first, then days, or parallel
-                // Better to start both listeners
                 loadGlobalNotes();
                 loadDays();
             } catch(e) { 
@@ -2028,15 +1925,11 @@
 
         document.getElementById('logout-btn').addEventListener('click', () => location.reload());
 
-        // --- View Logic ---
-        
-        // NEW FUNCTION: Fetch all notes for dashboard
         const loadGlobalNotes = () => {
             const q = collection(db, 'artifacts', appId, 'public', 'data', notesColName);
             unsubscribeAllNotes = onSnapshot(q, (snapshot) => {
                 cachedGlobalNotes = [];
                 snapshot.forEach(d => cachedGlobalNotes.push({id: d.id, ...d.data()}));
-                // When notes update, re-render the list if days are already loaded
                 if(cachedDays.length > 0) renderDaysUI();
             });
         };
@@ -2045,68 +1938,50 @@
             const loading = document.getElementById('loading-days');
             const empty = document.getElementById('empty-days');
             loading.classList.remove('hidden'); empty.classList.add('hidden'); 
-            
             const q = collection(db, 'artifacts', appId, 'public', 'data', daysColName);
-            
             unsubscribeDays = onSnapshot(q, (snapshot) => {
                 loading.classList.add('hidden'); 
-                
                 if(snapshot.empty) { 
                     empty.classList.remove('hidden'); 
-                    document.getElementById('days-list').innerHTML = ''; // Clear list if empty
+                    document.getElementById('days-list').innerHTML = ''; 
                     return; 
                 }
                 empty.classList.add('hidden');
-                
                 const days = [];
                 snapshot.forEach(d => days.push({id: d.id, ...d.data()}));
-                
                 days.sort((a, b) => {
                     const dateA = a.dateString || '9999-99-99';
                     const dateB = b.dateString || '9999-99-99';
                     return dateA.localeCompare(dateB);
                 });
-
                 cachedDays = days; 
-                renderDaysUI(); // Extracted rendering logic
-
+                renderDaysUI(); 
+                renderPathSummary();
             }, (error) => { console.error(error); loading.classList.add('hidden'); });
         };
 
-        // NEW FUNCTION: Extracted UI Rendering for Days List
         const renderDaysUI = () => {
             const list = document.getElementById('days-list');
             list.innerHTML = '';
-            
             cachedDays.forEach((d, i) => d.chronoId = i + 1);
-            
             let gDrive = 0, gMiles = 0, gKm = 0;
             let visitedStagesCount = 0; 
             const statesSet = new Set();
-
-            // NEW: Calculate Total Duration
             const totalDays = cachedDays.length;
             const totalNights = Math.max(0, totalDays - 1);
             const durationStr = `${totalDays}gg / ${totalNights}nt`;
-            
-            // Update Summary View
             const elDuration = document.getElementById('summ-view-duration');
             if(elDuration) elDuration.textContent = durationStr;
-
-            // Update Diary View (Top Line)
             const elDiaryDuration = document.getElementById('diary-duration-line');
             if(elDiaryDuration) {
                 if(totalDays > 0) {
                     elDiaryDuration.textContent = `Totale Viaggio: ${durationStr}`;
                     elDiaryDuration.classList.remove('hidden');
-                    // MODIFICATO: Stile più visibile
                     elDiaryDuration.className = "text-sm font-bold text-orange-600 bg-orange-100 border border-orange-200 p-2 rounded-lg text-center mb-4 shadow-sm";
                 } else {
                     elDiaryDuration.classList.add('hidden');
                 }
             }
-
-            // FIXED: Added 'i' index to callback
             cachedDays.forEach((day, i) => {
                 if(day.title) {
                     const parts = day.title.split('-').map(s => s.trim().toUpperCase());
@@ -2114,13 +1989,8 @@
                         if(s) statesSet.add(s);
                     });
                 }
-
-                // Check for notes for this day
                 const dayNotes = cachedGlobalNotes.filter(n => n.dayId === day.id);
-                // Sort notes by timestamp if available? Optional. Firestore doesn't guarantee order in snapshot array unless queried.
-                // In-memory sort:
                 dayNotes.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
-
                 let notesHtml = '';
                 if(dayNotes.length > 0) {
                    notesHtml = '<div class="mt-3 pt-2 border-t border-stone-100 space-y-1">';
@@ -2132,17 +2002,14 @@
                    });
                    notesHtml += '</div>';
                 }
-
                 const card = document.createElement('div');
                 card.className = "bg-white p-4 rounded-xl shadow-sm border border-stone-200 hover:shadow-md transition-all cursor-pointer relative group";
                 let dateStr = day.dateString ? new Date(day.dateString).toLocaleDateString('it-IT', {weekday: 'short', day: 'numeric', month: 'short'}) : 'N/D';
                 if(dateStr !== 'N/D') dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-
                 let totKm = 0;
                 let dayMiles = 0; 
                 let visitCount = 0; 
                 let tripCount = 0; 
-
                 if (day.stages) {
                     day.stages.forEach(s => {
                         if (s.isVisit) {
@@ -2161,8 +2028,6 @@
                         }
                     });
                 }
-
-                // COSTRUZIONE LISTA TAPPE ESPANSA (MODIFICA RICHIESTA)
                 let stagesExpandedHtml = '';
                 if (day.stages && day.stages.length > 0) {
                     stagesExpandedHtml = '<div class="mt-3 border-t border-stone-100 pt-2 space-y-2">';
@@ -2170,9 +2035,7 @@
                          const typeIcon = s.isVisit 
                             ? `<span class="bg-orange-100 text-orange-600 p-1 rounded-full text-[10px] flex-shrink-0"><i class="ph-fill ph-ticket"></i></span>` 
                             : `<span class="bg-green-100 text-green-600 p-1 rounded-full text-[10px] flex-shrink-0"><i class="ph-bold ph-car"></i></span>`;
-                         
                          const timeDisplay = s.start ? `<span class="font-mono text-[10px] text-stone-500 bg-stone-50 border border-stone-200 px-1 rounded ml-auto flex-shrink-0">${s.start}</span>` : '';
-
                          stagesExpandedHtml += `
                             <div class="flex items-center gap-2">
                                 <span class="text-[10px] text-stone-400 font-mono w-4 flex-shrink-0 text-right">${idx+1}.</span>
@@ -2186,34 +2049,26 @@
                 } else {
                     stagesExpandedHtml = '<div class="mt-3 text-xs text-stone-400 italic">Nessuna tappa inserita.</div>';
                 }
-
-                // NEW: Pulsanti Su/Giù per i Giorni
                 const upBtnDay = i > 0 
                     ? `<button onclick="event.stopPropagation(); moveDayUp('${day.id}')" class="p-1 hover:bg-stone-100 rounded text-stone-400 hover:text-orange-500 transition-colors"><i class="ph-bold ph-caret-up text-lg"></i></button>`
-                    : `<div class="w-7 h-7"></div>`; // spacer
-                
+                    : `<div class="w-7 h-7"></div>`; 
                 const downBtnDay = i < cachedDays.length - 1
                     ? `<button onclick="event.stopPropagation(); moveDayDown('${day.id}')" class="p-1 hover:bg-stone-100 rounded text-stone-400 hover:text-orange-500 transition-colors"><i class="ph-bold ph-caret-down text-lg"></i></button>`
-                    : `<div class="w-7 h-7"></div>`; // spacer
-
-                // NEW: Link Display Logic
+                    : `<div class="w-7 h-7"></div>`; 
                 let linkHtml = '';
                 if(day.dayLink) {
                     let safeLink = day.dayLink.trim();
                     if (!/^https?:\/\//i.test(safeLink)) {
                         safeLink = 'http://' + safeLink;
                     }
-                    linkHtml = `<div class="mt-2 mb-1"><a href="${safeLink}" target="_blank" class="text-xs font-bold text-blue-500 hover:underline flex items-center gap-1"><i class="ph-bold ph-link"></i> Link Utile (Hotel/Info)</a></div>`;
+                    linkHtml = `<div class="mt-2 mb-1"><a href="${safeLink}" target=\"_blank\" class=\"text-xs font-bold text-blue-500 hover:underline flex items-center gap-1\"><i class=\"ph-bold ph-link\"></i> Link Utile (Hotel/Info)</a></div>`;
                 }
-
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-2 gap-2">
-                        <!-- Pulsanti Spostamento -->
                         <div class="flex flex-col gap-0 border border-stone-100 rounded-lg bg-stone-50/50 p-0.5 flex-shrink-0">
                             ${upBtnDay}
                             ${downBtnDay}
                         </div>
-
                         <div class="flex-grow pr-2">
                             <span class="text-[10px] font-black text-orange-500 uppercase tracking-widest">GIORNO ${day.chronoId}</span>
                             <h3 class="font-bold text-stone-800 text-lg leading-tight mb-1">${day.title || 'Stato non indicato'}</h3>
@@ -2221,11 +2076,8 @@
                         <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-xs font-bold text-center min-w-[60px] flex-shrink-0">${dateStr}</div>
                     </div>
                     <p class="text-sm text-stone-600 mb-1">${day.description || ''}</p>
-                    
                     ${linkHtml}
-
                     ${stagesExpandedHtml}
-
                     <div class="flex items-center gap-3 text-xs font-bold text-black border-t border-stone-100 pt-2 mt-3 overflow-x-auto whitespace-nowrap scrollbar-hide">
                         <span class="flex items-center gap-1"><i class="ph-fill ph-flag-checkered text-orange-600"></i> ${visitCount} Tappe</span>
                         ${tripCount > 0 ? `<span class="flex items-center gap-1"><i class="ph-fill ph-car text-orange-600"></i> ${tripCount} Road Trip</span>` : ''}
@@ -2237,41 +2089,68 @@
                 card.onclick = () => openDayDetail(day);
                 list.appendChild(card);
             });
-
-            // Update stats logic
             const elSummDrive = document.getElementById('summ-view-drive');
             if(elSummDrive) elSummDrive.textContent = minsToTimeStr(gDrive);
             const elSummMiles = document.getElementById('summ-view-miles');
             if(elSummMiles) elSummMiles.textContent = `${gMiles.toFixed(0)} mi`;
             const elSummKm = document.getElementById('summ-view-km');
             if(elSummKm) elSummKm.textContent = `${gKm.toFixed(0)} km`;
-            
             const elStates = document.getElementById('summ-view-states');
             if(elStates) elStates.textContent = statesSet.size;
             const elStages = document.getElementById('summ-view-stages');
             if(elStages) elStages.textContent = visitedStagesCount;
-
             updateSummaryChart();
         };
+
+        const renderPathSummary = () => {
+            const container = document.getElementById('all-stages-summary');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            const allVisits = [];
+            cachedDays.forEach(day => {
+                if (day.stages) {
+                    day.stages.forEach(s => {
+                        if (s.isVisit) {
+                            allVisits.push({ ...s, dayNum: day.chronoId });
+                        }
+                    });
+                }
+            });
+
+            if (allVisits.length === 0) {
+                container.innerHTML = '<p class="text-xs text-stone-400 italic">Nessun giorno pianificato o nessuna tappa visitata.</p>';
+                return;
+            }
+
+            const listWrapper = document.createElement('div');
+            listWrapper.className = "bg-stone-50 rounded-xl border border-stone-200 shadow-sm overflow-hidden";
+            
+            let html = '';
+            allVisits.forEach((v) => {
+                html += `
+                    <div class="flex items-center p-3 text-[11px] border-b border-stone-100 last:border-0 hover:bg-white transition-colors gap-3">
+                        <i class="ph-fill ph-ticket text-orange-500 text-sm"></i>
+                        <span class="font-bold text-stone-700">${v.name}</span>
+                    </div>
+                `;
+            });
+            listWrapper.innerHTML = html;
+            container.appendChild(listWrapper);
+        };
         
-        // NEW: Logica Spostamento Giorni (Scambio Date)
         window.moveDayUp = async (id) => {
             const index = cachedDays.findIndex(d => d.id === id);
             if (index > 0) {
                 const currentDay = cachedDays[index];
                 const prevDay = cachedDays[index - 1];
-                
-                // Swap dates
                 const dateCurrent = currentDay.dateString;
                 const datePrev = prevDay.dateString;
-                
                 try {
                     const batch = writeBatch(db);
                     const colRef = collection(db, 'artifacts', appId, 'public', 'data', daysColName);
-                    
                     batch.update(doc(colRef, currentDay.id), { dateString: datePrev });
                     batch.update(doc(colRef, prevDay.id), { dateString: dateCurrent });
-                    
                     await batch.commit();
                 } catch(e) { console.error("Error moving day up", e); alert("Errore spostamento"); }
             }
@@ -2282,18 +2161,13 @@
             if (index < cachedDays.length - 1) {
                 const currentDay = cachedDays[index];
                 const nextDay = cachedDays[index + 1];
-                
-                // Swap dates
                 const dateCurrent = currentDay.dateString;
                 const dateNext = nextDay.dateString;
-                
                 try {
                     const batch = writeBatch(db);
                     const colRef = collection(db, 'artifacts', appId, 'public', 'data', daysColName);
-                    
                     batch.update(doc(colRef, currentDay.id), { dateString: dateNext });
                     batch.update(doc(colRef, nextDay.id), { dateString: dateCurrent });
-                    
                     await batch.commit();
                 } catch(e) { console.error("Error moving day down", e); alert("Errore spostamento"); }
             }
@@ -2301,17 +2175,12 @@
 
         const openDayDetail = (day) => {
             currentDayId = day.id;
-            
-            // 1. SAVE SCROLL POS
             lastListScroll = document.getElementById('days-list-container').scrollTop;
-
             document.getElementById('days-view').classList.add('hidden');
             document.getElementById('notes-view').classList.remove('hidden');
             document.getElementById('back-btn').classList.remove('hidden');
             document.getElementById('bottom-nav').classList.add('hidden'); 
-            
             document.getElementById('header-title').textContent = `GIORNO ${day.chronoId} - ${day.title || ''}`;
-            
             const detailContainer = document.getElementById('day-detail-content');
             let totMiles = 0, totKm = 0, totDrive = 0, dayDur = 0;
             const stages = day.stages || [];
@@ -2326,47 +2195,35 @@
                  const sorted = [...stages].sort((a,b) => timeToMins(a.start) - timeToMins(b.start));
                  const f = timeToMins(sorted[0].start);
                  let l = 0; 
-                 
                  const lastStage = sorted[sorted.length - 1];
                  if (lastStage.isVisit) {
-                     // NEW LOGIC: If last is visit, end = start + pause
                      l = timeToMins(lastStage.start) + timeToMins(lastStage.pause);
                  } else {
                      l = timeToMins(lastStage.end);
                  }
-                 
                  if(l < f) l += 1440; 
                  if(l > f) dayDur = l - f;
             }
-
             let stagesHtml = '';
             stages.forEach((s, idx) => {
-                // MODIFICA: Logica Anteprima Mappa
                 const safeUrl = getMapsUrl(s.mapsLink);
-                
                 let pauseDisplay = s.pause && s.pause !== '00:00' ? `<span class="flex items-center gap-1 text-amber-500 font-bold"><i class="ph-bold ph-coffee"></i> ${s.pause.replace(':', 'h ')}m</span>` : '<span class="text-stone-300 flex items-center gap-1"><i class="ph ph-coffee"></i> --</span>';
-                
                 let typeIcon = s.isVisit 
                     ? `<span class="text-orange-600 font-bold flex items-center gap-1 text-xs bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100"><i class="ph-fill ph-ticket"></i> VISITA</span>` 
                     : `<span class="flex items-center gap-1 text-green-700 font-medium text-xs"><i class="ph-bold ph-car"></i> ${minsToTimeStr(s.driveTime)}</span>`;
-
                 let kmDisplay = s.isVisit 
                     ? '' 
                     : `<div class="font-mono text-stone-400 text-xs">${parseFloat(s.km).toFixed(0)} km</div>`;
-
                 let milesDisplay = (globalShowMiles && !s.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${s.miles} mi</div>` : ''; 
-
-                // NEW: Use Button Instead of Iframe Preview - MODIFIED STYLE (SQUARE)
                 let mapButtonHtml = '';
                 if (s.mapsLink) {
                     const safeUrl = getMapsUrl(s.mapsLink);
                     mapButtonHtml = `
-                        <a href="${safeUrl}" target="_blank" class="w-16 h-16 flex-shrink-0 rounded-xl shadow-md border-2 border-white flex items-center justify-center bg-map-pattern hover:scale-105 transition-transform" title="Vedi su Google Maps">
-                            <i class="ph-fill ph-map-pin text-3xl text-red-500 drop-shadow-sm"></i>
+                        <a href="${safeUrl}" target=\"_blank\" class=\"w-16 h-16 flex-shrink-0 rounded-xl shadow-md border-2 border-white flex items-center justify-center bg-map-pattern hover:scale-105 transition-transform\" title=\"Vedi su Google Maps\">
+                            <i class=\"ph-fill ph-map-pin text-3xl text-red-500 drop-shadow-sm\"></i>
                         </a>
                     `;
                 }
-
                 stagesHtml += `
                     <div class="border-b border-stone-100 last:border-0">
                         <div class="p-3 bg-white hover:bg-stone-50 cursor-pointer flex flex-col gap-2" onclick="document.getElementById('stage-detail-${idx}').classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-180')">
@@ -2400,25 +2257,17 @@
                         </div>
                     </div>`;
             });
-
-            // Adjust grid columns based on miles visibility
             const gridCols = globalShowMiles ? 'grid-cols-4' : 'grid-cols-3';
             const milesStat = globalShowMiles ? `<div><div class="text-[10px] text-stone-400 uppercase">Miglia</div><div class="font-bold text-sm sm:text-base">${totMiles.toFixed(1)}</div></div>` : '';
-
-            // NEW: Add formatted date display logic
             let dateDisplay = 'Data non impostata';
             if(day.dateString) {
                 const d = new Date(day.dateString);
                 dateDisplay = d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
             }
-
-            // MODIFICA: Aggiunti pulsanti Modifica/Elimina in cima alla vista dettaglio e DATA
-            // MODIFICA 2: Aggiunti pulsanti Navigazione Giorno
             const currentIndex = cachedDays.findIndex(d => d.id === day.id);
             const prevDayBtn = currentIndex > 0 
                 ? `<button onclick="openDayDetailWithId('${cachedDays[currentIndex-1].id}')" class="px-2 py-1 bg-stone-100 text-stone-500 hover:bg-stone-200 rounded text-xs font-bold flex items-center gap-1 transition-colors"><i class="ph-bold ph-caret-left"></i> Prev</button>` 
                 : `<div class="w-12"></div>`;
-            
             const nextDayBtn = currentIndex < cachedDays.length - 1
                 ? `<button onclick="openDayDetailWithId('${cachedDays[currentIndex+1].id}')" class="px-2 py-1 bg-stone-100 text-stone-500 hover:bg-stone-200 rounded text-xs font-bold flex items-center gap-1 transition-colors">Next <i class="ph-bold ph-caret-right"></i></button>`
                 : `<div class="w-12"></div>`;
@@ -2432,7 +2281,6 @@
                     </div>
                     ${nextDayBtn}
                 </div>
-
                 <div class="flex justify-between items-center mb-4 border-b border-stone-100 pb-2">
                     <div class="font-bold text-stone-500 text-sm truncate flex-grow mr-2">${day.title || 'Stato non indicato'}</div>
                     <div class="flex gap-2 flex-shrink-0">
@@ -2441,16 +2289,12 @@
                     </div>
                 </div>
                 <div class="mb-4"><p class="text-stone-600 text-sm italic border-l-4 border-orange-400 pl-3 py-1 bg-orange-50/50 rounded-r">${day.description || 'Nessuna descrizione generale.'}</p></div>
-                
                 <div class="mb-6">
-                     <h4 class="text-xs font-bold text-stone-400 uppercase mb-2 flex items-center gap-2">
-                        <i class="ph ph-note"></i> Note
-                    </h4>
+                     <h4 class="text-xs font-bold text-stone-400 uppercase mb-2 flex items-center gap-2"><i class="ph ph-note"></i> Note</h4>
                     <div id="loading-notes" class="hidden flex justify-center py-2"><div class="loader w-4 h-4 border-t-orange-400"></div></div>
                     <div id="empty-notes" class="hidden text-center py-2 text-stone-400 text-xs italic">Nessuna nota aggiunta.</div>
                     <ul id="notes-list" class="space-y-2"></ul>
                 </div>
-
                 <div class="bg-gradient-to-r from-stone-800 to-stone-900 text-white rounded-xl p-4 shadow-lg mb-6">
                     <div class="grid ${gridCols} gap-2 text-center divide-x divide-stone-700">
                         <div><div class="text-[10px] text-stone-400 uppercase">Auto</div><div class="font-bold text-amber-400 text-sm sm:text-base">${minsToTimeStr(totDrive)}</div></div>
@@ -2463,17 +2307,14 @@
                 <div class="rounded-lg border border-stone-200 bg-white overflow-hidden shadow-sm">${stagesHtml || '<div class="p-4 text-center text-stone-400 text-xs">Nessuna tappa inserita.</div>'}</div>
             `;
             loadNotes(day.id);
-            // SCROLL RESET FOR DETAIL VIEW
             document.getElementById('notes-list-container').scrollTop = 0;
         };
 
-        // NEW: Helper for nav buttons
         window.openDayDetailWithId = (id) => {
             const day = cachedDays.find(d => d.id === id);
             if(day) openDayDetail(day);
         };
 
-        // NEW HELPERS FOR DETAIL VIEW EDIT/DELETE
         window.editDayFromDetail = (id) => {
             const day = cachedDays.find(d => d.id === id);
             if(day) openModal(day);
@@ -2483,7 +2324,7 @@
             if(confirm('Eliminare questa giornata e tutti i suoi dati?')) {
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, id));
-                    document.getElementById('back-btn').click(); // Return to list
+                    document.getElementById('back-btn').click(); 
                 } catch(e) {
                     console.error(e);
                     alert("Errore durante l'eliminazione");
@@ -2495,12 +2336,9 @@
             document.getElementById('days-view').classList.remove('hidden');
             document.getElementById('notes-view').classList.add('hidden');
             document.getElementById('back-btn').classList.remove('hidden');
-            document.getElementById('bottom-nav').classList.remove('hidden'); // Show Nav back
+            document.getElementById('bottom-nav').classList.remove('hidden'); 
             document.getElementById('header-title').textContent = "Travel Planner";
             if(unsubscribeNotes) unsubscribeNotes();
-            
-            // 2. RESTORE SCROLL POS
-            // Wait for repaint to ensure container has content height
             setTimeout(() => {
                 document.getElementById('days-list-container').scrollTop = lastListScroll;
             }, 0);
@@ -2510,12 +2348,9 @@
             const list = document.getElementById('notes-list'); 
             const loader = document.getElementById('loading-notes');
             const empty = document.getElementById('empty-notes');
-            
             if(!list) return; 
-
             list.innerHTML = '';
             loader.classList.remove('hidden');
-            
             const q = query(collection(db, 'artifacts', appId, 'public', 'data', notesColName), where('dayId', '==', dayId));
             unsubscribeNotes = onSnapshot(q, (snapshot) => {
                 loader.classList.add('hidden'); 
@@ -2523,10 +2358,8 @@
                 const notes = []; 
                 snapshot.forEach(d => notes.push({id: d.id, ...d.data()}));
                 notes.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
-                
                 if(notes.length === 0) empty.classList.remove('hidden');
                 else empty.classList.add('hidden');
-                
                 notes.forEach(n => {
                     const li = document.createElement('li'); 
                     li.className = "bg-yellow-100 p-3 rounded-lg text-sm text-stone-800 flex justify-between group shadow-sm border border-yellow-200";
@@ -2544,15 +2377,13 @@
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', notesColName), { dayId: currentDayId, text: txt, createdAt: serverTimestamp() });
         };
         
-        // --- TRAVEL REEL (VIDEO) LOGIC ---
         let mapInstance = null;
         let carMarker = null;
         let routePolyline = null;
         let isPlaying = false;
-        let animInterval = null; // Store interval ID globally for clearing
-        let videoSpeed = 1; // Default speed
+        let animInterval = null; 
+        let videoSpeed = 1; 
         
-        // Icona Auto Custom
         const carIcon = L.divIcon({
             html: '<div class="bg-orange-500 text-white p-1 rounded-full shadow-lg border-2 border-white flex items-center justify-center w-8 h-8"><i class="ph-fill ph-car-profile text-lg"></i></div>',
             className: 'car-icon-div',
@@ -2560,19 +2391,14 @@
             iconAnchor: [16, 16]
         });
 
-        // Delay helper
         const sleep = (ms) => new Promise(r => setTimeout(r, ms));
         
-        // Functions for UI controls
         window.setVideoSpeed = (speed) => {
             videoSpeed = speed;
-            // Update UI
             document.querySelectorAll('.speed-btn').forEach(btn => {
                 btn.classList.remove('bg-white', 'text-black');
-                btn.classList.add('hover:bg-white/30', 'text-white'); // Reset active style
+                btn.classList.add('hover:bg-white/30', 'text-white'); 
             });
-            
-            // Set active
             const btnId = speed === 0.5 ? 'btn-speed-05' : (speed === 2 ? 'btn-speed-2' : 'btn-speed-1');
             const activeBtn = document.getElementById(btnId);
             if(activeBtn) {
@@ -2584,19 +2410,15 @@
         window.toggleVideoFullscreen = () => {
             const container = document.getElementById('map-video-container');
             const isFakeFullscreen = container.classList.contains('fixed');
-
             if (document.fullscreenElement) {
                 document.exitFullscreen();
             } else if (isFakeFullscreen) {
-                 // Exit Fake Fullscreen
                  container.classList.remove('fixed', 'inset-0', 'z-[60]', 'h-screen', 'w-screen', 'rounded-none');
                  container.classList.add('h-64', 'rounded-xl', 'mb-4');
                  if(mapInstance) setTimeout(() => { mapInstance.invalidateSize(); }, 100);
             } else {
-                // Try Native Fullscreen
                 container.requestFullscreen().catch(err => {
                     console.warn("Native fullscreen failed, using CSS fallback:", err);
-                    // Enter Fake Fullscreen
                     container.classList.remove('h-64', 'rounded-xl', 'mb-4');
                     container.classList.add('fixed', 'inset-0', 'z-[60]', 'h-screen', 'w-screen', 'rounded-none');
                     if(mapInstance) setTimeout(() => { mapInstance.invalidateSize(); }, 100);
@@ -2604,7 +2426,6 @@
             }
         };
 
-        // Listen for fullscreen change to resize map
         document.addEventListener('fullscreenchange', () => {
              if(mapInstance) {
                  setTimeout(() => { mapInstance.invalidateSize(); }, 100);
@@ -2622,11 +2443,9 @@
             btn.classList.add('opacity-50', 'cursor-not-allowed');
             container.classList.remove('hidden');
             
-            // Init map if needed
             if (!mapInstance) {
                 mapInstance = L.map('travel-video-map', { zoomControl: false }).setView([41.9028, 12.4964], 5);
                 L.control.zoom({ position: 'bottomright' }).addTo(mapInstance); 
-                
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
                     subdomains: 'abcd',
@@ -2634,13 +2453,11 @@
                 }).addTo(mapInstance);
             }
 
-            // Reset
             if (carMarker) mapInstance.removeLayer(carMarker);
             if (routePolyline) mapInstance.removeLayer(routePolyline);
             overlay.classList.remove('hidden');
             statusText.textContent = "Analisi tappe...";
 
-            // 1. Gather all locations sequentially
             const allStages = [];
             cachedDays.sort((a,b) => a.chronoId - b.chronoId).forEach(day => {
                  if(day.stages) day.stages.forEach(s => {
@@ -2658,10 +2475,8 @@
                 return;
             }
 
-            // 2. Geocode (Nominatim) - Sequential to be polite
             const coords = [];
             statusText.textContent = `Geocoding 0/${allStages.length}...`;
-            
             for (let i = 0; i < allStages.length; i++) {
                 const stage = allStages[i];
                 statusText.textContent = `Trovo: ${stage.name}...`;
@@ -2674,7 +2489,7 @@
                         }
                     }
                 } catch(e) { console.error(e); }
-                await sleep(800); // Polite delay
+                await sleep(800); 
             }
 
             if (coords.length < 2) {
@@ -2683,10 +2498,8 @@
                 return;
             }
 
-            // 3. Routing (OSRM) - Use road network
             statusText.textContent = "Calcolo percorso stradale...";
             let pathPoints = [];
-
             const osrmCoords = coords.map(c => `${c[1]},${c[0]}`).join(';');
             const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${osrmCoords}?overview=full&geometries=geojson`;
 
@@ -2698,11 +2511,8 @@
                         pathPoints = routeData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
                     }
                 }
-            } catch(e) {
-                console.warn("OSRM failed, falling back to straight lines");
-            }
+            } catch(e) { console.warn("OSRM failed, falling back to straight lines"); }
             
-            // Fallback to straight lines if OSRM fails or returns empty
             if (pathPoints.length === 0) {
                  if (coords.length > 1) {
                     for (let i = 0; i < coords.length - 1; i++) {
@@ -2720,9 +2530,8 @@
                 }
             }
 
-            // Pre-calculate cumulative distances for fluid animation
             let totalDist = 0;
-            const dists = [0]; // Cumulative distances at each point
+            const dists = [0]; 
             for (let i = 0; i < pathPoints.length - 1; i++) {
                 const p1 = L.latLng(pathPoints[i]);
                 const p2 = L.latLng(pathPoints[i+1]);
@@ -2731,46 +2540,27 @@
                 dists.push(totalDist);
             }
 
-            // 4. Setup Map & Animation
             statusText.textContent = "Pronti a partire!";
             await sleep(500);
             overlay.classList.add('hidden');
-
-            // Draw route
             routePolyline = L.polyline(pathPoints, { color: '#fb923c', weight: 4, opacity: 0.8 }).addTo(mapInstance);
-            
-            // Set initial view
             mapInstance.setView(pathPoints[0], 10); 
-            
-            // Init Car
             carMarker = L.marker(pathPoints[0], { icon: carIcon }).addTo(mapInstance);
-
-            // AGGIUNTA PAUSA INIZIALE PER VISUALIZZARE PARTENZA
             await sleep(2000);
-
-            // Animate using Distance interpolation for fluidity
-            const duration = 80000; // 80 seconds
-            const intervalTime = 20; // 50fps
+            const duration = 80000; 
+            const intervalTime = 20; 
             const baseDistPerStep = totalDist / (duration / intervalTime);
             let traveled = 0;
-
             if (animInterval) clearInterval(animInterval);
-
             animInterval = setInterval(() => {
-                // Apply speed multiplier
                 traveled += baseDistPerStep * videoSpeed;
-                
                 if (traveled >= totalDist) {
-                    // End
                     carMarker.setLatLng(pathPoints[pathPoints.length - 1]);
                     clearInterval(animInterval);
                     isPlaying = false;
                     btn.classList.remove('opacity-50', 'cursor-not-allowed');
                     return;
                 }
-
-                // Find current segment index based on distance
-                // Simple linear search is okay for this scale, can be optimized with binary search if needed
                 let idx = 0;
                 for (let i = 0; i < dists.length - 1; i++) {
                     if (traveled >= dists[i] && traveled < dists[i+1]) {
@@ -2778,23 +2568,15 @@
                         break;
                     }
                 }
-
-                // Interpolate within segment
                 const segmentLen = dists[idx+1] - dists[idx];
                 const segmentProgress = traveled - dists[idx];
                 const percent = segmentLen === 0 ? 0 : segmentProgress / segmentLen;
-                
                 const p1 = pathPoints[idx];
                 const p2 = pathPoints[idx+1];
                 const lat = p1[0] + (p2[0] - p1[0]) * percent;
                 const lng = p1[1] + (p2[1] - p1[1]) * percent;
                 const pos = [lat, lng];
-
                 carMarker.setLatLng(pos);
-                
-                // Update view without forcing zoom level (keeps user zoom)
-                // Only pan if car is getting close to edge? Or just setView every frame?
-                // setView every frame at 50fps might be heavy but usually smooth on modern browsers
                 mapInstance.setView(pos, mapInstance.getZoom(), { animate: false }); 
             }, intervalTime);
         };
