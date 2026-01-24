@@ -348,12 +348,14 @@
                             </button>
                         </div>
                         
-                        <!-- Row 2: Categories (New) -->
+                        <!-- Row 2: Categories (Updated) -->
                         <div class="flex gap-3 text-[10px] font-bold text-stone-500 overflow-x-auto pb-1">
-                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Pernottamenti" class="accent-emerald-500"> Pernottamenti</label>
-                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Attrazioni" class="accent-emerald-500"> Attrazioni</label>
-                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Pass e Tasse" class="accent-emerald-500"> Pass e Tasse</label>
-                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Altro" class="accent-emerald-500" checked> Altro</label>
+                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pernottamenti" class="accent-emerald-500"> Pernottamenti</label>
+                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pasti" class="accent-emerald-500"> Pasti</label>
+                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Carburante" class="accent-emerald-500"> Carburante</label>
+                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Attrazioni" class="accent-emerald-500"> Attrazioni</label>
+                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pass e Tasse" class="accent-emerald-500"> Pass e Tasse</label>
+                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Altro" class="accent-emerald-500" checked> Altro</label>
                         </div>
                     </div>
                 </div>
@@ -382,11 +384,13 @@
                         <div class="text-2xl font-bold text-stone-600 mt-1 font-mono" id="total-expenses-usd">0.00 $</div>
                     </div>
 
-                    <!-- Dettaglio Categorie (NEW) -->
+                    <!-- Dettaglio Categorie (Updated) -->
                     <div class="mb-6 border-b border-stone-100 pb-6">
                         <h3 class="text-sm font-bold text-stone-600 mb-3 uppercase">Spese per Categoria</h3>
                         <div class="space-y-2">
                             <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Pernottamenti</span><span id="cat-total-Pernottamenti" class="font-mono font-bold text-stone-700">0.00 €</span></div>
+                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Pasti</span><span id="cat-total-Pasti" class="font-mono font-bold text-stone-700">0.00 €</span></div>
+                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Carburante</span><span id="cat-total-Carburante" class="font-mono font-bold text-stone-700">0.00 €</span></div>
                             <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Attrazioni</span><span id="cat-total-Attrazioni" class="font-mono font-bold text-stone-700">0.00 €</span></div>
                             <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Pass e Tasse</span><span id="cat-total-Pass e Tasse" class="font-mono font-bold text-stone-700">0.00 €</span></div>
                             <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Altro</span><span id="cat-total-Altro" class="font-mono font-bold text-stone-700">0.00 €</span></div>
@@ -1175,7 +1179,7 @@
             const list = document.getElementById('expenses-list');
             list.innerHTML = '';
             let totalEur = 0;
-            const catSums = { 'Pernottamenti': 0, 'Attrazioni': 0, 'Pass e Tasse': 0, 'Altro': 0 };
+            const catSums = { 'Pernottamenti': 0, 'Pasti': 0, 'Carburante': 0, 'Attrazioni': 0, 'Pass e Tasse': 0, 'Altro': 0 };
 
             cachedExpenses.forEach((data, index) => { 
                 const qty = data.qty || 1; 
