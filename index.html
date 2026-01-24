@@ -2596,6 +2596,23 @@
             touchStartY = e.changedTouches[0].screenY;
         }, { passive: true });
 
+        mainContent.addEventListener('touchmove', (e) => {
+            // Check if current view allows swipe
+            const notesViewHidden = document.getElementById('notes-view').classList.contains('hidden');
+            const loginViewHidden = document.getElementById('login-view').classList.contains('hidden');
+            const logsModalHidden = document.getElementById('logs-modal').classList.contains('hidden');
+            const dayModalHidden = document.getElementById('day-modal').classList.contains('hidden');
+            if (!notesViewHidden || !loginViewHidden || !logsModalHidden || !dayModalHidden) return;
+
+            let x = e.changedTouches[0].screenX;
+            let y = e.changedTouches[0].screenY;
+
+            // Prevent browser back navigation if swiping horizontally
+            if (Math.abs(x - touchStartX) > Math.abs(y - touchStartY)) {
+                if (e.cancelable) e.preventDefault();
+            }
+        }, { passive: false });
+
         mainContent.addEventListener('touchend', (e) => {
             touchEndX = e.changedTouches[0].screenX;
             touchEndY = e.changedTouches[0].screenY;
