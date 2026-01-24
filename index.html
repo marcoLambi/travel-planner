@@ -585,6 +585,7 @@
         let globalShowMiles = true; 
         let globalShowUSD = true; // NEW STATE
         let lastListScroll = 0; // NEW: Store scroll position
+        let currentTabName = 'days'; // Swipe tracking
 
         // --- Helpers ---
         const generateColNames = (key) => {
@@ -1451,6 +1452,7 @@
 
         // --- TAB NAVIGATION LOGIC ---
         window.switchTab = (tabName) => {
+            currentTabName = tabName; // Update local state for swipe
             const daysView = document.getElementById('days-view');
             const summaryView = document.getElementById('summary-view');
             const expensesView = document.getElementById('expenses-view'); 
@@ -2580,6 +2582,59 @@
                 mapInstance.setView(pos, mapInstance.getZoom(), { animate: false }); 
             }, intervalTime);
         };
+
+        // --- SWIPE GESTURES FOR MOBILE NAVIGATION ---
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+
+        const mainContent = document.querySelector('main');
+        
+        mainContent.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        mainContent.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipe();
+        }, { passive: true });
+
+        const handleSwipe = () => {
+            // Check if user is in a sub-view (detail or login)
+            const notesViewHidden = document.getElementById('notes-view').classList.contains('hidden');
+            const loginViewHidden = document.getElementById('login-view').classList.contains('hidden');
+            const logsModalHidden = document.getElementById('logs-modal').classList.contains('hidden');
+            const dayModalHidden = document.getElementById('day-modal').classList.contains('hidden');
+            
+            if (!notesViewHidden || !loginViewHidden || !logsModalHidden || !dayModalHidden) return;
+
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            const threshold = 70; // min distance for swipe
+            const restraint = 100; // max perpendicular distance
+
+            // Ensure it's a horizontal swipe
+            if (Math.abs(deltaX) > threshold && Math.abs(deltaY) < restraint) {
+                const tabs = ['days', 'summary', 'expenses', 'budget'];
+                let currentIndex = tabs.indexOf(currentTabName);
+                
+                if (deltaX > 0) {
+                    // Swipe Right -> Prev Tab
+                    if (currentIndex > 0) {
+                        switchTab(tabs[currentIndex - 1]);
+                    }
+                } else {
+                    // Swipe Left -> Next Tab
+                    if (currentIndex < tabs.length - 1) {
+                        switchTab(tabs[currentIndex + 1]);
+                    }
+                }
+            }
+        };
+
     </script>
 </body>
 </html>
