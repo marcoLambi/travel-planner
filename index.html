@@ -308,7 +308,7 @@
                 </div>
 
                 <!-- Lista Spese -->
-                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-40 w-full" id="expenses-list-container">
+                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-52 w-full" id="expenses-list-container">
                     <div id="loading-expenses" class="hidden flex justify-center mt-10"><div class="loader border-t-emerald-400"></div></div>
                     <div id="empty-expenses" class="hidden flex flex-col items-center justify-center mt-10 text-stone-400">
                         <i class="ph ph-receipt text-5xl mb-3 text-stone-300"></i>
@@ -317,8 +317,8 @@
                     <div id="expenses-list" class="space-y-2 max-w-4xl mx-auto"></div>
                 </div>
 
-                <!-- Input Bar (Fixed Bottom) -->
-                <div class="absolute bottom-12 left-0 w-full bg-white p-2 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
+                <!-- Input Bar (Fixed Bottom) - ADIACENTE alla navigazione -->
+                <div class="fixed bottom-[calc(3rem+env(safe-area-inset-bottom,0px))] left-0 w-full bg-white p-2 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-30">
                     <div class="max-w-4xl mx-auto flex flex-col gap-2">
                         <!-- Row 1: Inputs -->
                         <div class="flex gap-2 items-center">
@@ -348,7 +348,7 @@
                             </button>
                         </div>
                         
-                        <!-- Row 2: Categories (Updated with wrapping for mobile visibility) -->
+                        <!-- Row 2: Categories -->
                         <div class="flex flex-wrap gap-2 text-[10px] font-bold text-stone-500 pb-1">
                              <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pernottamenti" class="accent-emerald-500"> Pernottamenti</label>
                              <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pasti" class="accent-emerald-500"> Pasti</label>
@@ -416,7 +416,7 @@
                     <span>Lista Cose da Fare / Portare</span>
                 </div>
                 
-                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-40 w-full" id="todo-list-container">
+                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-52 w-full" id="todo-list-container">
                     <div id="loading-todo" class="hidden flex justify-center mt-10"><div class="loader border-t-orange-400"></div></div>
                     <div id="empty-todo" class="hidden flex flex-col items-center justify-center mt-10 text-stone-400 text-center">
                         <i class="ph ph-list-checks text-5xl mb-3 text-stone-300"></i>
@@ -425,7 +425,8 @@
                     <div id="todo-list" class="space-y-2 max-w-4xl mx-auto"></div>
                 </div>
 
-                <div class="absolute bottom-12 left-0 w-full bg-white p-2 border-t border-stone-200 shadow-2xl z-20">
+                <!-- Input Bar (Fixed Bottom) - ADIACENTE alla navigazione -->
+                <div class="fixed bottom-[calc(3rem+env(safe-area-inset-bottom,0px))] left-0 w-full bg-white p-2 border-t border-stone-200 shadow-2xl z-30">
                     <div class="max-w-4xl mx-auto flex gap-2 items-center">
                         <!-- Quantità -->
                         <div class="relative w-16 flex-shrink-0">
@@ -447,7 +448,8 @@
                 <div class="flex-grow overflow-y-auto custom-scroll" id="notes-list-container">
                     <div id="day-detail-content" class="p-4 bg-white border-b border-stone-100 shadow-sm pb-24 max-w-4xl mx-auto"></div>
                 </div>
-                <div class="p-3 bg-stone-100 border-t border-stone-200 flex gap-2 items-center z-20">
+                <!-- Input bar (Fixed Bottom) - ADIACENTE al bordo inferiore (nav nascosta) -->
+                <div class="fixed bottom-0 left-0 w-full p-3 pb-safe bg-stone-100 border-t border-stone-200 flex gap-2 items-center z-40">
                     <div class="max-w-4xl mx-auto w-full flex gap-2">
                         <input type="text" id="note-input" class="flex-grow p-3 rounded-xl border-none focus:ring-2 focus:ring-orange-400 shadow-sm text-stone-700" placeholder="Aggiungi una nota..." autocomplete="off">
                         <button id="add-note-btn" class="bg-orange-400 hover:bg-orange-500 text-white p-3 rounded-xl shadow-md active:scale-95 transition-transform">
@@ -639,7 +641,7 @@
                 notes: `notes_${safe}`, 
                 logs: `logs_${safe}`, 
                 expenses: `expenses_${safe}`,
-                todo: `todo_${safe}`, // NEW
+                todo: `todo_${safe}`,
                 display: key.trim().toUpperCase() 
             };
         };
@@ -907,23 +909,27 @@
             list.innerHTML = '';
             cachedTodos.forEach(item => {
                 const div = document.createElement('div');
-                div.className = "flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm group transition-all";
+                div.className = `flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm group transition-all ${item.done ? 'opacity-60' : ''}`;
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
+                        <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTodoStatus('${item.id}', this.checked)" class="w-5 h-5 accent-orange-500 rounded border-stone-300">
                         <span class="bg-stone-100 text-stone-500 font-bold px-2 py-0.5 rounded text-xs">x${item.qty || 1}</span>
-                        <span class="text-sm font-bold text-stone-700">${item.text}</span>
+                        <span class="text-sm font-bold text-stone-700 ${item.done ? 'line-through text-stone-400 font-normal' : ''}">${item.text}</span>
                     </div>
                     <button onclick="deleteTodo('${item.id}')" class="text-stone-300 hover:text-red-500 p-1.5"><i class="ph ph-trash"></i></button>
                 `;
                 list.appendChild(div);
             });
         };
+        window.toggleTodoStatus = async (id, isDone) => {
+            try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id), { done: isDone }); } catch(e) {}
+        };
         document.getElementById('add-todo-btn').onclick = async () => {
             const qtyIn = document.getElementById('todo-qty-input'), itemIn = document.getElementById('todo-item-input');
             const qty = parseInt(qtyIn.value) || 1, text = itemIn.value.trim();
             if(!text) return;
             itemIn.value = ''; qtyIn.value = '1';
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', todoColName), { qty, text, createdAt: serverTimestamp() });
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', todoColName), { qty, text, done: false, createdAt: serverTimestamp() });
         };
         window.deleteTodo = (id) => { if(confirm("Rimuovere dalla lista?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id)); };
 
@@ -960,7 +966,7 @@
                 if (!auth.currentUser) await signInAnonymously(auth);
                 activeSecretKey = names.display;
                 daysColName = names.days; notesColName = names.notes; logsColName = names.logs; expensesColName = names.expenses;
-                todoColName = names.todo; // NEW
+                todoColName = names.todo; 
                 document.getElementById('app-id-display').textContent = appId.substring(0, 8); 
                 document.getElementById('current-key-display').textContent = activeSecretKey;
                 document.getElementById('login-view').classList.add('hidden');
@@ -968,8 +974,6 @@
                 document.getElementById('bottom-nav').classList.remove('hidden'); 
                 document.getElementById('logout-btn').classList.remove('hidden');
                 document.getElementById('export-btn').classList.remove('hidden');
-                document.getElementById('logs-btn').classList.remove('hidden'); 
-                document.getElementById('import-btn').classList.remove('hidden');
                 const savedRate = localStorage.getItem(`rate_${activeSecretKey}`);
                 if(savedRate) { currentExchangeRate = parseFloat(savedRate); document.getElementById('global-exchange-rate').value = currentExchangeRate; }
                 updateGlobalVisibility(); logAccess(); loadDays();
@@ -1024,13 +1028,8 @@
             document.getElementById('bottom-nav').classList.add('hidden'); 
             document.getElementById('header-title').textContent = `Giorno ${day.chronoId}`;
             const detailContainer = document.getElementById('day-detail-content');
-            let stagesHtml = '';
-            (day.stages || []).forEach((s, idx) => {
-                stagesHtml += `<div class="py-2 border-b border-stone-50 last:border-0"><div class="flex justify-between font-bold text-sm"><span>${idx+1}. ${s.name}</span><span class="text-stone-400 font-mono text-xs">${s.start}</span></div></div>`;
-            });
             detailContainer.innerHTML = `
                 <div class="mb-4"><h2 class="text-2xl font-black text-stone-800">${day.title || ''}</h2><p class="text-stone-500 text-sm mt-2 italic">${day.description || ''}</p></div>
-                <div class="mb-6"><h4 class="text-xs font-bold text-stone-400 uppercase mb-2">Percorso</h4><div class="bg-stone-50 p-4 rounded-xl shadow-inner">${stagesHtml || 'Nessuna tappa.'}</div></div>
                 <div id="notes-list" class="space-y-2 mb-4"></div>
             `;
             loadNotes(day.id);
@@ -1058,46 +1057,12 @@
             document.getElementById('header-title').textContent = "Travel Planner";
         };
 
-        // --- GESTURES & MODAL HELPERS ---
-        window.openModal = (dayData) => {
-            editingDayId = dayData?.id || null;
-            document.getElementById('day-modal').classList.remove('hidden');
-            document.getElementById('day-name-input').value = dayData?.title || '';
-            document.getElementById('day-desc-input').value = dayData?.description || '';
-            document.getElementById('day-date-input').value = dayData?.dateString || '';
-            currentStages = dayData?.stages || [];
-            renderStages();
-        };
-        window.closeModal = () => document.getElementById('day-modal').classList.add('hidden');
-        const renderStages = () => {
-            const container = document.getElementById('stages-container');
-            container.innerHTML = '';
-            currentStages.forEach((s, i) => {
-                const div = document.createElement('div');
-                div.className = "p-3 bg-stone-50 border rounded-lg relative";
-                div.innerHTML = `<span class="text-[9px] font-bold text-stone-300">TAPPA ${i+1}</span><input type="text" value="${s.name}" onchange="currentStages[${i}].name=this.value" class="w-full text-sm font-bold bg-transparent border-b outline-none">`;
-                container.appendChild(div);
-            });
-        };
-        window.addStageUI = () => { currentStages.push({ name: '', start: '', end: '', pause: '', driveTime: 0 }); renderStages(); };
-        document.getElementById('confirm-save-btn').onclick = async () => {
-            const payload = { title: document.getElementById('day-name-input').value, description: document.getElementById('day-desc-input').value, dateString: document.getElementById('day-date-input').value, stages: currentStages, updatedAt: serverTimestamp() };
-            if(editingDayId) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, editingDayId), payload);
-            else { payload.createdAt = serverTimestamp(); await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), payload); }
-            closeModal();
-        };
-
         // --- SWIPE GESTURES ---
         let touchStartX = 0, touchStartY = 0;
         document.querySelector('main').addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: true });
-        document.querySelector('main').addEventListener('touchmove', (e) => {
-            if (!document.getElementById('notes-view').classList.contains('hidden')) return;
-            let x = e.changedTouches[0].screenX, y = e.changedTouches[0].screenY;
-            if (Math.abs(x - touchStartX) > Math.abs(y - touchStartY)) { if (e.cancelable) e.preventDefault(); }
-        }, { passive: false });
         document.querySelector('main').addEventListener('touchend', (e) => {
-            const deltaX = e.changedTouches[0].screenX - touchStartX, deltaY = e.changedTouches[0].screenY - touchStartY;
-            if (Math.abs(deltaX) > 70 && Math.abs(deltaY) < 100 && document.getElementById('notes-view').classList.contains('hidden')) {
+            const deltaX = e.changedTouches[0].screenX - touchStartX;
+            if (Math.abs(deltaX) > 70 && document.getElementById('notes-view').classList.contains('hidden')) {
                 const tabs = ['days', 'summary', 'expenses', 'budget', 'todo'];
                 let idx = tabs.indexOf(currentTabName);
                 if (deltaX > 0 && idx > 0) switchTab(tabs[idx - 1]);
@@ -1105,8 +1070,19 @@
             }
         }, { passive: true });
 
-        // Travel Reel placeholder (legacy function to maintain compatibility)
-        window.playTravelVideo = () => alert("Funzionalità non ancora popolata in questa vista.");
+        window.openModal = (dayData) => {
+            editingDayId = dayData?.id || null;
+            document.getElementById('day-modal').classList.remove('hidden');
+            document.getElementById('day-name-input').value = dayData?.title || '';
+            document.getElementById('day-date-input').value = dayData?.dateString || '';
+        };
+        window.closeModal = () => document.getElementById('day-modal').classList.add('hidden');
+        document.getElementById('confirm-save-btn').onclick = async () => {
+            const payload = { title: document.getElementById('day-name-input').value, dateString: document.getElementById('day-date-input').value, updatedAt: serverTimestamp() };
+            if(editingDayId) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, editingDayId), payload);
+            else { payload.createdAt = serverTimestamp(); await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), payload); }
+            closeModal();
+        };
 
     </script>
 </body>
