@@ -48,7 +48,7 @@
 </head>
 <body class="bg-stone-50 text-stone-700 font-sans h-screen overflow-hidden flex flex-col">
 
-    <!-- App Container (Full Width) -->
+    <!-- App Container -->
     <div class="w-full h-full bg-white shadow-2xl relative flex flex-col">
         
         <!-- Header -->
@@ -61,24 +61,20 @@
                     <h1 id="header-title" class="text-xl font-bold truncate flex items-center gap-2">
                         <i class="ph-fill ph-airplane-tilt"></i> Travel Planner
                     </h1>
-                    <span id="header-subtitle" class="text-xs text-orange-50 truncate hidden"></span>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <!-- LOGS BUTTON -->
                 <button id="logs-btn" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors" title="Registro Accessi">
                     <i class="ph-fill ph-eye text-xl"></i>
                 </button>
-                <!-- IMPORT BUTTON -->
                 <button id="import-btn" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors" title="Importa Excel">
                     <i class="ph ph-upload-simple text-xl"></i>
                 </button>
                 <input type="file" id="import-input" accept=".xlsx, .xls" class="hidden">
-                
                 <button id="export-btn" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors" title="Scarica Excel">
                     <i class="ph ph-download-simple text-xl"></i>
                 </button>
-                <button id="logout-btn" class="hidden text-xs bg-orange-600/30 hover:bg-orange-600/50 px-3 py-1 rounded transition-colors flex items-center gap-1">
+                <button id="logout-btn" class="hidden text-xs bg-orange-600/30 hover:bg-orange-600/50 px-3 py-1 rounded transition-colors">
                     <i class="ph ph-sign-out"></i>
                 </button>
             </div>
@@ -94,40 +90,34 @@
                 </div>
                 <h2 class="text-2xl font-bold mb-2 text-stone-800">Travel Planner</h2>
                 <p class="text-stone-500 mb-6 text-sm">Accedi con la tua chiave segreta.</p>
-                
                 <div class="w-full max-w-xs mb-4 relative mx-auto">
                     <input type="text" id="secret-key-input" class="w-full p-4 pl-12 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none font-bold text-stone-700 tracking-wide placeholder-stone-400" placeholder="es. USA2025">
                     <i class="ph ph-key absolute left-4 top-1/2 transform -translate-y-1/2 text-stone-400 text-xl"></i>
                 </div>
-                
                 <button id="login-btn" class="bg-orange-400 hover:bg-orange-500 text-white w-full max-w-xs py-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 mb-4 transition-transform active:scale-95 mx-auto">
                     <span>Entra</span> <i class="ph ph-arrow-right"></i>
                 </button>
-
                 <div id="auth-loader" class="hidden loader border-t-orange-400 mt-4 mx-auto"></div>
                 <p id="login-error" class="hidden text-red-500 text-sm mt-2"></p>
             </div>
 
-            <!-- VIEW 2: Lista Giorni -->
+            <!-- VIEW 2: Lista Giorni (Diario) -->
             <div id="days-view" class="absolute inset-0 flex flex-col hidden overflow-hidden">
                 <div class="bg-orange-50 p-2 text-center text-xs text-orange-800 font-medium border-b border-orange-100 flex justify-between px-4 items-center flex-shrink-0">
                     <span>Viaggio: <span id="current-key-display" class="font-bold">...</span></span>
-                    <span class="text-[10px] text-orange-400">ID: <span id="app-id-display">...</span></span>
+                    <span class="text-[10px] text-orange-400 uppercase">ID: <span id="app-id-display">...</span></span>
                 </div>
                 
-                <!-- Lista scrollabile -->
                 <div class="flex-grow overflow-y-auto p-4 pb-32 custom-scroll" id="days-list-container">
                     <div id="loading-days" class="flex justify-center mt-10"><div class="loader border-t-orange-400"></div></div>
-                    <div id="empty-days" class="hidden flex flex-col items-center justify-center mt-20 text-stone-400">
+                    <div id="empty-days" class="hidden flex flex-col items-center justify-center mt-20 text-stone-400 text-center">
                         <i class="ph ph-road-horizon text-5xl mb-3 text-stone-300"></i>
                         <p>Nessun giorno pianificato.</p>
                     </div>
-                    <!-- NEW: Riga conteggio giorni/notti nel diario -->
-                    <div id="diary-duration-line" class="text-xs text-stone-400 font-bold text-center mb-3 hidden"></div>
+                    <div id="diary-duration-line" class="text-sm font-bold text-orange-600 bg-orange-100 border border-orange-200 p-2 rounded-lg text-center mb-4 shadow-sm hidden"></div>
                     <div id="days-list" class="space-y-3 max-w-3xl mx-auto"></div>
                 </div>
 
-                <!-- Pulsante flottante -->
                 <button id="floating-plus-btn" onclick="openModal(null)" class="absolute bottom-20 right-6 bg-orange-400 hover:bg-orange-500 text-white w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-20 border-2 border-white">
                     <i class="ph ph-plus text-2xl font-bold"></i>
                 </button>
@@ -137,159 +127,78 @@
             <div id="summary-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-0 bg-stone-100">
                 <div class="flex-grow overflow-y-auto custom-scroll p-4 pb-28"> 
                     <div class="max-w-4xl mx-auto">
-                        <!-- NEW GLOBAL SETTINGS TOGGLES -->
+                        <!-- SETTINGS -->
                         <div class="grid grid-cols-2 gap-2 mb-6">
-                            <!-- Miles Toggle -->
                             <div class="bg-white rounded-xl p-3 shadow-sm border border-stone-200 flex justify-between items-center">
-                                <div class="flex items-center gap-2">
-                                    <i class="ph-bold ph-gear text-stone-400"></i>
-                                    <span class="text-sm font-bold text-stone-700">Abilita unità Miglia (USA/UK)</span>
-                                </div>
+                                <span class="text-sm font-bold text-stone-700">Miglia</span>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" id="global-miles-toggle" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-orange-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
                                 </label>
                             </div>
-
-                            <!-- USD Toggle -->
                             <div class="bg-white rounded-xl p-3 shadow-sm border border-stone-200 flex justify-between items-center">
-                                <div class="flex items-center gap-2">
-                                    <i class="ph-bold ph-currency-dollar text-stone-400"></i>
-                                    <span class="text-sm font-bold text-stone-700">Abilita valuta USD</span>
-                                </div>
+                                <span class="text-sm font-bold text-stone-700">Valuta USD</span>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" id="global-usd-toggle" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
                                 </label>
                             </div>
                         </div>
 
                         <div class="bg-white rounded-2xl shadow-xl p-6 border border-stone-200 w-full mb-6">
-                            <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
-                                <div>
-                                    <h2 class="text-2xl font-bold text-stone-800">Riepilogo Viaggio</h2>
-                                    <p class="text-sm text-stone-400">Statistiche generali</p>
-                                </div>
-                                <div class="bg-orange-100 p-3 rounded-full text-orange-500">
-                                    <i class="ph-fill ph-chart-pie-slice text-2xl"></i>
-                                </div>
-                            </div>
-
-                            <!-- NEW ROW: Counts (Updated grid to 3 cols or just added one more) -->
+                            <h2 class="text-2xl font-bold text-stone-800 mb-6">Riepilogo Viaggio</h2>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-                                <!-- Card Durata (NEW) -->
-                                <div class="bg-orange-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-orange-100 col-span-2 sm:col-span-1">
-                                    <div class="bg-orange-100 p-2 rounded-full text-orange-600 mb-2"><i class="ph-bold ph-calendar text-xl"></i></div>
-                                    <span class="text-[10px] font-bold text-stone-500 uppercase">Durata Totale</span>
-                                    <span class="text-lg font-black text-orange-600" id="summ-view-duration">0gg / 0nt</span>
+                                <div class="bg-orange-50 p-4 rounded-xl text-center border border-orange-100">
+                                    <span class="text-[10px] font-bold text-stone-500 uppercase">Durata</span>
+                                    <span class="text-lg font-black text-orange-600 block" id="summ-view-duration">--</span>
                                 </div>
-                                <!-- Card Stati -->
-                                <div class="bg-purple-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-purple-100">
-                                    <div class="bg-purple-100 p-2 rounded-full text-purple-600 mb-2"><i class="ph-bold ph-flag text-xl"></i></div>
-                                    <span class="text-[10px] font-bold text-stone-500 uppercase">Stati Visitati</span>
-                                    <span class="text-2xl font-black text-purple-600" id="summ-view-states">0</span>
+                                <div class="bg-purple-50 p-4 rounded-xl text-center border border-purple-100">
+                                    <span class="text-[10px] font-bold text-stone-500 uppercase">Stati</span>
+                                    <span class="text-2xl font-black text-purple-600 block" id="summ-view-states">0</span>
                                 </div>
-                                <!-- Card Tappe Visitate -->
-                                <div class="bg-pink-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border border-pink-100">
-                                    <div class="bg-pink-100 p-2 rounded-full text-pink-600 mb-2"><i class="ph-bold ph-map-pin text-xl"></i></div>
+                                <div class="bg-pink-50 p-4 rounded-xl text-center border border-pink-100">
                                     <span class="text-[10px] font-bold text-stone-500 uppercase">Tappe Visitate</span>
-                                    <span class="text-2xl font-black text-pink-600" id="summ-view-stages">0</span>
+                                    <span class="text-2xl font-black text-pink-600 block" id="summ-view-stages">0</span>
                                 </div>
                             </div>
-
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                <!-- Card Auto -->
-                                <div class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center">
-                                    <div class="bg-amber-100 p-3 rounded-full text-amber-600 mb-2"><i class="ph-bold ph-car text-2xl"></i></div>
+                                <div class="bg-stone-50 p-4 rounded-xl text-center">
                                     <span class="text-xs font-bold text-stone-500 uppercase">Ore Guida</span>
-                                    <span class="text-2xl font-bold text-amber-500" id="summ-view-drive">--</span>
+                                    <span class="text-2xl font-bold text-amber-500 block" id="summ-view-drive">--</span>
                                 </div>
-                                <!-- Card Miglia (CONDITIONAL) -->
-                                <div id="card-miles-container" class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center">
-                                    <div class="bg-blue-100 p-3 rounded-full text-blue-600 mb-2"><i class="ph-bold ph-signpost text-2xl"></i></div>
+                                <div id="card-miles-container" class="bg-stone-50 p-4 rounded-xl text-center">
                                     <span class="text-xs font-bold text-stone-500 uppercase">Miglia Totali</span>
-                                    <span class="text-2xl font-bold text-stone-700" id="summ-view-miles">--</span>
+                                    <span class="text-2xl font-bold text-stone-700 block" id="summ-view-miles">--</span>
                                 </div>
-                                <!-- Card Km -->
-                                <div class="bg-stone-50 p-4 rounded-xl flex flex-col items-center justify-center text-center border-l-4 border-green-500">
-                                    <div class="bg-green-100 p-3 rounded-full text-green-600 mb-2"><i class="ph-bold ph-globe text-2xl"></i></div>
+                                <div class="bg-stone-50 p-4 rounded-xl text-center border-l-4 border-green-500">
                                     <span class="text-xs font-bold text-stone-500 uppercase">Km Totali</span>
-                                    <span class="text-3xl font-black text-green-600" id="summ-view-km">--</span>
+                                    <span class="text-3xl font-black text-green-600 block" id="summ-view-km">--</span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- NEW: Riepilogo Tappe (Moved from Totali) -->
                         <div class="bg-white rounded-2xl shadow-xl p-4 border border-stone-200 w-full mb-6">
-                            <h3 class="text-sm font-bold text-stone-600 mb-4 uppercase flex items-center gap-2 pl-2 border-l-4 border-orange-400">
-                                <i class="ph-bold ph-list-numbers text-orange-500"></i> Riepilogo Tappe Visitate
-                            </h3>
-                            <div id="all-stages-summary" class="space-y-4">
-                                <!-- Popolato da JS -->
-                            </div>
+                            <h3 class="text-sm font-bold text-stone-600 mb-4 uppercase pl-2 border-l-4 border-orange-400">Riepilogo Tappe</h3>
+                            <div id="all-stages-summary" class="space-y-2"></div>
                         </div>
 
-                        <!-- CHART SECTION -->
                         <div class="bg-white rounded-2xl shadow-xl p-4 border border-stone-200 w-full mb-6">
                             <h3 class="text-sm font-bold text-stone-600 uppercase mb-4 pl-2 border-l-4 border-orange-400">Analisi Giornaliera</h3>
                             <div class="h-96 w-full">
                                 <canvas id="activityChart"></canvas>
                             </div>
-                            <p class="text-[10px] text-center text-stone-400 mt-2">
-                                <span class="inline-block w-2 h-2 rounded-full bg-orange-400 mr-1"></span>% Ore Guida
-                                <span class="inline-block w-2 h-2 rounded-full bg-stone-300 ml-3 mr-1"></span>% Resto della Giornata
-                            </p>
                         </div>
 
-                        <!-- HIGHLIGHTS SECTION -->
                         <div class="grid grid-cols-2 gap-4 w-full mb-6">
-                            <div class="bg-red-50 p-4 rounded-xl border border-red-100 flex flex-col items-center text-center shadow-sm">
-                                <div class="bg-red-100 text-red-500 p-2 rounded-full mb-2"><i class="ph-fill ph-fire text-xl"></i></div>
+                            <div class="bg-red-50 p-4 rounded-xl border border-red-100 text-center">
                                 <span class="text-[10px] font-bold text-stone-500 uppercase">Giorno Più Intenso</span>
-                                <div class="font-bold text-red-600 text-lg mt-1" id="high-intense-day">--</div>
+                                <div class="font-bold text-red-600 text-lg" id="high-intense-day">--</div>
                                 <div class="text-xs text-stone-400 font-mono" id="high-intense-val">--</div>
                             </div>
-                            <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 flex flex-col items-center text-center shadow-sm">
-                                <div class="bg-amber-100 text-amber-500 p-2 rounded-full mb-2"><i class="ph-fill ph-steering-wheel text-xl"></i></div>
+                            <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 text-center">
                                 <span class="text-[10px] font-bold text-stone-500 uppercase">Più Ore Auto</span>
-                                <div class="font-bold text-amber-600 text-lg mt-1" id="high-drive-day">--</div>
+                                <div class="font-bold text-amber-600 text-lg" id="high-drive-day">--</div>
                                 <div class="text-xs text-stone-400 font-mono" id="high-drive-val">--</div>
-                            </div>
-                        </div>
-
-                        <!-- TRAVEL REEL / VIDEO SECTION -->
-                        <div class="bg-gradient-to-r from-orange-400 to-amber-500 rounded-2xl shadow-xl p-6 text-white w-full mb-6 relative overflow-hidden">
-                            <div class="absolute top-0 right-0 p-4 opacity-10">
-                                <i class="ph-fill ph-video-camera text-9xl"></i>
-                            </div>
-                            <div class="relative z-10">
-                                <h3 class="text-xl font-bold flex items-center gap-2 mb-2"><i class="ph-fill ph-film-strip"></i> Travel Reel</h3>
-                                <p class="text-sm text-orange-50 mb-4 pr-10">Rivivi il tuo viaggio! Guarda l'animazione del percorso sulla mappa.</p>
-                                
-                                <div id="map-video-container" class="w-full h-64 bg-white rounded-xl shadow-inner mb-4 hidden overflow-hidden relative group">
-                                    <div id="travel-video-map" class="w-full h-full z-0"></div>
-                                    
-                                    <!-- Controlli Video -->
-                                    <div id="video-controls" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 flex items-center gap-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        <div class="flex gap-1 bg-white/20 rounded-lg p-1">
-                                            <button onclick="setVideoSpeed(0.5)" class="text-[10px] font-bold px-2 py-1 rounded hover:bg-white/30 transition-colors speed-btn" id="btn-speed-05">0.5x</button>
-                                            <button onclick="setVideoSpeed(1)" class="text-[10px] font-bold px-2 py-1 rounded bg-white text-black transition-colors speed-btn" id="btn-speed-1">1x</button>
-                                            <button onclick="setVideoSpeed(2)" class="text-[10px] font-bold px-2 py-1 rounded hover:bg-white/30 transition-colors speed-btn" id="btn-speed-2">2x</button>
-                                        </div>
-                                        <div class="w-px h-6 bg-white/30"></div>
-                                        <button onclick="toggleVideoFullscreen()" class="hover:text-orange-300 transition-colors" title="Schermo Intero">
-                                            <i class="ph-bold ph-arrows-out text-xl"></i>
-                                        </button>
-                                    </div>
-
-                                    <div id="video-overlay-msg" class="absolute inset-0 flex flex-col items-center justify-center bg-black/50 z-20 hidden">
-                                        <div class="text-white font-bold text-lg" id="video-status-text">Caricamento mappa...</div>
-                                    </div>
-                                </div>
-
-                                <button onclick="playTravelVideo()" id="play-video-btn" class="bg-white text-orange-500 hover:bg-orange-50 font-bold py-2 px-6 rounded-xl shadow-lg flex items-center gap-2 transition-transform active:scale-95">
-                                    <i class="ph-fill ph-play-circle text-2xl"></i> Avvia Animazione
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -298,16 +207,13 @@
 
             <!-- VIEW 5: SPESE LISTA (Tab 3) -->
             <div id="expenses-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10">
-                <!-- Header Colonne Lista - ADDED ID -->
                 <div id="expenses-header" class="bg-white p-3 shadow-sm border-b border-stone-200 z-20 flex justify-between text-[10px] uppercase font-bold text-stone-400 max-w-4xl mx-auto w-full">
                     <span class="w-1/3">Voce</span>
                     <div class="flex gap-4 w-2/3 justify-end pr-14">
                         <span>Euro (€)</span>
-                        <span id="expenses-header-usd">USD ($)</span> <!-- ADDED ID -->
+                        <span id="expenses-header-usd">USD ($)</span>
                     </div>
                 </div>
-
-                <!-- Lista Spese -->
                 <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-52 w-full" id="expenses-list-container">
                     <div id="loading-expenses" class="hidden flex justify-center mt-10"><div class="loader border-t-emerald-400"></div></div>
                     <div id="empty-expenses" class="hidden flex flex-col items-center justify-center mt-10 text-stone-400">
@@ -316,46 +222,35 @@
                     </div>
                     <div id="expenses-list" class="space-y-2 max-w-4xl mx-auto"></div>
                 </div>
-
-                <!-- Input Bar (Fixed Bottom) - ADIACENTE alla navigazione -->
+                <!-- Input Bar Fixed (Ancorata alla navigazione) -->
                 <div style="bottom: calc(3rem + env(safe-area-inset-bottom));" class="fixed left-0 w-full bg-white p-2 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-30">
                     <div class="max-w-4xl mx-auto flex flex-col gap-2">
-                        <!-- Row 1: Inputs -->
                         <div class="flex gap-2 items-center">
                             <div class="flex-grow flex gap-1">
-                                <input type="text" id="expense-name-input" class="w-1/2 p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Voce spesa..." autocomplete="off">
-                                <input type="text" id="expense-link-input" class="w-1/2 p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Link (opz.)" autocomplete="off">
+                                <input type="text" id="expense-name-input" class="w-1/2 p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Voce spesa...">
+                                <input type="text" id="expense-link-input" class="w-1/2 p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs" placeholder="Link (opz.)">
                             </div>
-                            
-                            <!-- Moltiplicatore (Qtà) -->
                             <div class="relative w-12 flex-shrink-0">
                                 <label class="absolute -top-2 left-1 text-[8px] text-stone-400 font-bold bg-white px-1">QTÀ</label>
-                                <input type="number" id="expense-qty-input" min="1" max="20" value="1" class="w-full p-2 text-center rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-bold text-stone-600">
+                                <input type="number" id="expense-qty-input" min="1" max="20" value="1" class="w-full p-2 text-center rounded-lg border border-stone-200 text-xs font-bold text-stone-600">
                             </div>
-
                             <div class="relative w-16 flex-shrink-0">
-                                <input type="number" step="0.01" id="expense-amount-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono" placeholder="0">
+                                <input type="number" step="0.01" id="expense-amount-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 text-xs font-mono" placeholder="0">
                                 <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">€</span>
                             </div>
-
-                            <div id="expenses-input-usd" class="relative w-16 flex-shrink-0"> <!-- ADDED ID -->
-                                <input type="number" step="0.01" id="expense-amount-usd-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono bg-stone-50" placeholder="0">
+                            <div id="expenses-input-usd" class="relative w-16 flex-shrink-0">
+                                <input type="number" step="0.01" id="expense-amount-usd-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 text-xs font-mono bg-stone-50" placeholder="0">
                                 <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">$</span>
                             </div>
-
-                            <button id="add-expense-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg shadow-md active:scale-95 transition-transform flex-shrink-0">
-                                <i class="ph ph-plus text-lg font-bold"></i>
-                            </button>
+                            <button id="add-expense-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg active:scale-95 transition-transform"><i class="ph ph-plus text-lg font-bold"></i></button>
                         </div>
-                        
-                        <!-- Row 2: Categories -->
                         <div class="flex flex-wrap gap-2 text-[10px] font-bold text-stone-500 pb-1">
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pernottamenti" class="accent-emerald-500"> Pernottamenti</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pasti" class="accent-emerald-500"> Pasti</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Carburante" class="accent-emerald-500"> Carburante</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Attrazioni" class="accent-emerald-500"> Attrazioni</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pass e Tasse" class="accent-emerald-500"> Pass e Tasse</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Altro" class="accent-emerald-500" checked> Altro</label>
+                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Pernottamenti" class="accent-emerald-500"> Pernottamenti</label>
+                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Pasti" class="accent-emerald-500"> Pasti</label>
+                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Carburante" class="accent-emerald-500"> Carburante</label>
+                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Attrazioni" class="accent-emerald-500"> Attrazioni</label>
+                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Pass e Tasse" class="accent-emerald-500"> Pass e Tasse</label>
+                             <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="new-expense-cat" value="Altro" class="accent-emerald-500" checked> Altro</label>
                         </div>
                     </div>
                 </div>
@@ -364,48 +259,25 @@
             <!-- VIEW 6: BUDGET / TOTALI (Tab 4) -->
             <div id="budget-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10 p-6 overflow-y-auto pb-24">
                 <div class="bg-white p-6 rounded-2xl shadow-xl border border-stone-200 max-w-4xl mx-auto w-full">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="p-3 bg-emerald-100 rounded-full text-emerald-600"><i class="ph-fill ph-wallet text-2xl"></i></div>
-                        <div>
-                            <h2 class="text-2xl font-bold text-stone-800">Totale Spese</h2>
-                            <p class="text-xs text-stone-400">Riepilogo finanziario</p>
-                        </div>
-                    </div>
-
-                    <!-- Totale Euro -->
-                    <div class="mb-4">
-                        <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Totale in Euro</span>
+                    <div class="text-center mb-6">
+                        <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Totale Spese</span>
                         <div class="text-4xl font-black text-emerald-600 mt-1" id="total-expenses">0.00 <span class="text-2xl">€</span></div>
+                        <div id="budget-total-usd" class="text-xl font-bold text-stone-600 mt-1 font-mono">0.00 $</div>
                     </div>
-
-                    <!-- Totale Dollari (CONDITIONAL) -->
-                    <div id="budget-total-usd" class="mb-6 pb-6 border-b border-stone-100"> <!-- ADDED ID -->
-                        <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Totale in Dollari</span>
-                        <div class="text-2xl font-bold text-stone-600 mt-1 font-mono" id="total-expenses-usd">0.00 $</div>
-                    </div>
-
-                    <!-- Dettaglio Categorie -->
-                    <div class="mb-6 border-b border-stone-100 pb-6">
-                        <h3 class="text-sm font-bold text-stone-600 mb-3 uppercase">Spese per Categoria</h3>
-                        <div class="space-y-2">
-                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Pernottamenti</span><span id="cat-total-Pernottamenti" class="font-mono font-bold text-stone-700">0.00 €</span></div>
-                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Pasti</span><span id="cat-total-Pasti" class="font-mono font-bold text-stone-700">0.00 €</span></div>
-                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Carburante</span><span id="cat-total-Carburante" class="font-mono font-bold text-stone-700">0.00 €</span></div>
-                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Attrazioni</span><span id="cat-total-Attrazioni" class="font-mono font-bold text-stone-700">0.00 €</span></div>
-                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Pass e Tasse</span><span id="cat-total-Pass e Tasse" class="font-mono font-bold text-stone-700">0.00 €</span></div>
-                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Altro</span><span id="cat-total-Altro" class="font-mono font-bold text-stone-700">0.00 €</span></div>
+                    <div class="mb-6 space-y-2">
+                        <h3 class="text-sm font-bold text-stone-600 mb-3 uppercase">Dettaglio per Categoria</h3>
+                        <div id="cat-sums-container" class="space-y-2">
+                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Pernottamenti</span><span id="cat-total-Pernottamenti" class="font-mono font-bold">0.00 €</span></div>
+                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Pasti</span><span id="cat-total-Pasti" class="font-mono font-bold">0.00 €</span></div>
+                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Carburante</span><span id="cat-total-Carburante" class="font-mono font-bold">0.00 €</span></div>
+                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Attrazioni</span><span id="cat-total-Attrazioni" class="font-mono font-bold">0.00 €</span></div>
+                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Pass e Tasse</span><span id="cat-total-Pass e Tasse" class="font-mono font-bold">0.00 €</span></div>
+                            <div class="flex justify-between text-xs items-center p-2 bg-stone-50 rounded-lg"><span>Altro</span><span id="cat-total-Altro" class="font-mono font-bold">0.00 €</span></div>
                         </div>
                     </div>
-
-                    <!-- Tasso Cambio (CONDITIONAL) -->
-                    <div id="budget-exchange-rate" class="mb-6 pb-6 border-b border-stone-100"> <!-- ADDED ID -->
-                        <label class="block text-xs font-bold text-stone-500 uppercase mb-2">Tasso di Cambio Attuale</label>
-                        <div class="flex items-center gap-3 bg-stone-50 p-3 rounded-xl border border-stone-200">
-                            <span class="font-bold text-stone-700">1 € = </span>
-                            <input type="number" step="0.01" id="global-exchange-rate" class="w-24 p-2 text-center font-mono font-bold text-lg border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400" value="1.05">
-                            <span class="font-bold text-stone-700">$</span>
-                        </div>
-                        <p class="text-[10px] text-stone-400 mt-2 text-center">Modifica il tasso per aggiornare tutti i valori in $.</p>
+                    <div id="budget-exchange-rate" class="border-t border-stone-100 pt-4">
+                        <label class="block text-xs font-bold text-stone-500 uppercase mb-2">Tasso Cambio (1€ = ? $)</label>
+                        <input type="number" step="0.01" id="global-exchange-rate" class="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl font-mono font-bold text-lg text-center" value="1.05">
                     </div>
                 </div>
             </div>
@@ -415,30 +287,23 @@
                 <div class="bg-white p-3 shadow-sm border-b border-stone-200 z-20 flex justify-between text-[10px] uppercase font-bold text-stone-400 max-w-4xl mx-auto w-full">
                     <span>Lista Cose da Fare / Portare</span>
                 </div>
-                
                 <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-52 w-full" id="todo-list-container">
                     <div id="loading-todo" class="hidden flex justify-center mt-10"><div class="loader border-t-orange-400"></div></div>
                     <div id="empty-todo" class="hidden flex flex-col items-center justify-center mt-10 text-stone-400 text-center">
                         <i class="ph ph-list-checks text-5xl mb-3 text-stone-300"></i>
-                        <p class="text-sm px-10">La tua lista è vuota. Aggiungi qualcosa da non dimenticare!</p>
+                        <p class="text-sm px-10">La tua lista è vuota.</p>
                     </div>
                     <div id="todo-list" class="space-y-2 max-w-4xl mx-auto"></div>
                 </div>
-
-                <!-- Input Bar (Fixed Bottom) - ADIACENTE alla navigazione -->
+                <!-- Input Bar Fixed (Ancorata alla navigazione) -->
                 <div style="bottom: calc(3rem + env(safe-area-inset-bottom));" class="fixed left-0 w-full bg-white p-2 border-t border-stone-200 shadow-2xl z-30">
                     <div class="max-w-4xl mx-auto flex gap-2 items-center">
-                        <!-- Quantità -->
                         <div class="relative w-16 flex-shrink-0">
                             <label class="absolute -top-2 left-1 text-[8px] text-stone-400 font-bold bg-white px-1">QTÀ</label>
-                            <input type="number" id="todo-qty-input" min="1" value="1" class="w-full p-2 text-center rounded-lg border border-stone-200 focus:ring-1 focus:ring-orange-400 outline-none text-xs font-bold text-stone-600">
+                            <input type="number" id="todo-qty-input" min="1" value="1" class="w-full p-2 text-center rounded-lg border border-stone-200 text-xs font-bold text-stone-600">
                         </div>
-                        <!-- Voce -->
-                        <input type="text" id="todo-item-input" class="flex-grow p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-orange-400 outline-none text-xs" placeholder="Cosa aggiungere..." autocomplete="off">
-                        
-                        <button id="add-todo-btn" class="bg-orange-400 hover:bg-orange-500 text-white p-2 rounded-lg shadow-md active:scale-95 transition-transform flex-shrink-0">
-                            <i class="ph ph-plus text-lg font-bold"></i>
-                        </button>
+                        <input type="text" id="todo-item-input" class="flex-grow p-2 rounded-lg border border-stone-200 outline-none text-xs" placeholder="Cosa aggiungere...">
+                        <button id="add-todo-btn" class="bg-orange-400 hover:bg-orange-500 text-white p-2 rounded-lg active:scale-95 transition-transform flex-shrink-0"><i class="ph ph-plus text-lg font-bold"></i></button>
                     </div>
                 </div>
             </div>
@@ -448,11 +313,11 @@
                 <div class="flex-grow overflow-y-auto custom-scroll" id="notes-list-container">
                     <div id="day-detail-content" class="p-4 bg-white border-b border-stone-100 shadow-sm pb-24 max-w-4xl mx-auto"></div>
                 </div>
-                <!-- Input bar (Fixed Bottom) - ADIACENTE al bordo inferiore (nav nascosta) -->
+                <!-- Note Input Fixed -->
                 <div class="fixed bottom-0 left-0 w-full p-3 pb-safe bg-stone-100 border-t border-stone-200 flex gap-2 items-center z-40">
                     <div class="max-w-4xl mx-auto w-full flex gap-2">
-                        <input type="text" id="note-input" class="flex-grow p-3 rounded-xl border-none focus:ring-2 focus:ring-orange-400 shadow-sm text-stone-700" placeholder="Aggiungi una nota..." autocomplete="off">
-                        <button id="add-note-btn" class="bg-orange-400 hover:bg-orange-500 text-white p-3 rounded-xl shadow-md active:scale-95 transition-transform">
+                        <input type="text" id="note-input" class="flex-grow p-3 rounded-xl border-none shadow-sm text-sm" placeholder="Aggiungi una nota...">
+                        <button id="add-note-btn" class="bg-orange-400 text-white w-12 h-12 rounded-xl shadow-lg flex items-center justify-center active:scale-90 transition-transform flex-shrink-0">
                             <i class="ph ph-paper-plane-right text-xl"></i>
                         </button>
                     </div>
@@ -461,59 +326,41 @@
 
         </main>
 
-        <!-- BOTTOM TAB BAR (Navigation) -->
-        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full z-20 flex justify-center items-center h-auto min-h-[3rem] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden pb-safe">
-            <div class="flex w-full">
+        <!-- BOTTOM TAB BAR -->
+        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full z-20 hidden pb-safe">
+            <div class="flex w-full h-[3rem] items-center">
                 <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/5 py-1 text-orange-500 transition-colors">
                     <i class="ph-fill ph-calendar-blank text-xl mb-0.5"></i>
-                    <span class="text-[8px] font-bold uppercase tracking-wider">Diario</span>
+                    <span class="text-[8px] font-bold uppercase mt-0.5">Diario</span>
                 </button>
-                
-                <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/5 py-1 text-stone-400 hover:text-stone-600 transition-colors">
-                    <i class="ph-bold ph-chart-pie-slice text-xl mb-0.5"></i>
-                    <span class="text-[8px] font-bold uppercase tracking-wider">Dati</span>
+                <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/5 py-1 text-stone-400 transition-colors">
+                    <i class="ph-bold ph-chart-pie-slice text-xl"></i>
+                    <span class="text-[8px] font-bold uppercase mt-0.5">Dati</span>
                 </button>
-
-                <button onclick="switchTab('expenses')" id="tab-expenses" class="flex flex-col items-center justify-center w-1/5 py-1 text-stone-400 hover:text-emerald-600 transition-colors">
-                    <i class="ph-bold ph-receipt text-xl mb-0.5"></i>
-                    <span class="text-[8px] font-bold uppercase tracking-wider">Spese</span>
+                <button onclick="switchTab('expenses')" id="tab-expenses" class="flex flex-col items-center justify-center w-1/5 py-1 text-stone-400 transition-colors">
+                    <i class="ph-bold ph-receipt text-xl"></i>
+                    <span class="text-[8px] font-bold uppercase mt-0.5">Spese</span>
                 </button>
-
-                <button onclick="switchTab('budget')" id="tab-budget" class="flex flex-col items-center justify-center w-1/5 py-1 text-stone-400 hover:text-emerald-600 transition-colors">
-                    <i class="ph-bold ph-wallet text-xl mb-0.5"></i>
-                    <span class="text-[8px] font-bold uppercase tracking-wider">Totali</span>
+                <button onclick="switchTab('budget')" id="tab-budget" class="flex flex-col items-center justify-center w-1/5 py-1 text-stone-400 transition-colors">
+                    <i class="ph-bold ph-wallet text-xl"></i>
+                    <span class="text-[8px] font-bold uppercase mt-0.5">Totali</span>
                 </button>
-
-                <button onclick="switchTab('todo')" id="tab-todo" class="flex flex-col items-center justify-center w-1/5 py-1 text-stone-400 hover:text-orange-600 transition-colors">
-                    <i class="ph-bold ph-list-checks text-xl mb-0.5"></i>
-                    <span class="text-[8px] font-bold uppercase tracking-wider">TO-DO</span>
+                <button onclick="switchTab('todo')" id="tab-todo" class="flex flex-col items-center justify-center w-1/5 py-1 text-stone-400 transition-colors">
+                    <i class="ph-bold ph-list-checks text-xl"></i>
+                    <span class="text-[8px] font-bold uppercase mt-0.5">TO-DO</span>
                 </button>
             </div>
         </nav>
 
-        <!-- Debug Footer -->
-        <footer class="bg-stone-50 text-[10px] text-stone-400 p-1 text-center border-t select-all">
-            App ID: <span id="debug-app-id" class="font-mono">loading...</span>
+        <footer class="bg-stone-50 text-[10px] text-stone-400 p-1 text-center border-t select-all flex-shrink-0">
+            App ID: <span id="debug-app-id" class="font-mono">...</span>
         </footer>
 
-        <!-- MODAL LOGS -->
-        <div id="logs-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
-            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[70vh]">
+        <!-- MODALE GIORNATA -->
+        <div id="day-modal" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-end sm:items-center justify-center backdrop-blur-sm sm:p-4">
+            <div class="bg-white w-full h-[90vh] sm:h-auto sm:max-w-2xl sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col overflow-hidden mx-auto">
                 <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
-                    <h3 class="text-lg font-bold text-stone-800 flex items-center gap-2"><i class="ph-fill ph-shield-check text-green-500"></i> Registro Accessi</h3>
-                    <button onclick="document.getElementById('logs-modal').classList.add('hidden')" class="p-2 hover:bg-stone-200 rounded-full text-stone-500"><i class="ph ph-x text-xl"></i></button>
-                </div>
-                <div class="flex-grow overflow-y-auto p-4" id="logs-list">
-                    <div class="text-center text-stone-400 text-sm mt-10">Caricamento...</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- MODALE UNICO -->
-        <div id="day-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-end sm:items-center justify-center backdrop-blur-sm sm:p-4">
-            <div class="bg-white w-full h-[95vh] sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col overflow-hidden mx-auto">
-                <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
-                    <h3 id="modal-title" class="text-lg font-bold text-stone-800">Pianifica Giornata</h3>
+                    <h3 id="modal-title" class="text-lg font-bold text-stone-800">Modifica Giornata</h3>
                     <button onclick="closeModal()" class="p-2 hover:bg-stone-200 rounded-full text-stone-500"><i class="ph ph-x text-xl"></i></button>
                 </div>
                 <div class="flex-grow overflow-y-auto p-4 custom-scroll" id="modal-body">
@@ -521,58 +368,49 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Data</label>
-                                <input type="date" id="day-date-input" class="w-full p-2 bg-stone-50 border border-stone-200 rounded-lg focus:ring-1 focus:ring-orange-400 outline-none">
+                                <input type="date" id="day-date-input" class="w-full p-2 bg-stone-50 border border-stone-200 rounded-lg outline-none">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Stato</label>
-                                <input type="text" id="day-name-input" class="w-full p-2 bg-stone-50 border border-stone-200 rounded-lg focus:ring-1 focus:ring-orange-400 outline-none" placeholder="Es. California">
+                                <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Titolo/Stato</label>
+                                <input type="text" id="day-name-input" class="w-full p-2 bg-stone-50 border border-stone-200 rounded-lg outline-none" placeholder="Es. California">
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Descrizione Generale</label>
-                            <textarea id="day-desc-input" rows="2" class="w-full p-2 bg-stone-50 border border-stone-200 rounded-lg resize-none focus:ring-1 focus:ring-orange-400 outline-none" placeholder="Obiettivi della giornata..."></textarea>
-                        </div>
-                        <!-- NEW LINK INPUT -->
-                        <div>
-                            <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Link (es. Hotel/Info)</label>
-                            <div class="relative">
-                                <i class="ph ph-link absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"></i>
-                                <input type="text" id="day-link-input" class="w-full p-2 pl-9 bg-stone-50 border border-stone-200 rounded-lg focus:ring-1 focus:ring-orange-400 outline-none text-xs text-blue-600" placeholder="https://...">
-                            </div>
+                            <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Descrizione</label>
+                            <textarea id="day-desc-input" rows="2" class="w-full p-2 bg-stone-50 border border-stone-200 rounded-lg resize-none outline-none" placeholder="Note generali..."></textarea>
                         </div>
                     </div>
-
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-2">
-                            <label class="text-sm font-bold text-orange-500 uppercase flex items-center gap-1"><i class="ph ph-flag-checkered"></i> Tappe & Percorso</label>
-                            <!-- NEW TOGGLE -->
-                            <label class="flex items-center gap-1 cursor-pointer">
-                                <span class="text-[10px] font-bold text-stone-400">USA MIGLIA</span>
-                                <input type="checkbox" id="use-miles-toggle" class="form-checkbox h-4 w-4 text-orange-500 rounded border-gray-300 focus:ring-orange-500" checked>
-                            </label>
+                            <span class="text-xs font-bold text-orange-500 uppercase">Tappe & Percorso</span>
                         </div>
                         <div id="stages-container" class="space-y-4 mb-4"></div>
                         <button onclick="addStageUI()" class="w-full py-3 bg-orange-50 border-2 border-dashed border-orange-200 rounded-xl text-orange-500 font-bold hover:bg-orange-100 transition-colors flex items-center justify-center gap-2">
                             <i class="ph ph-plus-circle text-xl"></i> Aggiungi Tappa
                         </button>
                     </div>
-
-                    <div class="bg-stone-800 text-white rounded-xl p-4 shadow-lg">
-                        <h4 class="text-xs font-bold text-stone-400 uppercase mb-3 border-b border-stone-700 pb-1">Riepilogo Stimato</h4>
+                    <div class="bg-stone-800 text-white rounded-xl p-4 shadow-lg mb-4">
                         <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div><p class="text-stone-400 text-xs">Ore Auto Totali</p><p id="sum-drive-time" class="font-mono text-lg font-bold text-amber-400">0h 00m</p></div>
-                            <div><p class="text-stone-400 text-xs">Durata Giornata</p><p id="sum-day-time" class="font-mono text-lg font-bold">0h 00m</p></div>
-                            <div id="sum-miles-container"><p class="text-stone-400 text-xs">Totale Miglia</p><p id="sum-miles" class="font-mono font-bold">0 mi</p></div>
-                            <div><p class="text-stone-400 text-xs">Totale Km</p><p id="sum-km" class="font-mono font-bold text-green-400">0 km</p></div>
+                            <div><p class="text-stone-400 text-xs">Ore Auto</p><p id="sum-drive-time" class="font-mono text-lg font-bold text-amber-400">0h 00m</p></div>
+                            <div><p class="text-stone-400 text-xs">Km Totali</p><p id="sum-km" class="font-mono text-lg font-bold text-green-400">0 km</p></div>
                         </div>
                     </div>
                 </div>
-                <div class="p-4 border-t border-stone-100 bg-white flex justify-end gap-3">
-                    <button onclick="closeModal()" class="px-4 py-2 text-stone-500 hover:bg-stone-100 rounded-lg transition-colors">Annulla</button>
-                    <button id="confirm-save-btn" class="px-6 py-2 bg-orange-400 text-white rounded-lg font-bold shadow-md hover:bg-orange-500 flex items-center gap-2 transition-transform active:scale-95">
-                        <i class="ph ph-floppy-disk"></i> Salva Tutto
-                    </button>
+                <div class="p-4 border-t border-stone-100 bg-white flex justify-end gap-3 pb-safe">
+                    <button onclick="closeModal()" class="px-4 py-2 text-stone-500">Annulla</button>
+                    <button id="confirm-save-btn" class="px-6 py-2 bg-orange-400 text-white rounded-lg font-bold">Salva Tutto</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- MODAL LOGS -->
+        <div id="logs-modal" class="fixed inset-0 bg-black/60 z-[70] hidden flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[80vh]">
+                <div class="p-4 border-b flex justify-between items-center bg-stone-50">
+                    <h3 class="text-lg font-bold">Registro Accessi</h3>
+                    <button onclick="document.getElementById('logs-modal').classList.add('hidden')"><i class="ph ph-x text-xl"></i></button>
+                </div>
+                <div class="flex-grow overflow-y-auto p-4" id="logs-list"></div>
             </div>
         </div>
 
@@ -618,12 +456,22 @@
         const getMapsUrl = (input) => { if (!input) return ''; let text = input.trim(); if (/^https?:\/\//i.test(text)) return text; if (/^(www\.|maps\.)/i.test(text) || text.includes('google.com/maps')) return 'https://' + text; return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}`; };
         const getDeviceType = () => { const ua = navigator.userAgent; if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return "Tablet"; if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated/.test(ua)) return "Mobile"; return "Desktop"; };
 
-        // --- CHART & RENDERING LOGIC (DEFINED FIRST TO AVOID HOISTING ISSUES) ---
+        // --- DEFINIZIONI FUNZIONI (Spostate in alto per evitare ReferenceError) ---
+        
+        const updateGlobalVisibility = () => {
+            const cmc = document.getElementById('card-miles-container'); if(cmc) cmc.style.display = globalShowMiles ? 'block' : 'none';
+            const ehs = document.getElementById('expenses-header-usd'); if(ehs) ehs.style.display = globalShowUSD ? 'block' : 'none';
+            const eiu = document.getElementById('expenses-input-usd'); if(eiu) eiu.style.display = globalShowUSD ? 'block' : 'none';
+            const btu = document.getElementById('budget-total-usd'); if(btu) btu.style.display = globalShowUSD ? 'block' : 'none';
+            const ber = document.getElementById('budget-exchange-rate'); if(ber) ber.style.display = globalShowUSD ? 'block' : 'none';
+        };
+
         const updateSummaryChart = () => {
             if (!cachedDays || cachedDays.length === 0) return;
             const labels = [], driveData = [], restData = [];
             const sortedDays = [...cachedDays].sort((a,b) => a.chronoId - b.chronoId);
             let maxDriveVal = 0, maxDriveLabel = '--', maxIntenseVal = 0, maxIntenseLabel = '--';
+            
             sortedDays.forEach(day => {
                 labels.push(`G${day.chronoId}`);
                 let dayDriveMins = 0, dayDurationMins = 0;
@@ -631,19 +479,23 @@
                     day.stages.forEach(s => { if (!s.isVisit) dayDriveMins += parseInt(s.driveTime || 0); });
                     const sortedStages = [...day.stages].sort((a,b) => timeToMins(a.start) - timeToMins(b.start));
                     const start = timeToMins(sortedStages[0].start);
-                    let end = sortedStages[sortedStages.length - 1].isVisit ? (timeToMins(sortedStages[sortedStages.length - 1].start) + timeToMins(sortedStages[sortedStages.length - 1].pause)) : timeToMins(sortedStages[sortedStages.length - 1].end);
+                    const lastStage = sortedStages[sortedStages.length - 1];
+                    let end = lastStage.isVisit ? (timeToMins(lastStage.start) + timeToMins(lastStage.pause)) : timeToMins(lastStage.end);
                     if (end < start) end += 1440;
                     dayDurationMins = end - start;
                 }
                 if (dayDriveMins > maxDriveVal) { maxDriveVal = dayDriveMins; maxDriveLabel = `Giorno ${day.chronoId}`; }
                 if (dayDurationMins > maxIntenseVal) { maxIntenseVal = dayDurationMins; maxIntenseLabel = `Giorno ${day.chronoId}`; }
-                const driveP = dayDurationMins > 0 ? (dayDriveMins / dayDurationMins) * 100 : (dayDriveMins > 0 ? 100 : 0);
-                driveData.push(driveP); restData.push(100 - driveP);
+                const driveP = dayDurationMins > 0 ? (dayDriveMins / dayDurationMins) * 100 : 0;
+                driveData.push(driveP);
+                restData.push(100 - driveP);
             });
-            const hiDay = document.getElementById('high-intense-day'); if(hiDay) hiDay.textContent = maxIntenseLabel;
-            const hiVal = document.getElementById('high-intense-val'); if(hiVal) hiVal.textContent = minsToTimeStr(maxIntenseVal);
-            const hdDay = document.getElementById('high-drive-day'); if(hdDay) hdDay.textContent = maxDriveLabel;
-            const hdVal = document.getElementById('high-drive-val'); if(hdVal) hdVal.textContent = minsToTimeStr(maxDriveVal);
+
+            document.getElementById('high-intense-day').textContent = maxIntenseLabel;
+            document.getElementById('high-intense-val').textContent = minsToTimeStr(maxIntenseVal);
+            document.getElementById('high-drive-day').textContent = maxDriveLabel;
+            document.getElementById('high-drive-val').textContent = minsToTimeStr(maxDriveVal);
+
             const canvas = document.getElementById('activityChart');
             if(!canvas) return; 
             if (activityChart) activityChart.destroy();
@@ -673,9 +525,11 @@
             const list = document.getElementById('days-list'); list.innerHTML = '';
             let gKm = 0, gMiles = 0, gDrive = 0, visitedCount = 0;
             const statesSet = new Set();
+            
             cachedDays.forEach((day, i) => {
                 day.chronoId = i + 1;
                 if(day.title) day.title.split('-').forEach(p => { if(p.trim()) statesSet.add(p.trim().toUpperCase()); });
+                
                 let dayKm = 0, dayMiles = 0, dayDrive = 0, visits = 0;
                 let stagesHtml = '<div class="mt-3 border-t border-stone-100 pt-2 space-y-1">';
                 (day.stages || []).forEach((s, idx) => {
@@ -700,53 +554,84 @@
                 card.onclick = () => openDayDetail(day);
                 list.appendChild(card);
             });
-            const dur = document.getElementById('summ-view-duration'); if(dur) dur.textContent = `${cachedDays.length}gg / ${Math.max(0, cachedDays.length-1)}nt`;
-            const km = document.getElementById('summ-view-km'); if(km) km.textContent = gKm.toFixed(0) + ' km';
-            const mi = document.getElementById('summ-view-miles'); if(mi) mi.textContent = gMiles.toFixed(0) + ' mi';
-            const dr = document.getElementById('summ-view-drive'); if(dr) dr.textContent = minsToTimeStr(gDrive);
-            const st = document.getElementById('summ-view-states'); if(st) st.textContent = statesSet.size;
-            const sg = document.getElementById('summ-view-stages'); if(sg) sg.textContent = visitedCount;
+            
+            const elDur = document.getElementById('summ-view-duration');
+            if(elDur) elDur.textContent = `${cachedDays.length}gg / ${Math.max(0, cachedDays.length-1)}nt`;
+            
+            const elKm = document.getElementById('summ-view-km');
+            if(elKm) elKm.textContent = gKm.toFixed(0) + ' km';
+            
+            const elMi = document.getElementById('summ-view-miles');
+            if(elMi) elMi.textContent = gMiles.toFixed(0) + ' mi';
+            
+            const elDr = document.getElementById('summ-view-drive');
+            if(elDr) elDr.textContent = minsToTimeStr(gDrive);
+            
+            const elSt = document.getElementById('summ-view-states');
+            if(elSt) elSt.textContent = statesSet.size;
+            
+            const elSg = document.getElementById('summ-view-stages');
+            if(elSg) elSg.textContent = visitedCount;
+            
             updateSummaryChart();
         };
 
-        const updateGlobalVisibility = () => {
-            const cmc = document.getElementById('card-miles-container'); if(cmc) cmc.style.display = globalShowMiles ? 'block' : 'none';
-            const ehs = document.getElementById('expenses-header-usd'); if(ehs) ehs.style.display = globalShowUSD ? 'block' : 'none';
-            const eiu = document.getElementById('expenses-input-usd'); if(eiu) eiu.style.display = globalShowUSD ? 'block' : 'none';
-            const btu = document.getElementById('budget-total-usd'); if(btu) btu.style.display = globalShowUSD ? 'block' : 'none';
-            const ber = document.getElementById('budget-exchange-rate'); if(ber) ber.style.display = globalShowUSD ? 'block' : 'none';
-        };
-
         const renderExpensesList = () => {
-            const list = document.getElementById('expenses-list'); if(!list) return;
+            const list = document.getElementById('expenses-list');
+            if(!list) return;
             list.innerHTML = '';
             let totalEur = 0;
             const catSums = { 'Pernottamenti': 0, 'Pasti': 0, 'Carburante': 0, 'Attrazioni': 0, 'Pass e Tasse': 0, 'Altro': 0 };
+
             cachedExpenses.forEach((data) => { 
-                const qty = data.qty || 1, amountEur = parseFloat(data.amount || 0);
+                const qty = data.qty || 1; 
+                const amountEur = parseFloat(data.amount || 0);
                 totalEur += (amountEur * qty);
+
                 const cat = data.category || 'Altro';
                 if(catSums[cat] !== undefined) catSums[cat] += (amountEur * qty);
+                else catSums['Altro'] += (amountEur * qty);
+
                 const row = document.createElement('div');
                 row.className = "flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm";
                 row.innerHTML = `
-                    <div class="flex-grow pr-2"><div class="font-bold text-stone-700 text-sm">${data.name} <span class="text-[10px] text-stone-400 bg-stone-100 px-1 rounded ml-1">${cat}</span></div></div>
-                    <div class="flex items-center gap-3"><div class="text-right"><span class="font-mono font-bold text-emerald-600 text-sm">${(amountEur*qty).toFixed(2)}€</span>${globalShowUSD ? `<div class="text-[10px] text-stone-400">${(amountEur*qty*currentExchangeRate).toFixed(2)}$</div>` : ''}</div><button onclick="deleteExpense('${data.id}')" class="p-1.5 text-stone-300 hover:text-red-500"><i class="ph ph-trash"></i></button></div>
+                    <div class="flex-grow pr-2">
+                        <div class="font-bold text-stone-700 text-sm">${data.name} <span class="text-[10px] text-stone-400 bg-stone-100 px-1 rounded ml-1">${cat}</span></div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-right">
+                            <span class="font-mono font-bold text-emerald-600 text-sm">${(amountEur*qty).toFixed(2)}€</span>
+                            ${globalShowUSD ? `<div class="text-[10px] text-stone-400">${(amountEur*qty*currentExchangeRate).toFixed(2)}$</div>` : ''}
+                        </div>
+                        <button onclick="deleteExpense('${data.id}')" class="p-1.5 text-stone-300 hover:text-red-500"><i class="ph ph-trash"></i></button>
+                    </div>
                 `;
                 list.appendChild(row);
             });
-            const te = document.getElementById('total-expenses'); if(te) te.innerHTML = `${totalEur.toFixed(2)} <span class="text-2xl">€</span>`;
-            const tusd = document.getElementById('total-expenses-usd'); if(tusd) tusd.textContent = `${(totalEur * currentExchangeRate).toFixed(2)} $`;
-            if (catSums) { for (const [key, val] of Object.entries(catSums)) { const el = document.getElementById(`cat-total-${key}`); if (el) el.textContent = `${val.toFixed(2)} €`; } }
+            const te = document.getElementById('total-expenses');
+            if(te) te.innerHTML = `${totalEur.toFixed(2)} <span class="text-2xl">€</span>`;
+            const tusd = document.getElementById('total-expenses-usd');
+            if(tusd) tusd.textContent = `${(totalEur * currentExchangeRate).toFixed(2)} $`;
+
+            for (const [key, val] of Object.entries(catSums)) {
+                const el = document.getElementById(`cat-total-${key}`);
+                if (el) el.textContent = `${val.toFixed(2)} €`;
+            }
         };
 
         const renderTodoList = () => {
-            const list = document.getElementById('todo-list'); list.innerHTML = '';
+            const list = document.getElementById('todo-list');
+            if(!list) return;
+            list.innerHTML = '';
             cachedTodos.forEach(item => {
                 const div = document.createElement('div');
                 div.className = `flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm group transition-all ${item.done ? 'opacity-60' : ''}`;
                 div.innerHTML = `
-                    <div class="flex items-center gap-3"><input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTodoStatus('${item.id}', this.checked)" class="w-5 h-5 accent-orange-500 rounded border-stone-300"><span class="bg-stone-100 text-stone-500 font-bold px-2 py-0.5 rounded text-xs">x${item.qty || 1}</span><span class="text-sm font-bold text-stone-700 ${item.done ? 'line-through text-stone-400 font-normal' : ''}">${item.text}</span></div>
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTodoStatus('${item.id}', this.checked)" class="w-5 h-5 accent-orange-500 rounded border-stone-300">
+                        <span class="bg-stone-100 text-stone-500 font-bold px-2 py-0.5 rounded text-xs">x${item.qty || 1}</span>
+                        <span class="text-sm font-bold text-stone-700 ${item.done ? 'line-through text-stone-400 font-normal' : ''}">${item.text}</span>
+                    </div>
                     <button onclick="deleteTodo('${item.id}')" class="text-stone-300 hover:text-red-500 p-1.5"><i class="ph ph-trash"></i></button>
                 `;
                 list.appendChild(div);
@@ -755,84 +640,44 @@
 
         // --- DATA LOADERS ---
         const loadDays = () => { unsubscribeDays = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', daysColName), (snapshot) => { const days = []; snapshot.forEach(d => days.push({id: d.id, ...d.data()})); days.sort((a, b) => (a.dateString || '').localeCompare(b.dateString || '')); cachedDays = days; document.getElementById('loading-days').classList.add('hidden'); if(days.length === 0) document.getElementById('empty-days').classList.remove('hidden'); else document.getElementById('empty-days').classList.add('hidden'); renderDaysUI(); renderPathSummary(); }); };
-        const loadExpenses = () => { const q = query(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), orderBy('createdAt', 'desc')); unsubscribeExpenses = onSnapshot(q, (snapshot) => { cachedExpenses = []; snapshot.forEach(docSnap => cachedExpenses.push({ id: docSnap.id, ...docSnap.data() })); document.getElementById('loading-expenses').classList.add('hidden'); if(cachedExpenses.length === 0) document.getElementById('empty-expenses').classList.remove('hidden'); else document.getElementById('empty-expenses').classList.add('hidden'); renderExpensesList(); }); };
+        const loadExpenses = () => { const q = query(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), orderBy('createdAt', 'desc')); unsubscribeExpenses = onSnapshot(q, (snapshot) => { cachedExpenses = []; snapshot.forEach(docSnap => cachedExpenses.push({ id: docSnap.id, ...docSnap.data() })); document.getElementById('loading-expenses').classList.add('hidden'); if(cachedExpenses.length === 0) { document.getElementById('empty-expenses').classList.remove('hidden'); document.getElementById('expenses-header').classList.add('hidden'); } else { document.getElementById('empty-expenses').classList.add('hidden'); document.getElementById('expenses-header').classList.remove('hidden'); } renderExpensesList(); }); };
         const loadTodo = () => { const q = query(collection(db, 'artifacts', appId, 'public', 'data', todoColName), orderBy('createdAt', 'desc')); unsubscribeTodo = onSnapshot(q, (snapshot) => { cachedTodos = snapshot.docs.map(d => ({ id: d.id, ...d.data() })); document.getElementById('loading-todo').classList.add('hidden'); if(cachedTodos.length === 0) document.getElementById('empty-todo').classList.remove('hidden'); else document.getElementById('empty-todo').classList.add('hidden'); renderTodoList(); }); };
         const loadGlobalNotes = () => { unsubscribeAllNotes = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', notesColName), (snapshot) => { cachedGlobalNotes = []; snapshot.forEach(d => cachedGlobalNotes.push({id: d.id, ...d.data()})); renderDaysUI(); }); };
         const loadNotes = (dayId) => { const q = query(collection(db, 'artifacts', appId, 'public', 'data', notesColName), where('dayId', '==', dayId)); onSnapshot(q, (snap) => { const list = document.getElementById('notes-list'); if(!list) return; list.innerHTML = '<h4 class="text-[10px] font-bold text-stone-300 uppercase mb-2">Note</h4>'; snap.forEach(d => { const n = d.data(); const div = document.createElement('div'); div.className = "p-3 bg-yellow-50 border border-yellow-100 rounded-xl text-xs flex justify-between"; div.innerHTML = `<span>${n.text}</span><button onclick="deleteNote('${d.id}')" class="text-stone-300"><i class="ph ph-trash"></i></button>`; list.appendChild(div); }); }); };
-
-        // --- AUTH & LOGIN ---
-        const login = async () => {
-            const key = document.getElementById('secret-key-input').value;
-            const names = generateColNames(key);
-            if(!names) { alert("Chiave non valida (min 3 caratteri)."); return; }
-            document.getElementById('login-btn').classList.add('hidden');
-            document.getElementById('auth-loader').classList.remove('hidden');
-            try {
-                if (!auth.currentUser) await signInAnonymously(auth);
-                activeSecretKey = names.display;
-                daysColName = names.days; notesColName = names.notes; logsColName = names.logs; expensesColName = names.expenses; todoColName = names.todo;
-                document.getElementById('current-key-display').textContent = activeSecretKey;
-                document.getElementById('app-id-display').textContent = appId.substring(0, 8);
-                document.getElementById('login-view').classList.add('hidden');
-                document.getElementById('days-view').classList.remove('hidden');
-                document.getElementById('bottom-nav').classList.remove('hidden');
-                document.getElementById('logout-btn').classList.remove('hidden');
-                document.getElementById('export-btn').classList.remove('hidden');
-                document.getElementById('logs-btn').classList.remove('hidden');
-                document.getElementById('import-btn').classList.remove('hidden');
-                const savedRate = localStorage.getItem(`rate_${activeSecretKey}`);
-                if(savedRate) { currentExchangeRate = parseFloat(savedRate); document.getElementById('global-exchange-rate').value = currentExchangeRate; }
-                updateGlobalVisibility(); logAccess(); loadGlobalNotes(); loadDays();
-            } catch(e) { alert("Errore di accesso: " + e.message); } 
-            finally { document.getElementById('login-btn').classList.remove('hidden'); document.getElementById('auth-loader').classList.add('hidden'); }
-        };
-        document.getElementById('login-btn').onclick = login;
+        const logAccess = async () => { if(!logsColName) return; let loc = "N/D"; try { const res = await fetch('https://ipapi.co/json/'); if(res.ok) { const d = await res.json(); loc = `${d.city}, ${d.country_name}`; } } catch(e) {} try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', logsColName), { timestamp: serverTimestamp(), device: getDeviceType(), location: loc }); } catch(e) {} };
 
         // --- GLOBAL ACTIONS ---
+        window.editDayFromDetail = (id) => { const day = cachedDays.find(d => d.id === id); if(day) openModal(day); };
+        window.deleteDayFromDetail = async (id) => { if(confirm('Eliminare questa giornata?')) { try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, id)); document.getElementById('back-btn').click(); } catch(e) { console.error(e); } } };
         window.toggleTodoStatus = async (id, isDone) => { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id), { done: isDone }); } catch(e) {} };
         window.deleteNote = (id) => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', notesColName, id));
         window.deleteExpense = (id) => { if(confirm("Eliminare?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id)); };
         window.deleteTodo = (id) => { if(confirm("Rimuovere?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id)); };
-        window.deleteDayFromDetail = async (id) => { if(confirm('Eliminare?')) { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, id)); document.getElementById('back-btn').click(); } };
         window.switchTab = (tabName) => {
             currentTabName = tabName;
             ['days', 'summary', 'expenses', 'budget', 'todo'].forEach(t => {
                 const v = document.getElementById(`${t}-view`); if(v) v.classList.add('hidden');
                 const btn = document.getElementById(`tab-${t}`);
-                if(btn) { btn.classList.replace('text-orange-500', 'text-stone-400'); btn.classList.replace('text-emerald-600', 'text-stone-400'); btn.querySelector('i').classList.replace('ph-fill', 'ph-bold'); }
+                if(btn) { btn.classList.replace('text-orange-500', 'text-stone-400'); btn.classList.replace('text-emerald-600', 'text-stone-400'); btn.classList.replace('text-orange-600', 'text-stone-400'); btn.querySelector('i').classList.replace('ph-fill', 'ph-bold'); }
             });
             const activeView = document.getElementById(`${tabName}-view`); if(activeView) activeView.classList.remove('hidden');
             const activeBtn = document.getElementById(`tab-${tabName}`);
-            if(activeBtn) { const color = (tabName === 'expenses' || tabName === 'budget') ? 'text-emerald-600' : 'text-orange-500'; activeBtn.classList.replace('text-stone-400', color); activeBtn.querySelector('i').classList.replace('ph-bold', 'ph-fill'); }
+            if(activeBtn) {
+                let color = 'text-orange-500';
+                if(tabName === 'expenses' || tabName === 'budget') color = 'text-emerald-600';
+                if(tabName === 'todo') color = 'text-orange-600';
+                activeBtn.classList.replace('text-stone-400', color); activeBtn.querySelector('i').classList.replace('ph-bold', 'ph-fill');
+            }
             if (tabName === 'expenses' || tabName === 'budget') { if(!unsubscribeExpenses) loadExpenses(); }
             if (tabName === 'todo') { if(!unsubscribeTodo) loadTodo(); }
             if (tabName === 'summary') setTimeout(updateSummaryChart, 100);
         };
-
-        const openDayDetail = (day) => {
-            currentDayId = day.id;
-            lastListScroll = document.getElementById('days-list-container').scrollTop;
-            document.getElementById('days-view').classList.add('hidden');
-            document.getElementById('notes-view').classList.remove('hidden');
-            document.getElementById('back-btn').classList.remove('hidden');
-            document.getElementById('bottom-nav').classList.add('hidden');
-            document.getElementById('header-title').textContent = `Giorno ${day.chronoId}`;
-            let detailH = `<div class="mb-6"><h2 class="text-xl font-black text-stone-800">${day.title || ''}</h2><p class="text-sm text-stone-500 mt-1">${day.description || ''}</p></div>`;
-            detailH += `<div class="space-y-4 mb-8">`;
-            (day.stages || []).forEach((s, idx) => {
-                const mapsUrl = s.mapsLink ? (s.mapsLink.startsWith('http') ? s.mapsLink : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name)}`) : '';
-                detailH += `<div class="bg-stone-50 border border-stone-200 rounded-xl p-4"><div class="flex justify-between items-start mb-2"><span class="font-bold text-stone-800">${idx+1}. ${s.name}</span><span class="font-mono text-xs bg-white px-2 py-1 rounded shadow-sm">${s.start || '--'} <i class="ph ph-arrow-right mx-1"></i> ${s.end || '--'}</span></div><p class="text-xs text-stone-600 mb-2">${s.desc || ''}</p><div class="flex justify-between items-center text-[10px] font-bold text-stone-400"><span>${s.isVisit ? 'VISITA' : `${s.km} km • ${minsToTimeStr(s.driveTime)}`}</span>${mapsUrl ? `<a href="${mapsUrl}" target="_blank" class="text-blue-500 flex items-center gap-1"><i class="ph ph-map-pin"></i> MAPS</a>` : ''}</div></div>`;
-            });
-            detailH += `</div><div id="notes-list" class="space-y-2 mb-6"></div><div class="flex gap-2"><button onclick="openModal(cachedDays.find(d=>d.id=='${day.id}'))" class="flex-grow py-3 bg-stone-100 rounded-xl font-bold text-xs">MODIFICA</button><button onclick="deleteDayFromDetail('${day.id}')" class="p-3 bg-red-50 text-red-500 rounded-xl"><i class="ph ph-trash"></i></button></div>`;
-            document.getElementById('day-detail-content').innerHTML = detailH;
-            loadNotes(day.id);
-        };
         window.openModal = (dayData) => {
             editingDayId = dayData?.id || null; document.getElementById('day-modal').classList.remove('hidden');
             const title = document.getElementById('modal-title'); if(title) title.textContent = editingDayId ? "Modifica Giornata" : "Nuova Giornata";
-            const ni = document.getElementById('day-name-input'); if(ni) ni.value = dayData?.title || '';
-            const di = document.getElementById('day-desc-input'); if(di) di.value = dayData?.description || '';
-            const ddi = document.getElementById('day-date-input'); if(ddi) ddi.value = dayData?.dateString || new Date().toISOString().split('T')[0];
+            document.getElementById('day-name-input').value = dayData?.title || '';
+            document.getElementById('day-desc-input').value = dayData?.description || '';
+            document.getElementById('day-date-input').value = dayData?.dateString || new Date().toISOString().split('T')[0];
             currentStages = dayData?.stages || []; renderStages();
         };
         window.closeModal = () => document.getElementById('day-modal').classList.add('hidden');
@@ -841,6 +686,36 @@
             currentStages.push({ id: Date.now(), name: '', desc: '', start: defStart, end: '', pause: '00:00', km: 0, miles: 0, driveTime: 0, isVisit: false, mapsLink: '' });
             renderStages();
         };
+        window.removeStage = (id) => { currentStages = currentStages.filter(s => s.id !== id); renderStages(); };
+        window.updateStageField = (id, f, v) => {
+            const s = currentStages.find(x => x.id === id); if(!s) return;
+            s[f] = v;
+            if(f === 'start' || f === 'end') { let d = timeToMins(s.end) - timeToMins(s.start); if(d < 0) d += 1440; s.driveTime = d; }
+            if(f === 'km') s.miles = (parseFloat(v) / 1.609).toFixed(1);
+            renderStages();
+        };
+        window.playTravelVideo = () => alert("Visualizzazione Extended Ripristinata. Animazione video non configurata.");
+
+        const openDayDetail = (day) => {
+            currentDayId = day.id;
+            lastListScroll = document.getElementById('days-list-container').scrollTop;
+            document.getElementById('days-view').classList.add('hidden');
+            document.getElementById('notes-view').classList.remove('hidden');
+            document.getElementById('back-btn').classList.remove('hidden');
+            document.getElementById('bottom-nav').classList.add('hidden'); 
+            document.getElementById('header-title').textContent = `Giorno ${day.chronoId}`;
+            
+            let detailH = `<div class="mb-6"><h2 class="text-xl font-black text-stone-800">${day.title || ''}</h2><p class="text-sm text-stone-500 mt-1">${day.description || ''}</p></div>`;
+            detailH += `<div class="space-y-4 mb-8">`;
+            (day.stages || []).forEach((s, idx) => {
+                const mapsUrl = s.mapsLink ? (s.mapsLink.startsWith('http') ? s.mapsLink : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name)}`) : '';
+                detailH += `<div class="bg-stone-50 border border-stone-200 rounded-xl p-4"><div class="flex justify-between items-start mb-2"><span class="font-bold text-stone-800">${idx+1}. ${s.name}</span><span class="font-mono text-xs bg-white px-2 py-1 rounded shadow-sm">${s.start || '--'} <i class="ph ph-arrow-right mx-1"></i> ${s.end || '--'}</span></div><p class="text-xs text-stone-600 mb-2">${s.desc || ''}</p><div class="flex justify-between items-center text-[10px] font-bold text-stone-400"><span>${s.isVisit ? 'VISITA' : `${s.km} km • ${minsToTimeStr(s.driveTime)}`}</span>${mapsUrl ? `<a href="${mapsUrl}" target="_blank" class="text-blue-500 flex items-center gap-1"><i class="ph ph-map-pin"></i> MAPS</a>` : ''}</div></div>`;
+            });
+            detailH += `</div><div id="notes-list" class="space-y-2 mb-6"></div><div class="flex gap-2"><button onclick="editDayFromDetail('${day.id}')" class="flex-grow py-3 bg-stone-100 rounded-xl font-bold text-xs text-stone-600">MODIFICA</button><button onclick="deleteDayFromDetail('${day.id}')" class="p-3 bg-red-50 text-red-500 rounded-xl"><i class="ph ph-trash"></i></button></div>`;
+            document.getElementById('day-detail-content').innerHTML = detailH;
+            loadNotes(day.id);
+        };
+
         const renderStages = () => {
             const container = document.getElementById('stages-container'); container.innerHTML = '';
             currentStages.forEach((s, i) => {
@@ -849,57 +724,122 @@
                 div.innerHTML = `<div class="flex justify-between items-center mb-2"><label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" ${s.isVisit ? 'checked' : ''} onchange="updateStageField(${s.id}, 'isVisit', this.checked)" class="accent-orange-500"> <span class="text-[9px] font-bold text-orange-500 uppercase">Visita</span></label><button onclick="removeStage(${s.id})" class="text-red-400 p-1"><i class="ph ph-trash"></i></button></div><input type="text" value="${s.name}" onchange="updateStageField(${s.id}, 'name', this.value)" placeholder="Nome tappa" class="w-full p-2 bg-transparent border-b text-sm font-bold mb-2"><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] font-bold text-stone-400 uppercase">Partenza</label><input type="time" value="${s.start}" onchange="updateStageField(${s.id}, 'start', this.value)" class="w-full text-xs"></div><div><label class="text-[8px] font-bold text-stone-400 uppercase">Arrivo</label><input type="time" value="${s.end}" onchange="updateStageField(${s.id}, 'end', this.value)" class="w-full text-xs"></div><div class="${s.isVisit ? 'hidden' : ''}"><label class="text-[8px] font-bold text-stone-400 uppercase">Km</label><input type="number" value="${s.km}" onchange="updateStageField(${s.id}, 'km', this.value)" class="w-full text-xs font-mono"></div></div><input type="text" value="${s.mapsLink || ''}" onchange="updateStageField(${s.id}, 'mapsLink', this.value)" placeholder="Link Google Maps" class="w-full mt-2 p-1 text-[9px] text-blue-500 border-none bg-transparent underline">`;
                 container.appendChild(div);
             });
-            calculateTotals();
-        };
-        window.updateStageField = (id, f, v) => {
-            const s = currentStages.find(x => x.id === id); if(!s) return;
-            s[f] = v;
-            if(f === 'start' || f === 'end') { let d = timeToMins(s.end) - timeToMins(s.start); if(d < 0) d += 1440; s.driveTime = d; }
-            if(f === 'km') s.miles = (parseFloat(v) / 1.609).toFixed(1);
-            renderStages();
-        };
-        window.removeStage = (id) => { currentStages = currentStages.filter(s => s.id !== id); renderStages(); };
-        const calculateTotals = () => {
             let dk = 0, dt = 0; currentStages.forEach(s => { if(!s.isVisit) { dk += parseFloat(s.km || 0); dt += parseInt(s.driveTime || 0); } });
             const skm = document.getElementById('sum-km'); if(skm) skm.textContent = dk.toFixed(0) + ' km';
             const sdt = document.getElementById('sum-drive-time'); if(sdt) sdt.textContent = minsToTimeStr(dt);
         };
 
-        // --- LISTENERS ---
-        document.getElementById('confirm-save-btn').onclick = async () => {
-            const payload = { title: document.getElementById('day-name-input').value, description: document.getElementById('day-desc-input').value, dateString: document.getElementById('day-date-input').value, stages: currentStages, updatedAt: serverTimestamp() };
-            if(editingDayId) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, editingDayId), payload);
-            else { payload.createdAt = serverTimestamp(); await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), payload); }
-            closeModal();
+        // --- AUTH & LOGIN ---
+        const login = async () => {
+            const key = document.getElementById('secret-key-input').value;
+            const names = generateColNames(key);
+            if(!names) { alert("Chiave non valida (min 3 caratteri)."); return; }
+            
+            document.getElementById('login-btn').classList.add('hidden');
+            document.getElementById('auth-loader').classList.remove('hidden');
+            
+            try {
+                if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+                activeSecretKey = names.display;
+                daysColName = names.days;
+                notesColName = names.notes;
+                logsColName = names.logs; 
+                expensesColName = names.expenses; 
+                todoColName = names.todo; 
+                
+                document.getElementById('current-key-display').textContent = activeSecretKey;
+                document.getElementById('app-id-display').textContent = appId.substring(0, 8); 
+                
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('days-view').classList.remove('hidden');
+                document.getElementById('bottom-nav').classList.remove('hidden'); 
+                document.getElementById('logout-btn').classList.remove('hidden');
+                document.getElementById('export-btn').classList.remove('hidden');
+                document.getElementById('logs-btn').classList.remove('hidden'); 
+                document.getElementById('import-btn').classList.remove('hidden');
+                
+                const savedRate = localStorage.getItem(`rate_${activeSecretKey}`);
+                if(savedRate) {
+                    currentExchangeRate = parseFloat(savedRate);
+                    document.getElementById('global-exchange-rate').value = currentExchangeRate;
+                }
+                const savedMiles = localStorage.getItem(`showMiles_${activeSecretKey}`);
+                if (savedMiles !== null) {
+                    globalShowMiles = (savedMiles === 'true');
+                    document.getElementById('global-miles-toggle').checked = globalShowMiles;
+                }
+                const savedUSD = localStorage.getItem(`showUSD_${activeSecretKey}`);
+                if (savedUSD !== null) {
+                    globalShowUSD = (savedUSD === 'true');
+                    document.getElementById('global-usd-toggle').checked = globalShowUSD;
+                }
+                
+                updateGlobalVisibility();
+                logAccess(); 
+                loadGlobalNotes();
+                loadDays();
+            } catch(e) { 
+                console.error(e);
+                alert("Errore di accesso: " + e.message);
+            } 
+            finally { 
+                document.getElementById('login-btn').classList.remove('hidden'); 
+                document.getElementById('auth-loader').classList.add('hidden'); 
+            }
         };
-        document.getElementById('back-btn').onclick = () => { document.getElementById('days-view').classList.remove('hidden'); document.getElementById('notes-view').classList.add('hidden'); document.getElementById('back-btn').classList.add('hidden'); document.getElementById('bottom-nav').classList.remove('hidden'); document.getElementById('header-title').textContent = "Travel Planner"; };
+        document.getElementById('login-btn').addEventListener('click', login);
         document.getElementById('logout-btn').onclick = () => location.reload();
+
+        // --- GLOBAL LISTENERS ---
+        document.getElementById('global-miles-toggle').addEventListener('change', (e) => { globalShowMiles = e.target.checked; localStorage.setItem(`showMiles_${activeSecretKey}`, globalShowMiles); updateGlobalVisibility(); if(cachedDays.length > 0) renderDaysUI(); });
+        document.getElementById('global-usd-toggle').addEventListener('change', (e) => { globalShowUSD = e.target.checked; localStorage.setItem(`showUSD_${activeSecretKey}`, globalShowUSD); updateGlobalVisibility(); if(cachedExpenses.length > 0) renderExpensesList(); });
+        document.getElementById('global-exchange-rate').addEventListener('input', (e) => { const val = parseFloat(e.target.value); if(!isNaN(val) && val > 0) { currentExchangeRate = val; localStorage.setItem(`rate_${activeSecretKey}`, val); renderExpensesList(); } });
+        document.getElementById('expense-amount-input').addEventListener('input', (e) => { const eur = parseFloat(e.target.value); if(!isNaN(eur)) document.getElementById('expense-amount-usd-input').value = (eur * currentExchangeRate).toFixed(2); });
+        document.getElementById('expense-amount-usd-input').addEventListener('input', (e) => { const usd = parseFloat(e.target.value); if(!isNaN(usd)) document.getElementById('expense-amount-input').value = (usd / currentExchangeRate).toFixed(2); });
+        
         document.getElementById('add-expense-btn').onclick = async () => {
-            const nameIn = document.getElementById('expense-name-input'), linkIn = document.getElementById('expense-link-input'), qtyIn = document.getElementById('expense-qty-input'), eurIn = document.getElementById('expense-amount-input');
+            const nameIn = document.getElementById('expense-name-input');
+            const linkIn = document.getElementById('expense-link-input'); 
+            const qtyIn = document.getElementById('expense-qty-input');
+            const eurIn = document.getElementById('expense-amount-input');
             const catIn = document.querySelector('input[name="new-expense-cat"]:checked');
-            const name = nameIn.value.trim(), amount = parseFloat(eurIn.value), qty = parseInt(qtyIn.value) || 1;
+            const name = nameIn.value.trim();
+            const amount = parseFloat(eurIn.value); 
+            const qty = parseInt(qtyIn.value) || 1;
             if(!name || isNaN(amount)) return;
             nameIn.value = ''; linkIn.value = ''; eurIn.value = ''; document.getElementById('expense-amount-usd-input').value = '';
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), { name, link: linkIn.value, amount, qty, category: catIn ? catIn.value : 'Altro', createdAt: serverTimestamp() });
         };
+        
         document.getElementById('add-todo-btn').onclick = async () => {
-            const qtyIn = document.getElementById('todo-qty-input'), itemIn = document.getElementById('todo-item-input');
-            const qty = parseInt(qtyIn.value) || 1, text = itemIn.value.trim();
+            const qtyIn = document.getElementById('todo-qty-input');
+            const itemIn = document.getElementById('todo-item-input');
+            const qty = parseInt(qtyIn.value) || 1;
+            const text = itemIn.value.trim();
             if(!text) return;
-            itemIn.value = ''; qtyIn.value = '1';
+            itemIn.value = '';
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', todoColName), { qty, text, done: false, createdAt: serverTimestamp() });
         };
+
         document.getElementById('add-note-btn').onclick = async () => {
             const txt = document.getElementById('note-input').value.trim();
             if(!txt || !currentDayId) return;
             document.getElementById('note-input').value = '';
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', notesColName), { dayId: currentDayId, text: txt, createdAt: serverTimestamp() });
         };
-        document.getElementById('global-miles-toggle').addEventListener('change', (e) => { globalShowMiles = e.target.checked; localStorage.setItem(`showMiles_${activeSecretKey}`, globalShowMiles); updateGlobalVisibility(); if(cachedDays.length > 0) renderDaysUI(); });
-        document.getElementById('global-usd-toggle').addEventListener('change', (e) => { globalShowUSD = e.target.checked; localStorage.setItem(`showUSD_${activeSecretKey}`, globalShowUSD); updateGlobalVisibility(); if(cachedExpenses.length > 0) renderExpensesList(); });
-        document.getElementById('global-exchange-rate').addEventListener('input', (e) => { const val = parseFloat(e.target.value); if(!isNaN(val) && val > 0) { currentExchangeRate = val; localStorage.setItem(`rate_${activeSecretKey}`, val); renderExpensesList(); } });
-        document.getElementById('expense-amount-input').addEventListener('input', (e) => { const eur = parseFloat(e.target.value); if(!isNaN(eur)) document.getElementById('expense-amount-usd-input').value = (eur * currentExchangeRate).toFixed(2); });
-        document.getElementById('expense-amount-usd-input').addEventListener('input', (e) => { const usd = parseFloat(e.target.value); if(!isNaN(usd)) document.getElementById('expense-amount-input').value = (usd / currentExchangeRate).toFixed(2); });
+
+        document.getElementById('back-btn').onclick = () => { document.getElementById('days-view').classList.remove('hidden'); document.getElementById('notes-view').classList.add('hidden'); document.getElementById('back-btn').classList.add('hidden'); document.getElementById('bottom-nav').classList.remove('hidden'); document.getElementById('header-title').textContent = "Travel Planner"; };
+        
+        document.getElementById('confirm-save-btn').onclick = async () => {
+            const payload = { title: document.getElementById('day-name-input').value, description: document.getElementById('day-desc-input').value, dateString: document.getElementById('day-date-input').value, stages: currentStages, updatedAt: serverTimestamp() };
+            if(editingDayId) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, editingDayId), payload);
+            else { payload.createdAt = serverTimestamp(); await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), payload); }
+            closeModal();
+        };
+
+        // --- GESTURES ---
         let touchStartX = 0;
         document.querySelector('main').addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive:true});
         document.querySelector('main').addEventListener('touchend', e => {
@@ -911,10 +851,7 @@
                 else if (dx < 0 && idx < tabs.length-1) switchTab(tabs[idx+1]);
             }
         }, {passive:true});
-        window.playTravelVideo = () => alert("Visualizzazione Extended Ripristinata. Animazione video non configurata.");
-        const logAccess = async () => { if(!logsColName) return; let loc = "N/D"; try { const res = await fetch('https://ipapi.co/json/'); if(res.ok) { const d = await res.json(); loc = `${d.city}, ${d.country_name}`; } } catch(e) {} try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', logsColName), { timestamp: serverTimestamp(), device: getDeviceType(), location: loc }); } catch(e) {} };
-        const showLogs = () => { if(!logsColName) return; const modal = document.getElementById('logs-modal'); const list = document.getElementById('logs-list'); modal.classList.remove('hidden'); list.innerHTML = '<div class="flex justify-center p-4"><div class="loader w-6 h-6 border-t-orange-500"></div></div>'; const q = query(collection(db, 'artifacts', appId, 'public', 'data', logsColName), orderBy('timestamp', 'desc'), limit(20)); getDocs(q).then(snap => { list.innerHTML = ''; if(snap.empty) { list.innerHTML = '<p class="text-center text-stone-400 text-sm">Nessun accesso.</p>'; return; } snap.forEach(doc => { const data = doc.data(); const date = data.timestamp ? data.timestamp.toDate() : new Date(); const formattedDate = date.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); const item = document.createElement('div'); item.className = "flex justify-between items-center py-3 border-b border-stone-100 last:border-0"; item.innerHTML = `<div class="flex flex-col"><span class="font-bold text-sm text-stone-700">${data.device || 'N/D'} <span class="text-[10px] text-stone-400 ml-1">${data.location || ''}</span></span><span class="text-[10px] text-stone-400 truncate w-40">${data.userAgent}</span></div><span class="text-xs font-mono text-orange-500 bg-orange-50 px-2 py-1 rounded">${formattedDate}</span>`; list.appendChild(item); }); }); };
-        document.getElementById('logs-btn').onclick = showLogs;
+
     </script>
 </body>
 </html>
