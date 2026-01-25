@@ -33,6 +33,7 @@
         
         /* Safe area utility for modern phones */
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        .bottom-safe { bottom: calc(3rem + env(safe-area-inset-bottom)); }
         
         /* Car Icon Animation */
         .car-icon-div {
@@ -298,17 +299,17 @@
 
             <!-- VIEW 5: SPESE LISTA (Tab 3) -->
             <div id="expenses-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10">
-                <!-- Header Colonne Lista - ADDED ID -->
+                <!-- Header Colonne Lista -->
                 <div id="expenses-header" class="bg-white p-3 shadow-sm border-b border-stone-200 z-20 flex justify-between text-[10px] uppercase font-bold text-stone-400 max-w-4xl mx-auto w-full">
                     <span class="w-1/3">Voce</span>
                     <div class="flex gap-4 w-2/3 justify-end pr-14">
                         <span>Euro (€)</span>
-                        <span id="expenses-header-usd">USD ($)</span> <!-- ADDED ID -->
+                        <span id="expenses-header-usd">USD ($)</span>
                     </div>
                 </div>
 
                 <!-- Lista Spese -->
-                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-40 w-full" id="expenses-list-container">
+                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-48 w-full" id="expenses-list-container">
                     <div id="loading-expenses" class="hidden flex justify-center mt-10"><div class="loader border-t-emerald-400"></div></div>
                     <div id="empty-expenses" class="hidden flex flex-col items-center justify-center mt-10 text-stone-400">
                         <i class="ph ph-receipt text-5xl mb-3 text-stone-300"></i>
@@ -317,9 +318,9 @@
                     <div id="expenses-list" class="space-y-2 max-w-4xl mx-auto"></div>
                 </div>
 
-                <!-- Input Bar (Fixed Bottom) -->
-                <div class="absolute bottom-12 left-0 w-full bg-white p-2 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
-                    <div class="max-w-4xl mx-auto flex flex-col gap-2">
+                <!-- Input Bar (Fixed Bottom Above Nav) -->
+                <div class="absolute bottom-safe left-0 w-full bg-white p-3 border-t border-stone-200 shadow-[0_-4px_10px_-1px_rgba(0,0,0,0.1)] z-20">
+                    <div class="max-w-4xl mx-auto flex flex-col gap-3">
                         <!-- Row 1: Inputs -->
                         <div class="flex gap-2 items-center">
                             <div class="flex-grow flex gap-1">
@@ -338,7 +339,7 @@
                                 <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">€</span>
                             </div>
 
-                            <div id="expenses-input-usd" class="relative w-16 flex-shrink-0"> <!-- ADDED ID -->
+                            <div id="expenses-input-usd" class="relative w-16 flex-shrink-0">
                                 <input type="number" step="0.01" id="expense-amount-usd-input" class="w-full p-2 pl-5 rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono bg-stone-50" placeholder="0">
                                 <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">$</span>
                             </div>
@@ -349,13 +350,13 @@
                         </div>
                         
                         <!-- Row 2: Categories (Updated) -->
-                        <div class="flex gap-3 text-[10px] font-bold text-stone-500 overflow-x-auto pb-1">
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pernottamenti" class="accent-emerald-500"> Pernottamenti</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pasti" class="accent-emerald-500"> Pasti</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Carburante" class="accent-emerald-500"> Carburante</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Attrazioni" class="accent-emerald-500"> Attrazioni</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pass e Tasse" class="accent-emerald-500"> Pass e Tasse</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Altro" class="accent-emerald-500" checked> Altro</label>
+                        <div class="flex gap-3 text-[10px] font-bold text-stone-500 overflow-x-auto pb-1 scrollbar-hide">
+                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0 bg-stone-50 px-2 py-1 rounded-full border border-stone-100"><input type="radio" name="new-expense-cat" value="Pernottamenti" class="accent-emerald-500"> Pernottamenti</label>
+                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0 bg-stone-50 px-2 py-1 rounded-full border border-stone-100"><input type="radio" name="new-expense-cat" value="Pasti" class="accent-emerald-500"> Pasti</label>
+                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0 bg-stone-50 px-2 py-1 rounded-full border border-stone-100"><input type="radio" name="new-expense-cat" value="Carburante" class="accent-emerald-500"> Carburante</label>
+                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0 bg-stone-50 px-2 py-1 rounded-full border border-stone-100"><input type="radio" name="new-expense-cat" value="Attrazioni" class="accent-emerald-500"> Attrazioni</label>
+                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0 bg-stone-50 px-2 py-1 rounded-full border border-stone-100"><input type="radio" name="new-expense-cat" value="Pass e Tasse" class="accent-emerald-500"> Pass e Tasse</label>
+                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0 bg-stone-50 px-2 py-1 rounded-full border border-stone-100"><input type="radio" name="new-expense-cat" value="Altro" class="accent-emerald-500" checked> Altro</label>
                         </div>
                     </div>
                 </div>
@@ -379,7 +380,7 @@
                     </div>
 
                     <!-- Totale Dollari (CONDITIONAL) -->
-                    <div id="budget-total-usd" class="mb-6 pb-6 border-b border-stone-100"> <!-- ADDED ID -->
+                    <div id="budget-total-usd" class="mb-6 pb-6 border-b border-stone-100">
                         <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Totale in Dollari</span>
                         <div class="text-2xl font-bold text-stone-600 mt-1 font-mono" id="total-expenses-usd">0.00 $</div>
                     </div>
@@ -398,7 +399,7 @@
                     </div>
 
                     <!-- Tasso Cambio (CONDITIONAL) -->
-                    <div id="budget-exchange-rate" class="mb-6 pb-6 border-b border-stone-100"> <!-- ADDED ID -->
+                    <div id="budget-exchange-rate" class="mb-6 pb-6 border-b border-stone-100">
                         <label class="block text-xs font-bold text-stone-500 uppercase mb-2">Tasso di Cambio Attuale</label>
                         <div class="flex items-center gap-3 bg-stone-50 p-3 rounded-xl border border-stone-200">
                             <span class="font-bold text-stone-700">1 € = </span>
@@ -428,7 +429,7 @@
         </main>
 
         <!-- BOTTOM TAB BAR (Navigation) -->
-        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full z-20 flex justify-center items-center h-auto min-h-[3rem] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden pb-safe">
+        <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full z-30 flex justify-center items-center h-auto min-h-[3rem] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden pb-safe">
             <div class="flex w-full">
                 <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/4 py-1 text-orange-500 transition-colors">
                     <i class="ph-fill ph-calendar-blank text-xl mb-0.5"></i>
