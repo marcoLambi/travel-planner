@@ -410,6 +410,38 @@
                 </div>
             </div>
 
+            <!-- VIEW 7: TO-DO (Tab 5) -->
+            <div id="todo-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10">
+                <div class="bg-white p-3 shadow-sm border-b border-stone-200 z-20 flex justify-between text-[10px] uppercase font-bold text-stone-400 max-w-4xl mx-auto w-full">
+                    <span>Lista Cose da Fare / Portare</span>
+                </div>
+                
+                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-40 w-full" id="todo-list-container">
+                    <div id="loading-todo" class="hidden flex justify-center mt-10"><div class="loader border-t-orange-400"></div></div>
+                    <div id="empty-todo" class="hidden flex flex-col items-center justify-center mt-10 text-stone-400 text-center">
+                        <i class="ph ph-list-checks text-5xl mb-3 text-stone-300"></i>
+                        <p class="text-sm px-10">La tua lista è vuota. Aggiungi qualcosa da non dimenticare!</p>
+                    </div>
+                    <div id="todo-list" class="space-y-2 max-w-4xl mx-auto"></div>
+                </div>
+
+                <div class="absolute bottom-12 left-0 w-full bg-white p-2 border-t border-stone-200 shadow-2xl z-20">
+                    <div class="max-w-4xl mx-auto flex gap-2 items-center">
+                        <!-- Quantità -->
+                        <div class="relative w-16 flex-shrink-0">
+                            <label class="absolute -top-2 left-1 text-[8px] text-stone-400 font-bold bg-white px-1">QTÀ</label>
+                            <input type="number" id="todo-qty-input" min="1" value="1" class="w-full p-2 text-center rounded-lg border border-stone-200 focus:ring-1 focus:ring-orange-400 outline-none text-xs font-bold text-stone-600">
+                        </div>
+                        <!-- Voce -->
+                        <input type="text" id="todo-item-input" class="flex-grow p-2 rounded-lg border border-stone-200 focus:ring-1 focus:ring-orange-400 outline-none text-xs" placeholder="Cosa aggiungere..." autocomplete="off">
+                        
+                        <button id="add-todo-btn" class="bg-orange-400 hover:bg-orange-500 text-white p-2 rounded-lg shadow-md active:scale-95 transition-transform flex-shrink-0">
+                            <i class="ph ph-plus text-lg font-bold"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- VIEW 4: Dettaglio Giorno -->
             <div id="notes-view" class="absolute inset-0 flex flex-col hidden bg-white z-30">
                 <div class="flex-grow overflow-y-auto custom-scroll" id="notes-list-container">
@@ -430,24 +462,29 @@
         <!-- BOTTOM TAB BAR (Navigation) -->
         <nav id="bottom-nav" class="bg-white border-t border-stone-200 fixed bottom-0 w-full z-20 flex justify-center items-center h-auto min-h-[3rem] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hidden pb-safe">
             <div class="flex w-full">
-                <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/4 py-1 text-orange-500 transition-colors">
+                <button onclick="switchTab('days')" id="tab-days" class="flex flex-col items-center justify-center w-1/5 py-1 text-orange-500 transition-colors">
                     <i class="ph-fill ph-calendar-blank text-xl mb-0.5"></i>
-                    <span class="text-[9px] font-bold uppercase tracking-wider">Diario</span>
+                    <span class="text-[8px] font-bold uppercase tracking-wider">Diario</span>
                 </button>
                 
-                <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/4 py-1 text-stone-400 hover:text-stone-600 transition-colors">
+                <button onclick="switchTab('summary')" id="tab-summary" class="flex flex-col items-center justify-center w-1/5 py-1 text-stone-400 hover:text-stone-600 transition-colors">
                     <i class="ph-bold ph-chart-pie-slice text-xl mb-0.5"></i>
-                    <span class="text-[9px] font-bold uppercase tracking-wider">Riepilogo</span>
+                    <span class="text-[8px] font-bold uppercase tracking-wider">Dati</span>
                 </button>
 
-                <button onclick="switchTab('expenses')" id="tab-expenses" class="flex flex-col items-center justify-center w-1/4 py-1 text-stone-400 hover:text-emerald-600 transition-colors">
+                <button onclick="switchTab('expenses')" id="tab-expenses" class="flex flex-col items-center justify-center w-1/5 py-1 text-stone-400 hover:text-emerald-600 transition-colors">
                     <i class="ph-bold ph-receipt text-xl mb-0.5"></i>
-                    <span class="text-[9px] font-bold uppercase tracking-wider">Spese</span>
+                    <span class="text-[8px] font-bold uppercase tracking-wider">Spese</span>
                 </button>
 
-                <button onclick="switchTab('budget')" id="tab-budget" class="flex flex-col items-center justify-center w-1/4 py-1 text-stone-400 hover:text-emerald-600 transition-colors">
+                <button onclick="switchTab('budget')" id="tab-budget" class="flex flex-col items-center justify-center w-1/5 py-1 text-stone-400 hover:text-emerald-600 transition-colors">
                     <i class="ph-bold ph-wallet text-xl mb-0.5"></i>
-                    <span class="text-[9px] font-bold uppercase tracking-wider">Totali</span>
+                    <span class="text-[8px] font-bold uppercase tracking-wider">Totali</span>
+                </button>
+
+                <button onclick="switchTab('todo')" id="tab-todo" class="flex flex-col items-center justify-center w-1/5 py-1 text-stone-400 hover:text-orange-600 transition-colors">
+                    <i class="ph-bold ph-list-checks text-xl mb-0.5"></i>
+                    <span class="text-[8px] font-bold uppercase tracking-wider">TO-DO</span>
                 </button>
             </div>
         </nav>
@@ -574,22 +611,25 @@
         let notesColName = null;
         let logsColName = null; 
         let expensesColName = null; 
+        let todoColName = null; // NEW: Todo collection
         let currentDayId = null;
         let editingDayId = null;
         let unsubscribeDays = null;
         let unsubscribeNotes = null;
-        let unsubscribeAllNotes = null; // NEW: Listener for all notes
+        let unsubscribeAllNotes = null;
         let unsubscribeExpenses = null; 
+        let unsubscribeTodo = null; // NEW: Todo listener
         let currentStages = []; 
         let cachedDays = []; 
-        let cachedGlobalNotes = []; // NEW: Cache for all notes
+        let cachedGlobalNotes = []; 
         let cachedExpenses = []; 
+        let cachedTodos = []; // NEW: Todo cache
         let activityChart = null; 
-        let currentExchangeRate = 1.05; // Default
+        let currentExchangeRate = 1.05; 
         let globalShowMiles = true; 
-        let globalShowUSD = true; // NEW STATE
-        let lastListScroll = 0; // NEW: Store scroll position
-        let currentTabName = 'days'; // Swipe tracking
+        let globalShowUSD = true; 
+        let lastListScroll = 0; 
+        let currentTabName = 'days'; 
 
         // --- Helpers ---
         const generateColNames = (key) => {
@@ -598,7 +638,8 @@
                 days: `days_${safe}`, 
                 notes: `notes_${safe}`, 
                 logs: `logs_${safe}`, 
-                expenses: `expenses_${safe}`, 
+                expenses: `expenses_${safe}`,
+                todo: `todo_${safe}`, // NEW
                 display: key.trim().toUpperCase() 
             };
         };
@@ -644,21 +685,14 @@
 
         const logAccess = async () => {
              if(!logsColName) return;
-             
              let locationStr = "Posizione non disponibile";
-             
              try {
-                 // Try fetching location, but don't block execution if it fails
                  const res = await fetch('https://ipapi.co/json/');
                  if(res.ok) {
                      const data = await res.json();
                      if(data.city) locationStr = `${data.city}, ${data.country_name}`;
                  }
-             } catch(e) {
-                 // Ignore network errors for location service (CORS/Adblock)
-                 console.log("Location service unavailable, skipping.");
-             }
-
+             } catch(e) {}
              try {
                  await addDoc(collection(db, 'artifacts', appId, 'public', 'data', logsColName), {
                      timestamp: serverTimestamp(),
@@ -666,7 +700,7 @@
                      userAgent: navigator.userAgent,
                      location: locationStr 
                  });
-             } catch(e) { console.error("Logging failed", e); }
+             } catch(e) {}
         };
 
         const showLogs = () => {
@@ -675,29 +709,19 @@
             const list = document.getElementById('logs-list');
             modal.classList.remove('hidden');
             list.innerHTML = '<div class="flex justify-center p-4"><div class="loader w-6 h-6 border-t-orange-500"></div></div>';
-
             const q = query(collection(db, 'artifacts', appId, 'public', 'data', logsColName), orderBy('timestamp', 'desc'), limit(20));
             getDocs(q).then(snap => {
                 list.innerHTML = '';
-                if(snap.empty) {
-                    list.innerHTML = '<p class="text-center text-stone-400 text-sm">Nessun accesso registrato.</p>';
-                    return;
-                }
+                if(snap.empty) { list.innerHTML = '<p class="text-center text-stone-400 text-sm">Nessun accesso.</p>'; return; }
                 snap.forEach(doc => {
                     const data = doc.data();
                     const date = data.timestamp ? data.timestamp.toDate() : new Date();
                     const formattedDate = date.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-                    
-                    const locationDisplay = data.location || 'N/D';
-
                     const item = document.createElement('div');
                     item.className = "flex justify-between items-center py-3 border-b border-stone-100 last:border-0";
                     item.innerHTML = `
                         <div class="flex flex-col">
-                            <span class="font-bold text-sm text-stone-700 flex items-center gap-1">
-                                ${data.device || 'Sconosciuto'} 
-                                <span class="text-[10px] font-normal text-stone-500 bg-stone-100 px-1 rounded ml-1 flex items-center gap-0.5"><i class="ph-bold ph-map-pin"></i> ${data.location || 'N/D'}</span>
-                            </span>
+                            <span class="font-bold text-sm text-stone-700">${data.device || 'N/D'} <span class="text-[10px] text-stone-400 ml-1">${data.location || ''}</span></span>
                             <span class="text-[10px] text-stone-400 truncate w-40">${data.userAgent}</span>
                         </div>
                         <span class="text-xs font-mono text-orange-500 bg-orange-50 px-2 py-1 rounded">${formattedDate}</span>
@@ -706,1188 +730,237 @@
                 });
             });
         };
-
-        if(document.getElementById('logs-btn')) document.getElementById('logs-btn').onclick = showLogs;
-
+        document.getElementById('logs-btn').onclick = showLogs;
 
         // --- EXPORT TO EXCEL ---
         document.getElementById('export-btn').onclick = async () => {
             if (!daysColName || !expensesColName) return;
             const exportBtn = document.getElementById('export-btn');
             exportBtn.innerHTML = '<div class="loader w-4 h-4 border-t-white border-white"></div>';
-
             try {
-                // Fetch Data
                 const daysSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', daysColName));
                 let daysData = daysSnap.docs.map(d => ({ ...d.data(), _id: d.id }));
-                // Sort days by dateString
                 daysData.sort((a,b) => (a.dateString || '9999').localeCompare(b.dateString || '9999'));
-
-                const notesSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', notesColName));
-                const notesData = notesSnap.docs.map(d => d.data());
-
-                const expSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', expensesColName));
-                const expData = expSnap.docs.map(d => d.data());
-
-                // Prepare Sheets
                 const wb = XLSX.utils.book_new();
-
-                // 1. Sheet "Giorni"
                 const daysSheetData = [["Index", "Data", "Stato", "Descrizione", "Link"]];
-                // 2. Sheet "Tappe"
-                const stagesSheetData = [["Index_Giorno", "Ordine", "Nome", "Descrizione", "Link_Maps", "Visita", "Partenza", "Arrivo", "Sosta", "Miglia", "Km", "Ore_Guida"]];
-                // 3. Sheet "Note"
-                const notesSheetData = [["Index_Giorno", "Testo"]];
-                
-                // Map Day ID to Index (1, 2, 3...) for easy reading/restoring
-                const dayIdToIndex = {};
-
                 daysData.forEach((day, index) => {
-                    const idx = index + 1;
-                    dayIdToIndex[day._id] = idx;
-
-                    // Add Day Row
-                    daysSheetData.push([
-                        idx, 
-                        day.dateString || '', 
-                        day.title || '', 
-                        day.description || '', 
-                        day.dayLink || ''
-                    ]);
-
-                    // Add Stages Rows
-                    if(day.stages && day.stages.length > 0) {
-                        day.stages.forEach((s, sIdx) => {
-                            stagesSheetData.push([
-                                idx,
-                                sIdx + 1,
-                                s.name || '',
-                                s.desc || '',
-                                s.mapsLink || '',
-                                s.isVisit ? 'Si' : 'No',
-                                s.start || '',
-                                s.end || '',
-                                s.pause || '',
-                                s.miles || 0,
-                                s.km || 0,
-                                s.driveTime || 0
-                            ]);
-                        });
-                    }
+                    daysSheetData.push([index + 1, day.dateString || '', day.title || '', day.description || '', day.dayLink || '']);
                 });
-
-                // Add Notes Rows
-                notesData.forEach(note => {
-                    const dayIdx = dayIdToIndex[note.dayId];
-                    if (dayIdx) {
-                        notesSheetData.push([dayIdx, note.text || '']);
-                    }
-                });
-
-                // 4. Sheet "Spese"
-                const expensesSheetData = [["Voce", "Link", "Importo_EUR", "Quantita", "Categoria"]];
-                expData.forEach(ex => {
-                    expensesSheetData.push([
-                        ex.name || '',
-                        ex.link || '',
-                        ex.amount || 0,
-                        ex.qty || 1,
-                        ex.category || 'Altro'
-                    ]);
-                });
-
-                // Create Sheets
                 const wsDays = XLSX.utils.aoa_to_sheet(daysSheetData);
-                const wsStages = XLSX.utils.aoa_to_sheet(stagesSheetData);
-                const wsNotes = XLSX.utils.aoa_to_sheet(notesSheetData);
-                const wsExpenses = XLSX.utils.aoa_to_sheet(expensesSheetData);
-
                 XLSX.utils.book_append_sheet(wb, wsDays, "Giorni");
-                XLSX.utils.book_append_sheet(wb, wsStages, "Tappe");
-                XLSX.utils.book_append_sheet(wb, wsNotes, "Note");
-                XLSX.utils.book_append_sheet(wb, wsExpenses, "Spese");
-
-                // Download
                 XLSX.writeFile(wb, `TravelPlan_${activeSecretKey}.xlsx`);
-
-            } catch (error) {
-                console.error("Export failed:", error);
-                alert("Errore durante l'export Excel.");
-            } finally {
-                exportBtn.innerHTML = '<i class="ph ph-download-simple text-xl"></i>';
-            }
+            } catch (error) { alert("Errore durante l'export."); } 
+            finally { exportBtn.innerHTML = '<i class="ph ph-download-simple text-xl"></i>'; }
         };
-
-        // --- IMPORT FROM EXCEL ---
-        document.getElementById('import-btn').onclick = () => {
-            document.getElementById('import-input').click();
-        };
-
-        document.getElementById('import-input').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const confirmImport = confirm("Sei sicuro di voler importare? Questo aggiungerà i dati al diario corrente.");
-            if (!confirmImport) {
-                e.target.value = ''; // Reset input
-                return;
-            }
-
-            const importBtn = document.getElementById('import-btn');
-            importBtn.innerHTML = '<div class=\"loader w-4 h-4 border-t-white border-white\"></div>';
-
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-
-                    // Parse Sheets
-                    const daysSheet = workbook.Sheets["Giorni"];
-                    const stagesSheet = workbook.Sheets["Tappe"];
-                    const notesSheet = workbook.Sheets["Note"];
-                    const expensesSheet = workbook.Sheets["Spese"];
-
-                    const daysJson = XLSX.utils.sheet_to_json(daysSheet);
-                    const stagesJson = stagesSheet ? XLSX.utils.sheet_to_json(stagesSheet) : [];
-                    const notesJson = notesSheet ? XLSX.utils.sheet_to_json(notesSheet) : [];
-                    const expensesJson = expensesSheet ? XLSX.utils.sheet_to_json(expensesSheet) : [];
-
-                    // --- RECONSTRUCT DAYS ---
-                    // Map Excel Index -> New Firestore ID
-                    const excelIndexToNewId = {};
-
-                    // 1. Process Days & Stages
-                    for (const dayRow of daysJson) {
-                        const idx = dayRow["Index"];
-                        
-                        // Find stages for this day
-                        const dayStages = stagesJson
-                            .filter(s => s["Index_Giorno"] == idx)
-                            .sort((a,b) => (a["Ordine"] || 0) - (b["Ordine"] || 0))
-                            .map(s => ({
-                                id: Date.now() + Math.random(), // generate random UI ID
-                                name: s["Nome"],
-                                desc: s["Descrizione"],
-                                mapsLink: s["Link_Maps"],
-                                isVisit: (s["Visita"] === 'Si'),
-                                start: s["Partenza"],
-                                end: s["Arrivo"],
-                                pause: s["Sosta"],
-                                miles: s["Miglia"],
-                                km: s["Km"],
-                                driveTime: s["Ore_Guida"]
-                            }));
-
-                        const newDocRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), {
-                            dateString: dayRow["Data"],
-                            title: dayRow["Stato"],
-                            description: dayRow["Descrizione"],
-                            dayLink: dayRow["Link"],
-                            stages: dayStages,
-                            createdAt: serverTimestamp(),
-                            updatedAt: serverTimestamp()
-                        });
-
-                        excelIndexToNewId[idx] = newDocRef.id;
-                    }
-
-                    // 2. Process Notes (Link to new Day IDs)
-                    for (const noteRow of notesJson) {
-                        const dayIdx = noteRow["Index_Giorno"];
-                        const newDayId = excelIndexToNewId[dayIdx];
-                        
-                        if (newDayId) {
-                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', notesColName), {
-                                dayId: newDayId,
-                                text: noteRow["Testo"],
-                                createdAt: serverTimestamp()
-                            });
-                        }
-                    }
-
-                    // 3. Process Expenses
-                    for (const expRow of expensesJson) {
-                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), {
-                            name: expRow["Voce"],
-                            link: expRow["Link"],
-                            amount: expRow["Importo_EUR"],
-                            qty: expRow["Quantita"],
-                            category: expRow["Categoria"],
-                            createdAt: serverTimestamp()
-                        });
-                    }
-
-                    alert("Importazione completata con successo!");
-                    
-                } catch (error) {
-                    console.error("Import error:", error);
-                    alert("Errore durante l'importazione Excel. Verifica il formato del file.");
-                } finally {
-                    importBtn.innerHTML = '<i class="ph ph-upload-simple text-xl"></i>';
-                    document.getElementById('import-input').value = '';
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        });
-
 
         // --- CHART LOGIC ---
         const updateSummaryChart = () => {
             if (!cachedDays || cachedDays.length === 0) return;
-
-            const labels = [];
-            const driveData = []; // Pure numbers for chart
-            const restData = [];  // Pure numbers for chart
-            const metaData = [];  // Stores raw hours for tooltip
-
-            let maxDriveVal = 0;
-            let maxDriveLabel = '--';
-            let maxIntenseVal = 0;
-            let maxIntenseLabel = '--';
-
+            const labels = [], driveData = [], restData = [], metaData = [];
+            let maxDriveVal = 0, maxDriveLabel = '--', maxIntenseVal = 0, maxIntenseLabel = '--';
             const sortedDays = [...cachedDays].sort((a,b) => a.chronoId - b.chronoId);
-
             sortedDays.forEach(day => {
-                labels.push(`Giorno ${day.chronoId}`);
-                
-                let dayDriveMins = 0;
-                let dayDurationMins = 0;
-
+                labels.push(`G${day.chronoId}`);
+                let dayDriveMins = 0, dayDurationMins = 0;
                 if (day.stages && day.stages.length > 0) {
-                    day.stages.forEach(s => {
-                        if (!s.isVisit) dayDriveMins += parseInt(s.driveTime || 0);
-                    });
-
+                    day.stages.forEach(s => { if (!s.isVisit) dayDriveMins += parseInt(s.driveTime || 0); });
                     const sortedStages = [...day.stages].sort((a,b) => timeToMins(a.start) - timeToMins(b.start));
                     const start = timeToMins(sortedStages[0].start);
                     let end = 0;
-                    
                     const lastStage = sortedStages[sortedStages.length - 1];
-                    if (lastStage.isVisit) {
-                         end = timeToMins(lastStage.start) + timeToMins(lastStage.pause);
-                    } else {
-                         end = timeToMins(lastStage.end);
-                    }
-                    
-                    if (end < start) end += 1440; // Handle midnight crossing
-
+                    end = lastStage.isVisit ? (timeToMins(lastStage.start) + timeToMins(lastStage.pause)) : timeToMins(lastStage.end);
+                    if (end < start) end += 1440;
                     dayDurationMins = end - start;
                 }
-
-                // Check Highlights
-                if (dayDriveMins > maxDriveVal) {
-                    maxDriveVal = dayDriveMins;
-                    maxDriveLabel = `Giorno ${day.chronoId}`;
-                }
-                if (dayDurationMins > maxIntenseVal) {
-                    maxIntenseVal = dayDurationMins;
-                    maxIntenseLabel = `Giorno ${day.chronoId}`;
-                }
-
-                const driveHours = (dayDriveMins / 60).toFixed(1);
-                const totalHours = (dayDurationMins / 60).toFixed(1);
-                
-                let driveP = 0;
-                if (dayDurationMins > 0) {
-                    driveP = (dayDriveMins / dayDurationMins) * 100;
-                } else if (dayDriveMins > 0) {
-                    driveP = 100; 
-                }
-                
-                if (driveP > 100) driveP = 100;
-                if (driveP < 0) driveP = 0;
-                
-                const restP = 100 - driveP;
-
+                if (dayDriveMins > maxDriveVal) { maxDriveVal = dayDriveMins; maxDriveLabel = `Giorno ${day.chronoId}`; }
+                if (dayDurationMins > maxIntenseVal) { maxIntenseVal = dayDurationMins; maxIntenseLabel = `Giorno ${day.chronoId}`; }
+                const driveP = dayDurationMins > 0 ? (dayDriveMins / dayDurationMins) * 100 : (dayDriveMins > 0 ? 100 : 0);
                 driveData.push(driveP);
-                restData.push(restP);
-                metaData.push({ drive: driveHours, total: totalHours, pct: Math.round(driveP) });
+                restData.push(100 - driveP);
+                metaData.push({ drive: (dayDriveMins/60).toFixed(1), total: (dayDurationMins/60).toFixed(1), pct: Math.round(driveP) });
             });
-
-            const highIntenseDay = document.getElementById('high-intense-day');
-            const highIntenseVal = document.getElementById('high-intense-val');
-            const highDriveDay = document.getElementById('high-drive-day');
-            const highDriveVal = document.getElementById('high-drive-val');
-
-            if(highIntenseDay) highIntenseDay.textContent = maxIntenseLabel;
-            if(highIntenseVal) highIntenseVal.textContent = minsToTimeStr(maxIntenseVal);
-            if(highDriveDay) highDriveDay.textContent = maxDriveLabel;
-            if(highDriveVal) highDriveVal.textContent = minsToTimeStr(maxDriveVal);
-
+            document.getElementById('high-intense-day').textContent = maxIntenseLabel;
+            document.getElementById('high-intense-val').textContent = minsToTimeStr(maxIntenseVal);
+            document.getElementById('high-drive-day').textContent = maxDriveLabel;
+            document.getElementById('high-drive-val').textContent = minsToTimeStr(maxDriveVal);
             const canvas = document.getElementById('activityChart');
             if(!canvas) return; 
-
-            const ctx = canvas.getContext('2d');
-
-            if (activityChart) {
-                activityChart.destroy();
-            }
-
-            activityChart = new Chart(ctx, {
+            if (activityChart) activityChart.destroy();
+            activityChart = new Chart(canvas.getContext('2d'), {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [
-                        {
-                            label: 'Ore Guida',
-                            data: driveData,
-                            backgroundColor: '#fb923c', // orange-400
-                            borderRadius: 4,
-                            stack: 'Stack 0',
-                            barPercentage: 0.6,
-                            categoryPercentage: 0.9
-                        },
-                        {
-                            label: 'Resto Giornata',
-                            data: restData,
-                            backgroundColor: '#d6d3d1', // stone-300
-                            borderRadius: 4,
-                            stack: 'Stack 0', 
-                            barPercentage: 0.6,
-                            categoryPercentage: 0.9
-                        }
+                        { label: 'Guida', data: driveData, backgroundColor: '#fb923c', borderRadius: 4 },
+                        { label: 'Altro', data: restData, backgroundColor: '#d6d3d1', borderRadius: 4 }
                     ]
                 },
                 options: {
-                    indexAxis: 'y', 
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', axis: 'y', intersect: false },
-                    plugins: {
-                        legend: { display: false }, 
-                        tooltip: { 
-                            mode: 'index', 
-                            intersect: false, 
-                            position: 'nearest',
-                            callbacks: {
-                                label: function(context) {
-                                    const meta = metaData[context.dataIndex];
-                                    if (!meta) return '';
-                                    if (context.datasetIndex === 0) {
-                                        return `Guida: ${meta.drive}h (${meta.pct}%)`;
-                                    } else {
-                                        return `Totale Giornata: ${meta.total}h`;
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: { 
-                            stacked: true, 
-                            min: 0, 
-                            max: 100, 
-                            title: { display: true, text: 'Percentuale Giornata (%)' }, 
-                            grid: { color: '#f5f5f4' },
-                            ticks: { callback: function(value) { return value + "%" } }
-                        },
-                        y: { 
-                            stacked: true, 
-                            grid: { display: false } 
-                        }
-                    }
+                    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { stacked: true, min: 0, max: 100, ticks: { callback: v => v + "%" } }, y: { stacked: true } }
                 }
             });
         };
 
-        // --- GLOBAL SETTINGS TOGGLE LOGIC ---
-        const milesToggle = document.getElementById('global-miles-toggle');
-        if(milesToggle) {
-            milesToggle.addEventListener('change', (e) => {
-                globalShowMiles = e.target.checked;
-                localStorage.setItem(`showMiles_${activeSecretKey}`, globalShowMiles);
-                updateGlobalVisibility();
-                if(cachedDays.length > 0) renderDaysUI(); 
-            });
-        }
-
-        const usdToggle = document.getElementById('global-usd-toggle');
-        if(usdToggle) {
-            usdToggle.addEventListener('change', (e) => {
-                globalShowUSD = e.target.checked;
-                localStorage.setItem(`showUSD_${activeSecretKey}`, globalShowUSD);
-                updateGlobalVisibility();
-                if(cachedExpenses.length > 0) renderExpensesList();
-            });
-        }
-
+        // --- SETTINGS TOGGLES ---
+        document.getElementById('global-miles-toggle').addEventListener('change', (e) => {
+            globalShowMiles = e.target.checked;
+            localStorage.setItem(`showMiles_${activeSecretKey}`, globalShowMiles);
+            updateGlobalVisibility();
+            if(cachedDays.length > 0) renderDaysUI(); 
+        });
+        document.getElementById('global-usd-toggle').addEventListener('change', (e) => {
+            globalShowUSD = e.target.checked;
+            localStorage.setItem(`showUSD_${activeSecretKey}`, globalShowUSD);
+            updateGlobalVisibility();
+            if(cachedExpenses.length > 0) renderExpensesList();
+        });
         const updateGlobalVisibility = () => {
-            const milesCard = document.getElementById('card-miles-container');
-            if(milesCard) milesCard.style.display = globalShowMiles ? 'flex' : 'none';
-            const sumMilesContainer = document.getElementById('sum-miles-container');
-            if(sumMilesContainer) sumMilesContainer.style.display = globalShowMiles ? 'block' : 'none';
-
-            const expensesHeaderUsd = document.getElementById('expenses-header-usd');
-            if(expensesHeaderUsd) expensesHeaderUsd.style.display = globalShowUSD ? 'block' : 'none';
-
-            const expensesInputUsd = document.getElementById('expenses-input-usd');
-            if(expensesInputUsd) expensesInputUsd.style.display = globalShowUSD ? 'block' : 'none';
-
-            const budgetTotalUsd = document.getElementById('budget-total-usd');
-            if(budgetTotalUsd) budgetTotalUsd.style.display = globalShowUSD ? 'block' : 'none';
-
-            const budgetRate = document.getElementById('budget-exchange-rate');
-            if(budgetRate) budgetRate.style.display = globalShowUSD ? 'block' : 'none';
+            document.getElementById('card-miles-container').style.display = globalShowMiles ? 'flex' : 'none';
+            document.getElementById('expenses-header-usd').style.display = globalShowUSD ? 'block' : 'none';
+            document.getElementById('expenses-input-usd').style.display = globalShowUSD ? 'block' : 'none';
+            document.getElementById('budget-total-usd').style.display = globalShowUSD ? 'block' : 'none';
+            document.getElementById('budget-exchange-rate').style.display = globalShowUSD ? 'block' : 'none';
         }
 
         // --- EXPENSES LOGIC ---
-        const rateInput = document.getElementById('global-exchange-rate');
-        rateInput.addEventListener('input', (e) => {
+        document.getElementById('global-exchange-rate').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
-            if(!isNaN(val) && val > 0) {
-                currentExchangeRate = val;
-                localStorage.setItem(`rate_${activeSecretKey}`, val);
-                renderExpensesList();
-            }
+            if(!isNaN(val) && val > 0) { currentExchangeRate = val; localStorage.setItem(`rate_${activeSecretKey}`, val); renderExpensesList(); }
         });
-
         const loadExpenses = () => {
-            const list = document.getElementById('expenses-list');
-            const loading = document.getElementById('loading-expenses');
-            const empty = document.getElementById('empty-expenses');
-            const header = document.getElementById('expenses-header');
-            
-            loading.classList.remove('hidden'); list.innerHTML = '';
-            
             const q = query(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), orderBy('createdAt', 'desc'));
-            
             unsubscribeExpenses = onSnapshot(q, (snapshot) => {
-                loading.classList.add('hidden');
-                
                 cachedExpenses = [];
-                snapshot.forEach(docSnap => {
-                    cachedExpenses.push({ id: docSnap.id, ...docSnap.data() });
-                });
-
-                if(cachedExpenses.length === 0) { 
-                    empty.classList.remove('hidden'); 
-                    if(header) header.classList.add('hidden');
-                    updateTotalExpenses(0);
-                    list.innerHTML = '';
-                    return; 
-                }
-                
-                empty.classList.add('hidden');
-                if(header) header.classList.remove('hidden');
+                snapshot.forEach(docSnap => cachedExpenses.push({ id: docSnap.id, ...docSnap.data() }));
+                document.getElementById('loading-expenses').classList.add('hidden');
+                if(cachedExpenses.length === 0) { document.getElementById('empty-expenses').classList.remove('hidden'); document.getElementById('expenses-header').classList.add('hidden'); renderExpensesList(); return; }
+                document.getElementById('empty-expenses').classList.add('hidden');
+                document.getElementById('expenses-header').classList.remove('hidden');
                 renderExpensesList();
-
-            }, (err) => { console.error(err); loading.classList.add('hidden'); });
+            });
         };
-
         const renderExpensesList = () => {
             const list = document.getElementById('expenses-list');
             list.innerHTML = '';
             let totalEur = 0;
             const catSums = { 'Pernottamenti': 0, 'Pasti': 0, 'Carburante': 0, 'Attrazioni': 0, 'Pass e Tasse': 0, 'Altro': 0 };
-
-            cachedExpenses.forEach((data, index) => { 
-                const qty = data.qty || 1; 
-                const amountEur = parseFloat(data.amount || 0);
-                const amountUsd = amountEur * currentExchangeRate;
+            cachedExpenses.forEach((data) => { 
+                const qty = data.qty || 1, amountEur = parseFloat(data.amount || 0);
                 totalEur += (amountEur * qty);
-
                 const cat = data.category || 'Altro';
                 if(catSums[cat] !== undefined) catSums[cat] += (amountEur * qty);
-                else catSums['Altro'] += (amountEur * qty);
-
-                const qtyBadge = qty > 1 
-                    ? `<span class="text-[10px] bg-stone-100 text-stone-500 font-bold px-1.5 py-0.5 rounded ml-1 border border-stone-200">x${qty}</span>` 
-                    : '';
-
-                const usdDisplay = globalShowUSD 
-                    ? `<span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>` 
-                    : '';
-
-                let linkHtml = '';
-                if (data.link) {
-                    let safeLink = data.link.trim();
-                    if (!/^https?:\/\//i.test(safeLink)) {
-                        safeLink = 'http://' + safeLink;
-                    }
-                    linkHtml = `<a href="${safeLink}" target="_blank" class="text-stone-400 hover:text-blue-500 ml-1" title="Apri link"><i class="ph-bold ph-link"></i></a>`;
-                }
-
-                const catLabel = cat !== 'Altro' ? `<span class="text-[9px] text-stone-400 bg-stone-100 px-1 rounded ml-1">${cat}</span>` : '';
-
-                const upBtn = index > 0 
-                    ? `<button onclick="moveExpenseUp('${data.id}')" class="text-stone-300 hover:text-orange-500 p-0.5 leading-none"><i class="ph-bold ph-caret-up"></i></button>` 
-                    : `<span class="w-3 h-3"></span>`;
-                const downBtn = index < cachedExpenses.length - 1
-                    ? `<button onclick="moveExpenseDown('${data.id}')" class="text-stone-300 hover:text-orange-500 p-0.5 leading-none"><i class="ph-bold ph-caret-down"></i></button>`
-                    : `<span class="w-3 h-3"></span>`;
-
                 const row = document.createElement('div');
-                row.className = "flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm hover:shadow-md transition-shadow group";
-                row.id = `row-${data.id}`;
-                
+                row.className = "flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm";
                 row.innerHTML = `
-                    <div class="flex-grow pr-2 flex items-start gap-3">
-                        <div class="flex flex-col justify-center items-center gap-0.5 mt-0.5 bg-stone-50 rounded border border-stone-100 p-0.5 flex-shrink-0">
-                            ${upBtn}
-                            ${downBtn}
-                        </div>
-                        <div class="font-bold text-stone-700 text-sm break-words pt-1">
-                            ${data.name}
-                            ${linkHtml}
-                            ${catLabel}
-                        </div>
-                    </div>
+                    <div class="flex-grow pr-2"><div class="font-bold text-stone-700 text-sm">${data.name} <span class="text-[10px] text-stone-400 bg-stone-100 px-1 rounded ml-1">${cat}</span></div></div>
                     <div class="flex items-center gap-3">
-                        <div class="flex gap-4 text-right">
-                            <span class="font-mono font-bold text-emerald-600 w-16 flex justify-end items-center">${amountEur.toFixed(2)} € ${qtyBadge}</span>
-                            ${usdDisplay}
+                        <div class="text-right">
+                            <span class="font-mono font-bold text-emerald-600 text-sm">${(amountEur*qty).toFixed(2)}€</span>
+                            ${globalShowUSD ? `<div class="text-[10px] text-stone-400">${(amountEur*qty*currentExchangeRate).toFixed(2)}$</div>` : ''}
                         </div>
-                        <div class="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                            <button onclick="enableEditMode('${data.id}', '${data.name.replace(/'/g, "\\'")}', ${amountEur}, ${qty}, '${data.link ? data.link.replace(/'/g, "\\'") : ''}')" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
-                            <button onclick="deleteExpense('${data.id}')" class="p-1.5 text-stone-400 hover:text-red-500 rounded hover:bg-red-50"><i class="ph-bold ph-trash"></i></button>
-                        </div>
+                        <button onclick="deleteExpense('${data.id}')" class="p-1.5 text-stone-300 hover:text-red-500"><i class="ph ph-trash"></i></button>
                     </div>
                 `;
                 list.appendChild(row);
             });
             updateTotalExpenses(totalEur, catSums);
         };
-
-        window.moveExpenseUp = async (id) => {
-            const index = cachedExpenses.findIndex(e => e.id === id);
-            if (index > 0) {
-                const curr = cachedExpenses[index];
-                const prev = cachedExpenses[index - 1];
-                
-                try {
-                    const batch = writeBatch(db);
-                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', expensesColName);
-                    batch.update(doc(colRef, curr.id), { createdAt: prev.createdAt });
-                    batch.update(doc(colRef, prev.id), { createdAt: curr.createdAt });
-                    await batch.commit();
-                } catch(e) { console.error("Error moving up", e); }
-            }
-        };
-
-        window.moveExpenseDown = async (id) => {
-            const index = cachedExpenses.findIndex(e => e.id === id);
-            if (index < cachedExpenses.length - 1) {
-                const curr = cachedExpenses[index];
-                const next = cachedExpenses[index + 1];
-                
-                try {
-                    const batch = writeBatch(db);
-                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', expensesColName);
-                    batch.update(doc(colRef, curr.id), { createdAt: next.createdAt });
-                    batch.update(doc(colRef, next.id), { createdAt: curr.createdAt });
-                    await batch.commit();
-                } catch(e) { console.error("Error moving down", e); }
-            }
-        };
-
         const updateTotalExpenses = (totalEur, catSums) => {
-            const totalEl = document.getElementById('total-expenses');
-            const totalElUsd = document.getElementById('total-expenses-usd');
-            if(totalEl) totalEl.innerHTML = `${totalEur.toFixed(2)} <span class="text-2xl">€</span>`;
-            if(totalElUsd) totalElUsd.textContent = `${(totalEur * currentExchangeRate).toFixed(2)} $`;
-
-            if (catSums) {
-                for (const [key, val] of Object.entries(catSums)) {
-                    const el = document.getElementById(`cat-total-${key}`);
-                    if (el) el.textContent = `${val.toFixed(2)} €`;
-                }
-            }
+            document.getElementById('total-expenses').innerHTML = `${totalEur.toFixed(2)} <span class="text-2xl">€</span>`;
+            document.getElementById('total-expenses-usd').textContent = `${(totalEur * currentExchangeRate).toFixed(2)} $`;
+            if (catSums) { for (const [key, val] of Object.entries(catSums)) { const el = document.getElementById(`cat-total-${key}`); if (el) el.textContent = `${val.toFixed(2)} €`; } }
         };
-
-        const eurInput = document.getElementById('expense-amount-input');
-        const usdInput = document.getElementById('expense-amount-usd-input');
-
-        eurInput.addEventListener('input', () => {
-            const eurVal = parseFloat(eurInput.value);
-            if (!isNaN(eurVal)) {
-                usdInput.value = (eurVal * currentExchangeRate).toFixed(2);
-            } else {
-                usdInput.value = '';
-            }
+        document.getElementById('expense-amount-input').addEventListener('input', (e) => {
+             const eur = parseFloat(e.target.value);
+             if(!isNaN(eur)) document.getElementById('expense-amount-usd-input').value = (eur * currentExchangeRate).toFixed(2);
         });
-
-        usdInput.addEventListener('input', () => {
-            const usdVal = parseFloat(usdInput.value);
-            if (!isNaN(usdVal)) {
-                eurInput.value = (usdVal / currentExchangeRate).toFixed(2);
-            } else {
-                eurInput.value = '';
-            }
+        document.getElementById('expense-amount-usd-input').addEventListener('input', (e) => {
+             const usd = parseFloat(e.target.value);
+             if(!isNaN(usd)) document.getElementById('expense-amount-input').value = (usd / currentExchangeRate).toFixed(2);
         });
-
-        window.addExpense = async () => {
-            const nameIn = document.getElementById('expense-name-input');
-            const linkIn = document.getElementById('expense-link-input'); 
-            const qtyIn = document.getElementById('expense-qty-input');
+        document.getElementById('add-expense-btn').onclick = async () => {
+            const nameIn = document.getElementById('expense-name-input'), linkIn = document.getElementById('expense-link-input'), qtyIn = document.getElementById('expense-qty-input'), eurIn = document.getElementById('expense-amount-input');
             const catIn = document.querySelector('input[name="new-expense-cat"]:checked');
-            
-            const name = nameIn.value.trim();
-            const link = linkIn.value.trim(); 
-            const amount = parseFloat(eurInput.value); 
-            const qty = parseInt(qtyIn.value) || 1;
-            const category = catIn ? catIn.value : 'Altro';
-
+            const name = nameIn.value.trim(), amount = parseFloat(eurIn.value), qty = parseInt(qtyIn.value) || 1;
             if(!name || isNaN(amount)) return;
-            
-            nameIn.value = ''; 
-            linkIn.value = ''; 
-            eurInput.value = '';
-            usdInput.value = '';
-            qtyIn.value = '1'; 
-            
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), {
-                    name, link, amount, qty, category, createdAt: serverTimestamp()
-                });
-            } catch(e) { console.error(e); alert("Errore aggiunta spesa"); }
+            nameIn.value = ''; linkIn.value = ''; eurIn.value = ''; document.getElementById('expense-amount-usd-input').value = '';
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), { name, link: linkIn.value, amount, qty, category: catIn ? catIn.value : 'Altro', createdAt: serverTimestamp() });
         };
-        document.getElementById('add-expense-btn').addEventListener('click', window.addExpense);
+        window.deleteExpense = (id) => { if(confirm("Eliminare?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id)); };
 
-        window.deleteExpense = (id) => {
-            if(confirm("Eliminare questa spesa?")) {
-                deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id));
-            }
+        // --- NEW: TO-DO LOGIC ---
+        const loadTodo = () => {
+            const q = query(collection(db, 'artifacts', appId, 'public', 'data', todoColName), orderBy('createdAt', 'desc'));
+            unsubscribeTodo = onSnapshot(q, (snapshot) => {
+                cachedTodos = [];
+                snapshot.forEach(docSnap => cachedTodos.push({ id: docSnap.id, ...docSnap.data() }));
+                document.getElementById('loading-todo').classList.add('hidden');
+                if(cachedTodos.length === 0) { document.getElementById('empty-todo').classList.remove('hidden'); renderTodoList(); return; }
+                document.getElementById('empty-todo').classList.add('hidden');
+                renderTodoList();
+            });
         };
-
-        window.enableEditMode = (id, currentName, currentAmountEur, currentQty, currentLink) => {
-            const row = document.getElementById(`row-${id}`);
-            if(!row) return;
-            
-            const currentAmountUsd = (currentAmountEur * currentExchangeRate).toFixed(2);
-            const usdInputDisplay = globalShowUSD ? 'block' : 'none';
-
-            row.innerHTML = `
-                <div class="flex gap-2 w-full items-center flex-wrap sm:flex-nowrap bg-stone-50 p-2 rounded">
-                    <div class="flex-grow flex gap-1 w-full sm:w-auto">
-                        <input type="text" id="edit-name-${id}" value="${currentName}" class="w-1/2 p-2 rounded border border-stone-300 text-sm focus:border-emerald-400 focus:outline-none" placeholder="Voce">
-                        <input type="text" id="edit-link-${id}" value="${currentLink || ''}" class="w-1/2 p-2 rounded border border-stone-300 text-sm focus:border-emerald-400 focus:outline-none" placeholder="Link">
+        const renderTodoList = () => {
+            const list = document.getElementById('todo-list');
+            list.innerHTML = '';
+            cachedTodos.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm group transition-all";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="bg-stone-100 text-stone-500 font-bold px-2 py-0.5 rounded text-xs">x${item.qty || 1}</span>
+                        <span class="text-sm font-bold text-stone-700">${item.text}</span>
                     </div>
-                    <div class="flex gap-2 w-full sm:w-auto">
-                        <div class="relative w-12 flex-shrink-0">
-                            <input type="number" id="edit-qty-${id}" value="${currentQty}" min="1" class="w-full p-2 text-center rounded border border-stone-300 text-sm font-bold text-stone-600 focus:border-emerald-400 focus:outline-none">
-                        </div>
-                        <div class="relative w-20">
-                            <input type="number" step="0.01" id="edit-eur-${id}" value="${currentAmountEur}" oninput="syncEditCurrency('${id}', 'eur')" class="w-full p-2 pl-5 rounded border border-stone-300 text-sm font-mono focus:border-emerald-400 focus:outline-none">
-                            <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">€</span>
-                        </div>
-                        <div class="relative w-20" style="display: ${usdInputDisplay}">
-                            <input type="number" step="0.01" id="edit-usd-${id}" value="${currentAmountUsd}" oninput="syncEditCurrency('${id}', 'usd')" class="w-full p-2 pl-5 rounded border border-stone-300 text-sm font-mono focus:border-emerald-400 focus:outline-none bg-stone-100">
-                            <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-400 text-[10px]">$</span>
-                        </div>
-                    </div>
-                    <div class="flex gap-1 ml-auto">
-                        <button onclick="saveExpenseEdit('${id}')" class="p-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 shadow-sm"><i class="ph-bold ph-check"></i></button>
-                        <button onclick="cancelExpenseEdit('${id}', '${currentName.replace(/'/g, "\\'")}', ${currentAmountEur}, ${currentQty}, '${currentLink ? currentLink.replace(/'/g, "\\'") : ''}')" class="p-2 text-stone-400 hover:bg-stone-200 rounded"><i class="ph-bold ph-x"></i></button>
-                    </div>
-                </div>
-            `;
+                    <button onclick="deleteTodo('${item.id}')" class="text-stone-300 hover:text-red-500 p-1.5"><i class="ph ph-trash"></i></button>
+                `;
+                list.appendChild(div);
+            });
         };
-
-        window.syncEditCurrency = (id, source) => {
-            const eurInput = document.getElementById(`edit-eur-${id}`);
-            const usdInput = document.getElementById(`edit-usd-${id}`);
-            
-            if (source === 'eur') {
-                const val = parseFloat(eurInput.value);
-                if(!isNaN(val)) usdInput.value = (val * currentExchangeRate).toFixed(2);
-                else usdInput.value = '';
-            } else {
-                const val = parseFloat(usdInput.value);
-                if(!isNaN(val)) eurInput.value = (val / currentExchangeRate).toFixed(2);
-                else eurInput.value = '';
-            }
+        document.getElementById('add-todo-btn').onclick = async () => {
+            const qtyIn = document.getElementById('todo-qty-input'), itemIn = document.getElementById('todo-item-input');
+            const qty = parseInt(qtyIn.value) || 1, text = itemIn.value.trim();
+            if(!text) return;
+            itemIn.value = ''; qtyIn.value = '1';
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', todoColName), { qty, text, createdAt: serverTimestamp() });
         };
-
-        window.saveExpenseEdit = async (id) => {
-            const newName = document.getElementById(`edit-name-${id}`).value.trim();
-            const newLink = document.getElementById(`edit-link-${id}`).value.trim(); 
-            const newAmountEur = parseFloat(document.getElementById(`edit-eur-${id}`).value);
-            const newQty = parseInt(document.getElementById(`edit-qty-${id}`).value) || 1;
-            
-            if(!newName || isNaN(newAmountEur)) return;
-
-            try {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id), {
-                    name: newName, link: newLink, amount: newAmountEur, qty: newQty
-                });
-            } catch(e) { console.error(e); alert("Errore modifica"); }
-        };
-        
-        window.cancelExpenseEdit = (id, name, amountEur, qty, link) => {
-             const amountUsd = amountEur * currentExchangeRate;
-             const row = document.getElementById(`row-${id}`);
-             const qtyBadge = qty > 1 
-                    ? `<span class="text-[10px] bg-stone-100 text-stone-500 font-bold px-1.5 py-0.5 rounded ml-1 border border-stone-200">x${qty}</span>` 
-                    : '';
-             const usdDisplay = globalShowUSD 
-                    ? `<span class="font-mono text-stone-400 w-16 text-xs flex items-center justify-end">${amountUsd.toFixed(2)} $</span>` 
-                    : '';
-             
-             let linkHtml = '';
-             if (link) {
-                let safeLink = link.trim();
-                if (!/^https?:\/\//i.test(safeLink)) {
-                    safeLink = 'http://' + safeLink;
-                }
-                linkHtml = `<a href="${safeLink}" target="_blank" class="text-stone-400 hover:text-blue-500 ml-1" title="Apri link"><i class="ph-bold ph-link"></i></a>`;
-             }
-
-             row.innerHTML = `
-                <div class="flex-grow pr-2">
-                    <div class="font-bold text-stone-700 text-sm break-words">
-                        ${name}
-                        ${linkHtml}
-                    </div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="flex gap-4 text-right">
-                        <span class="font-mono font-bold text-emerald-600 w-16 flex justify-end items-center">${amountEur.toFixed(2)} € ${qtyBadge}</span>
-                        ${usdDisplay}
-                    </div>
-                    <div class="flex gap-1">
-                        <button onclick="enableEditMode('${id}', '${name.replace(/'/g, "\\'")}', ${amountEur}, ${qty}, '${link ? link.replace(/'/g, "\\'") : ''}')" class="p-1.5 text-stone-400 hover:text-emerald-500 rounded hover:bg-emerald-50"><i class="ph-bold ph-pencil-simple"></i></button>
-                        <button onclick="deleteExpense('${id}')" class="p-1.5 text-stone-400 hover:text-red-500 rounded hover:bg-red-50"><i class="ph-bold ph-trash"></i></button>
-                    </div>
-                </div>
-             `;
-        };
-
+        window.deleteTodo = (id) => { if(confirm("Rimuovere dalla lista?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id)); };
 
         // --- TAB NAVIGATION LOGIC ---
         window.switchTab = (tabName) => {
-            currentTabName = tabName; // Update local state for swipe
-            const daysView = document.getElementById('days-view');
-            const summaryView = document.getElementById('summary-view');
-            const expensesView = document.getElementById('expenses-view'); 
-            const budgetView = document.getElementById('budget-view'); 
-            
-            const tabDays = document.getElementById('tab-days');
-            const tabSummary = document.getElementById('tab-summary');
-            const tabExpenses = document.getElementById('tab-expenses');
-            const tabBudget = document.getElementById('tab-budget'); 
-
-            const resetTabs = () => {
-                [tabDays, tabSummary, tabExpenses, tabBudget].forEach(t => {
-                    t.classList.add('text-stone-400');
-                    t.classList.remove('text-orange-500', 'text-emerald-600');
-                    t.querySelector('i').classList.add('ph-bold');
-                    t.querySelector('i').classList.remove('ph-fill');
-                });
-                [daysView, summaryView, expensesView, budgetView].forEach(v => v.classList.add('hidden'));
-            };
-            
-            resetTabs();
-
-            if (tabName === 'days') {
-                daysView.classList.remove('hidden');
-                document.getElementById('days-list-container').scrollTop = 0;
-                
-                tabDays.classList.remove('text-stone-400');
-                tabDays.classList.add('text-orange-500');
-                tabDays.querySelector('i').classList.remove('ph-bold');
-                tabDays.querySelector('i').classList.add('ph-fill');
-            } else if (tabName === 'summary') {
-                summaryView.classList.remove('hidden');
-                summaryView.querySelector('.custom-scroll').scrollTop = 0;
-
-                tabSummary.classList.remove('text-stone-400');
-                tabSummary.classList.add('text-orange-500'); 
-                tabSummary.querySelector('i').classList.remove('ph-bold');
-                tabSummary.querySelector('i').classList.add('ph-fill');
-                setTimeout(updateSummaryChart, 100);
-                // Render Path Summary (Visit List)
-                renderPathSummary();
-            } else if (tabName === 'expenses') {
-                expensesView.classList.remove('hidden');
-                document.getElementById('expenses-list-container').scrollTop = 0;
-
-                tabExpenses.classList.remove('text-stone-400');
-                tabExpenses.classList.add('text-emerald-600'); 
-                tabExpenses.querySelector('i').classList.remove('ph-bold');
-                tabExpenses.querySelector('i').classList.add('ph-fill');
-                if(!unsubscribeExpenses && expensesColName) loadExpenses();
-            } else if (tabName === 'budget') {
-                budgetView.classList.remove('hidden');
-                budgetView.scrollTop = 0;
-
-                tabBudget.classList.remove('text-stone-400');
-                tabBudget.classList.add('text-emerald-600'); 
-                tabBudget.querySelector('i').classList.remove('ph-bold');
-                tabBudget.querySelector('i').classList.add('ph-fill');
-                if(!unsubscribeExpenses && expensesColName) loadExpenses();
-            }
-        };
-
-        // --- EXPORT LOGIC ---
-        document.getElementById('export-btn').onclick = async () => {
-            if (!daysColName || !notesColName) return;
-            const exportBtn = document.getElementById('export-btn');
-            exportBtn.innerHTML = '<div class="loader w-4 h-4 border-t-white border-white"></div>';
-            
-            try {
-                const daysSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', daysColName));
-                const daysData = daysSnap.docs.map(d => ({ ...d.data(), _id: d.id })); 
-                const notesSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', notesColName));
-                const notesData = notesSnap.docs.map(d => d.data());
-                
-                const expSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', expensesColName));
-                const expData = expSnap.docs.map(d => d.data());
-
-                const backupData = {
-                    key: activeSecretKey,
-                    timestamp: new Date().toISOString(),
-                    days: daysData,
-                    notes: notesData,
-                    expenses: expData 
-                };
-
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
-                const downloadAnchorNode = document.createElement('a');
-                downloadAnchorNode.setAttribute("href", dataStr);
-                downloadAnchorNode.setAttribute("download", `travel_backup_${activeSecretKey}.json`);
-                document.body.appendChild(downloadAnchorNode);
-                downloadAnchorNode.click();
-                downloadAnchorNode.remove();
-            } catch (error) {
-                console.error("Export failed:", error);
-                alert("Errore durante l'export dei dati.");
-            } finally {
-                exportBtn.innerHTML = '<i class="ph ph-download-simple text-xl"></i>';
-            }
-        };
-
-        // --- UI Modal Logic ---
-        window.addStageUI = (data = null) => {
-            if (data) {
-                currentStages.push(data);
-            } else {
-                let defaultStart = '';
-                if (currentStages.length > 0) {
-                    const lastStage = currentStages[currentStages.length - 1];
-                    if (lastStage.isVisit && lastStage.start && lastStage.pause) {
-                         const s = timeToMins(lastStage.start);
-                         const p = timeToMins(lastStage.pause);
-                         defaultStart = minsToHHMM(s + p);
-                    } else if (lastStage.end) {
-                         defaultStart = lastStage.end;
-                    }
-                }
-                const stage = {
-                    id: Date.now(),
-                    name: '', desc: '',
-                    start: defaultStart, end: '', pause: '00:00',
-                    miles: 0, km: 0, driveTime: 0, mapsLink: '',
-                    isVisit: false 
-                };
-                currentStages.push(stage);
-            }
-            renderStages();
-            calculateTotals();
-        };
-
-        window.removeStage = (id) => {
-            currentStages = currentStages.filter(s => s.id !== id);
-            renderStages();
-            calculateTotals();
-        };
-
-        const shiftStageTime = (stage, newStart) => {
-            if(!newStart || stage.start === newStart) return;
-            
-            const oldStartMins = timeToMins(stage.start);
-            const newStartMins = timeToMins(newStart);
-            const diff = newStartMins - oldStartMins;
-            
-            stage.start = newStart;
-            
-            if(stage.end) {
-                const oldEndMins = timeToMins(stage.end);
-                let newEndMins = oldEndMins + diff;
-                if (newEndMins < 0) newEndMins += 1440;
-                stage.end = minsToHHMM(newEndMins);
-            }
-        };
-
-        window.moveStageUp = (id) => {
-            const index = currentStages.findIndex(s => s.id === id);
-            if (index > 0) {
-                const prevStage = currentStages[index-1];
-                const currStage = currentStages[index];
-                const slotStartTime = prevStage.start;
-                currentStages[index-1] = currStage;
-                currentStages[index] = prevStage;
-                shiftStageTime(currStage, slotStartTime);
-                recalculateCascade(index-1);
-                renderStages();
-                calculateTotals();
-            }
-        };
-
-        window.moveStageDown = (id) => {
-            const index = currentStages.findIndex(s => s.id === id);
-            if (index < currentStages.length - 1) {
-                const currStage = currentStages[index];
-                const nextStage = currentStages[index+1];
-                const slotStartTime = currStage.start;
-                currentStages[index] = nextStage;
-                currentStages[index+1] = currStage;
-                shiftStageTime(nextStage, slotStartTime);
-                recalculateCascade(index);
-                renderStages();
-                calculateTotals();
-            }
-        };
-
-        window.updateStageField = (id, field, value) => {
-            const index = currentStages.findIndex(s => s.id === id);
-            const stage = currentStages[index];
-            
-            if(stage) {
-                if (field === 'isVisit') {
-                    stage.isVisit = value; 
-                    if (stage.isVisit) {
-                         stage.miles = 0;
-                         stage.km = 0;
-                         stage.driveTime = 0;
-                    }
-                } else {
-                    stage[field] = value;
-                }
-
-                if(!stage.isVisit) {
-                    if(field === 'start' || field === 'end' || field === 'pause') {
-                        const s = timeToMins(stage.start);
-                        const e = timeToMins(stage.end);
-                        const p = timeToMins(stage.pause);
-                        let diff = e - s; 
-                        if(diff < 0) diff += 1440; 
-                        stage.driveTime = Math.max(0, diff - p);
-                    }
-                    if(field === 'miles') {
-                         stage.km = (parseFloat(value) * 1.60934).toFixed(1);
-                    }
-                    if(field === 'km') {
-                         stage.miles = (parseFloat(value) / 1.60934).toFixed(1);
-                    }
-                } 
-
-                if (['start', 'end', 'pause', 'isVisit'].includes(field)) {
-                    recalculateCascade(index);
-                }
-
-                renderStages(); 
-                calculateTotals();
-            }
-        };
-
-        const recalculateCascade = (changedIndex) => {
-            if (changedIndex >= currentStages.length - 1) return;
-            for (let i = changedIndex; i < currentStages.length - 1; i++) {
-                const currentStage = currentStages[i];
-                const nextStage = currentStages[i+1];
-                
-                let targetStartMins = 0;
-                let shouldUpdate = false;
-
-                if (currentStage.isVisit) {
-                    const s = timeToMins(currentStage.start);
-                    const p = timeToMins(currentStage.pause);
-                    targetStartMins = s + p;
-                    shouldUpdate = true;
-                } else {
-                    if (currentStage.end) {
-                        targetStartMins = timeToMins(currentStage.end);
-                        shouldUpdate = true;
-                    }
-                }
-
-                if (shouldUpdate) {
-                    const newNextStart = minsToHHMM(targetStartMins);
-                    if (nextStage.start !== newNextStart) {
-                        const nextStartMins = timeToMins(nextStage.start);
-                        const nextEndMins = timeToMins(nextStage.end);
-                        let durationMins = 0;
-                        if(nextStage.end) {
-                             durationMins = nextEndMins - nextStartMins;
-                             if (durationMins < 0) durationMins += 1440;
-                        }
-                        nextStage.start = newNextStart;
-                        if(nextStage.end) {
-                            let newNextEndMins = targetStartMins + durationMins;
-                            nextStage.end = minsToHHMM(newNextEndMins);
-                        }
-                    }
-                }
-            }
-            renderStages(); 
-        };
-
-        const calculateTotals = () => {
-            let totalDrive = 0, totalMiles = 0, totalKm = 0, dayDuration = 0;
-            currentStages.forEach(s => {
-                if (!s.isVisit) {
-                    totalDrive += (s.driveTime || 0);
-                    totalMiles += parseFloat(s.miles || 0);
-                    totalKm += parseFloat(s.km) || 0;
-                }
+            currentTabName = tabName;
+            ['days', 'summary', 'expenses', 'budget', 'todo'].forEach(t => {
+                document.getElementById(`${t}-view`).classList.add('hidden');
+                const btn = document.getElementById(`tab-${t}`);
+                btn.classList.add('text-stone-400');
+                btn.classList.remove('text-orange-500', 'text-emerald-600');
+                btn.querySelector('i').classList.replace('ph-fill', 'ph-bold');
             });
-            if(currentStages.length > 0) {
-                const sorted = [...currentStages].sort((a,b) => timeToMins(a.start) - timeToMins(b.start));
-                const first = sorted[0];
-                const last = sorted[sorted.length - 1];
-                const f = timeToMins(first.start);
-                let l = 0;
-                if (last.isVisit) {
-                    l = timeToMins(last.start) + timeToMins(last.pause);
-                } else {
-                    l = timeToMins(last.end);
-                }
-                if (l < f) l += 1440; 
-                dayDuration = Math.max(0, l - f);
-            }
-            document.getElementById('sum-drive-time').textContent = minsToTimeStr(totalDrive);
-            document.getElementById('sum-day-time').textContent = minsToTimeStr(dayDuration);
-            document.getElementById('sum-miles').textContent = totalMiles.toFixed(1) + ' mi';
-            document.getElementById('sum-km').textContent = totalKm.toFixed(1) + ' km';
+            document.getElementById(`${tabName}-view`).classList.remove('hidden');
+            const activeTab = document.getElementById(`tab-${tabName}`);
+            const activeColor = (tabName === 'expenses' || tabName === 'budget') ? 'text-emerald-600' : 'text-orange-500';
+            activeTab.classList.remove('text-stone-400');
+            activeTab.classList.add(activeColor);
+            activeTab.querySelector('i').classList.replace('ph-bold', 'ph-fill');
+            
+            if (tabName === 'summary') setTimeout(updateSummaryChart, 100);
+            if ((tabName === 'expenses' || tabName === 'budget') && !unsubscribeExpenses) loadExpenses();
+            if (tabName === 'todo' && !unsubscribeTodo) loadTodo();
         };
 
-        const renderStages = () => {
-            const container = document.getElementById('stages-container');
-            container.innerHTML = '';
-            currentStages.forEach((stage, index) => {
-                const div = document.createElement('div');
-                div.className = "bg-stone-50 border border-stone-200 rounded-lg p-3 relative group";
-                const autoDetailsClass = stage.isVisit ? 'hidden' : 'grid';
-                const milesInputDisplay = globalShowMiles ? 'block' : 'none'; 
-                let mapButtonHtml = '';
-                if (stage.mapsLink) {
-                    const safeUrl = getMapsUrl(stage.mapsLink);
-                    mapButtonHtml = `
-                        <a href="${safeUrl}" target="_blank" class="block mt-3 w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 rounded-lg text-center text-sm font-bold transition-colors flex items-center justify-center gap-2">
-                            <i class="ph-fill ph-map-pin"></i> Vedi su Google Maps
-                        </a>
-                    `;
-                }
-
-                const upBtn = index > 0 
-                    ? `<button onclick="moveStageUp(${stage.id})" class="w-8 h-8 flex items-center justify-center bg-white border border-stone-200 rounded-lg text-stone-500 hover:text-orange-500 hover:border-orange-300 hover:bg-orange-50 transition-all shadow-sm" title="Sposta Su"><i class="ph-bold ph-arrow-up"></i></button>`
-                    : `<div class="w-8 h-8"></div>`; 
-                
-                const downBtn = index < currentStages.length - 1
-                    ? `<button onclick="moveStageDown(${stage.id})" class="w-8 h-8 flex items-center justify-center bg-white border border-stone-200 rounded-lg text-stone-500 hover:text-orange-500 hover:border-orange-300 hover:bg-orange-50 transition-all shadow-sm" title="Sposta Giù"><i class="ph-bold ph-arrow-down"></i></button>`
-                    : `<div class="w-8 h-8"></div>`; 
-
-                div.innerHTML = `
-                    <div class="absolute top-2 right-2 flex items-center gap-2">
-                        <div class="flex gap-1 mr-2">
-                            ${upBtn}
-                            ${downBtn}
-                        </div>
-                        <button onclick="removeStage(${stage.id})" class="w-8 h-8 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 border border-red-100 rounded-lg transition-colors shadow-sm" title="Elimina Tappa"><i class="ph ph-trash text-lg"></i></button>
-                    </div>
-                    <div class="text-xs font-bold text-stone-400 mb-2 flex justify-between items-center pr-28">
-                        <span>TAPPA ${index + 1}</span>
-                        <label class="flex items-center gap-1 cursor-pointer">
-                            <input type="checkbox" ${stage.isVisit ? 'checked' : ''} onchange="updateStageField(${stage.id}, 'isVisit', this.checked)" class="form-checkbox h-3 w-3 text-orange-500 rounded border-gray-300 focus:ring-orange-500">
-                            <span class="text-[10px] uppercase font-bold text-orange-600">Visita (No Auto)</span>
-                        </label>
-                    </div>
-                    <div class="grid grid-cols-1 gap-2 mb-2">
-                        <input type="text" value="${stage.name}" onchange="updateStageField(${stage.id}, 'name', this.value)" placeholder="Nome Tappa" class="w-full p-2 text-sm border border-stone-200 rounded bg-white font-bold text-stone-800 focus:border-orange-400 focus:outline-none">
-                        <input type="text" value="${stage.desc}" onchange="updateStageField(${stage.id}, 'desc', this.value)" placeholder="Descrizione breve" class="w-full p-2 text-sm border border-stone-200 rounded bg-white text-stone-600 focus:border-orange-400 focus:outline-none">
-                        <div class="relative">
-                            <i class="ph ph-map-pin absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"></i>
-                            <input type="text" value="${stage.mapsLink || ''}" onchange="updateStageField(${stage.id}, 'mapsLink', this.value)" placeholder="Incolla link Google Maps" class="w-full p-2 pl-9 text-xs border border-stone-200 rounded bg-white text-orange-500 focus:ring-1 focus:ring-orange-400 focus:outline-none">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2 mb-2">
-                        <div><label class="text-[10px] uppercase text-stone-500 font-bold">Partenza</label><input type="time" value="${stage.start}" onchange="updateStageField(${stage.id}, 'start', this.value)" class="w-full p-1 text-sm border border-stone-200 rounded bg-white text-stone-700"></div>
-                        <div><label class="text-[10px] uppercase text-stone-500 font-bold">Arrivo</label><input type="time" value="${stage.end}" onchange="updateStageField(${stage.id}, 'end', this.value)" class="w-full p-1 text-sm border border-stone-200 rounded bg-white text-stone-700"></div>
-                        <div><label class="text-[10px] uppercase text-stone-500 font-bold">Sosta (hh:mm)</label><input type="time" value="${stage.pause}" onchange="updateStageField(${stage.id}, 'pause', this.value)" class="w-full p-1 text-sm border border-stone-200 rounded bg-white text-center text-stone-700"></div>
-                    </div>
-                    
-                    <div class="${autoDetailsClass} grid-cols-4 gap-2 items-center bg-white p-2 rounded border border-stone-200 transition-all duration-300">
-                        <div class="col-span-1" style="display: ${milesInputDisplay}"><label class="text-[10px] uppercase text-stone-400">Miglia</label><input type="number" step="0.1" value="${stage.miles}" onchange="updateStageField(${stage.id}, 'miles', this.value)" class="w-full text-sm font-bold border-b border-stone-200 focus:outline-none text-orange-500"></div>
-                        <div class="col-span-${globalShowMiles ? '1' : '2'} text-center border-l border-stone-100">
-                            <label class="text-[10px] uppercase text-stone-400">Km</label>
-                            <input type="number" step="0.1" value="${stage.km}" onchange="updateStageField(${stage.id}, 'km', this.value)" class="w-full text-sm font-bold border-b border-transparent focus:border-stone-200 focus:outline-none text-stone-600 text-center bg-transparent">
-                        </div>
-                        <div class="col-span-2 text-right"><label class="text-[10px] uppercase text-stone-400">Ore Auto</label><div class="text-sm font-bold text-green-600">${minsToTimeStr(stage.driveTime || 0)}</div></div>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        };
-
-        window.openModal = (dayData) => {
-            document.getElementById('day-modal').classList.remove('hidden');
-            if(dayData) {
-                editingDayId = dayData.id;
-                document.getElementById('modal-title').textContent = "Modifica Giornata";
-                document.getElementById('day-date-input').value = dayData.dateString || '';
-                document.getElementById('day-name-input').value = dayData.title || '';
-                document.getElementById('day-desc-input').value = dayData.description || '';
-                document.getElementById('day-link-input').value = dayData.dayLink || ''; 
-                currentStages = dayData.stages || [];
-            } else {
-                editingDayId = null;
-                document.getElementById('modal-title').textContent = "Nuova Giornata";
-                if (cachedDays.length > 0) {
-                    const lastDateStr = cachedDays[cachedDays.length - 1].dateString;
-                    if (lastDateStr) {
-                        const nextDate = new Date(lastDateStr);
-                        nextDate.setDate(nextDate.getDate() + 1);
-                        document.getElementById('day-date-input').value = nextDate.toISOString().split('T')[0];
-                    } else {
-                        document.getElementById('day-date-input').valueAsDate = new Date();     
-                    }
-                } else {
-                    document.getElementById('day-date-input').valueAsDate = new Date();
-                }
-                document.getElementById('day-name-input').value = '';
-                document.getElementById('day-desc-input').value = '';
-                document.getElementById('day-link-input').value = ''; 
-                currentStages = [];
-            }
-            renderStages();
-            calculateTotals();
-        };
-        window.closeModal = () => document.getElementById('day-modal').classList.add('hidden');
-
-        document.getElementById('confirm-save-btn').addEventListener('click', async () => {
-            const dateStr = document.getElementById('day-date-input').value;
-            const title = document.getElementById('day-name-input').value;
-            const desc = document.getElementById('day-desc-input').value;
-            const link = document.getElementById('day-link-input').value; 
-            if(!dateStr && !title) { alert("Inserisci Data o Titolo"); return; }
-            const stagesClean = currentStages.map(s => ({
-                id: s.id, name: s.name, desc: s.desc, start: s.start, end: s.end, pause: s.pause,
-                miles: s.miles, km: s.km, driveTime: s.driveTime, mapsLink: s.mapsLink || '', isVisit: s.isVisit || false
-            }));
-            const payload = { dateString: dateStr, title: title, description: desc, dayLink: link, stages: stagesClean, updatedAt: serverTimestamp() }; 
-            try {
-                if(editingDayId) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, editingDayId), payload);
-                else { payload.createdAt = serverTimestamp(); await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), payload); }
-                closeModal();
-            } catch(e) { console.error(e); alert("Errore Salvataggio"); }
-        });
-
+        // --- LOGIN & AUTH ---
         const login = async () => {
             const key = document.getElementById('secret-key-input').value;
             const names = generateColNames(key);
-            if(!names) { document.getElementById('login-error').textContent = "Chiave non valida (min 3 chars)."; document.getElementById('login-error').classList.remove('hidden'); return; }
+            if(!names) { alert("Chiave non valida."); return; }
             document.getElementById('login-btn').classList.add('hidden');
             document.getElementById('auth-loader').classList.remove('hidden');
             try {
-                if (!auth.currentUser) {
-                    await signInAnonymously(auth);
-                }
+                if (!auth.currentUser) await signInAnonymously(auth);
                 activeSecretKey = names.display;
-                daysColName = names.days;
-                notesColName = names.notes;
-                logsColName = names.logs; 
-                expensesColName = names.expenses; 
+                daysColName = names.days; notesColName = names.notes; logsColName = names.logs; expensesColName = names.expenses;
+                todoColName = names.todo; // NEW
                 document.getElementById('app-id-display').textContent = appId.substring(0, 8); 
                 document.getElementById('current-key-display').textContent = activeSecretKey;
                 document.getElementById('login-view').classList.add('hidden');
@@ -1898,285 +971,48 @@
                 document.getElementById('logs-btn').classList.remove('hidden'); 
                 document.getElementById('import-btn').classList.remove('hidden');
                 const savedRate = localStorage.getItem(`rate_${activeSecretKey}`);
-                if(savedRate) {
-                    currentExchangeRate = parseFloat(savedRate);
-                    document.getElementById('global-exchange-rate').value = currentExchangeRate;
-                }
-                const savedMiles = localStorage.getItem(`showMiles_${activeSecretKey}`);
-                if (savedMiles !== null) {
-                    globalShowMiles = (savedMiles === 'true');
-                    document.getElementById('global-miles-toggle').checked = globalShowMiles;
-                }
-                const savedUSD = localStorage.getItem(`showUSD_${activeSecretKey}`);
-                if (savedUSD !== null) {
-                    globalShowUSD = (savedUSD === 'true');
-                    document.getElementById('global-usd-toggle').checked = globalShowUSD;
-                }
-                updateGlobalVisibility();
-                logAccess(); 
-                loadGlobalNotes();
-                loadDays();
-            } catch(e) { 
-                console.error(e);
-                document.getElementById('login-error').textContent = "Errore di accesso: " + e.message;
-                document.getElementById('login-error').classList.remove('hidden');
-            } 
+                if(savedRate) { currentExchangeRate = parseFloat(savedRate); document.getElementById('global-exchange-rate').value = currentExchangeRate; }
+                updateGlobalVisibility(); logAccess(); loadDays();
+            } catch(e) { alert("Errore di accesso."); } 
             finally { document.getElementById('login-btn').classList.remove('hidden'); document.getElementById('auth-loader').classList.add('hidden'); }
         };
-        document.getElementById('login-btn').addEventListener('click', login);
-        
-        document.getElementById('secret-key-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') login();
-        });
-
-        document.getElementById('logout-btn').addEventListener('click', () => location.reload());
-
-        const loadGlobalNotes = () => {
-            const q = collection(db, 'artifacts', appId, 'public', 'data', notesColName);
-            unsubscribeAllNotes = onSnapshot(q, (snapshot) => {
-                cachedGlobalNotes = [];
-                snapshot.forEach(d => cachedGlobalNotes.push({id: d.id, ...d.data()}));
-                if(cachedDays.length > 0) renderDaysUI();
-            });
-        };
+        document.getElementById('login-btn').onclick = login;
+        document.getElementById('logout-btn').onclick = () => location.reload();
 
         const loadDays = () => {
-            const loading = document.getElementById('loading-days');
-            const empty = document.getElementById('empty-days');
-            loading.classList.remove('hidden'); empty.classList.add('hidden'); 
-            const q = collection(db, 'artifacts', appId, 'public', 'data', daysColName);
-            unsubscribeDays = onSnapshot(q, (snapshot) => {
-                loading.classList.add('hidden'); 
-                if(snapshot.empty) { 
-                    empty.classList.remove('hidden'); 
-                    document.getElementById('days-list').innerHTML = ''; 
-                    return; 
-                }
-                empty.classList.add('hidden');
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', daysColName), (snapshot) => {
+                document.getElementById('loading-days').classList.add('hidden'); 
+                if(snapshot.empty) { document.getElementById('empty-days').classList.remove('hidden'); document.getElementById('days-list').innerHTML = ''; return; }
+                document.getElementById('empty-days').classList.add('hidden');
                 const days = [];
                 snapshot.forEach(d => days.push({id: d.id, ...d.data()}));
-                days.sort((a, b) => {
-                    const dateA = a.dateString || '9999-99-99';
-                    const dateB = b.dateString || '9999-99-99';
-                    return dateA.localeCompare(dateB);
-                });
+                days.sort((a, b) => (a.dateString || '').localeCompare(b.dateString || ''));
                 cachedDays = days; 
                 renderDaysUI(); 
-                renderPathSummary();
-            }, (error) => { console.error(error); loading.classList.add('hidden'); });
+            });
         };
 
         const renderDaysUI = () => {
             const list = document.getElementById('days-list');
             list.innerHTML = '';
-            cachedDays.forEach((d, i) => d.chronoId = i + 1);
-            let gDrive = 0, gMiles = 0, gKm = 0;
-            let visitedStagesCount = 0; 
-            const statesSet = new Set();
-            const totalDays = cachedDays.length;
-            const totalNights = Math.max(0, totalDays - 1);
-            const durationStr = `${totalDays}gg / ${totalNights}nt`;
-            const elDuration = document.getElementById('summ-view-duration');
-            if(elDuration) elDuration.textContent = durationStr;
-            const elDiaryDuration = document.getElementById('diary-duration-line');
-            if(elDiaryDuration) {
-                if(totalDays > 0) {
-                    elDiaryDuration.textContent = `Totale Viaggio: ${durationStr}`;
-                    elDiaryDuration.classList.remove('hidden');
-                    elDiaryDuration.className = "text-sm font-bold text-orange-600 bg-orange-100 border border-orange-200 p-2 rounded-lg text-center mb-4 shadow-sm";
-                } else {
-                    elDiaryDuration.classList.add('hidden');
-                }
-            }
             cachedDays.forEach((day, i) => {
-                if(day.title) {
-                    const parts = day.title.split('-').map(s => s.trim().toUpperCase());
-                    parts.forEach(s => {
-                        if(s) statesSet.add(s);
-                    });
-                }
-                const dayNotes = cachedGlobalNotes.filter(n => n.dayId === day.id);
-                dayNotes.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
-                let notesHtml = '';
-                if(dayNotes.length > 0) {
-                   notesHtml = '<div class="mt-3 pt-2 border-t border-stone-100 space-y-1">';
-                   dayNotes.forEach(n => {
-                       notesHtml += `<div class="text-xs text-stone-600 bg-yellow-50 p-2 rounded border border-yellow-100 flex items-start gap-2">
-                           <i class="ph-fill ph-note text-yellow-500 mt-0.5 flex-shrink-0"></i>
-                           <span>${n.text}</span>
-                       </div>`;
-                   });
-                   notesHtml += '</div>';
-                }
+                day.chronoId = i + 1;
                 const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-xl shadow-sm border border-stone-200 hover:shadow-md transition-all cursor-pointer relative group";
-                let dateStr = day.dateString ? new Date(day.dateString).toLocaleDateString('it-IT', {weekday: 'short', day: 'numeric', month: 'short'}) : 'N/D';
-                if(dateStr !== 'N/D') dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-                let totKm = 0;
-                let dayMiles = 0; 
-                let visitCount = 0; 
-                let tripCount = 0; 
-                if (day.stages) {
-                    day.stages.forEach(s => {
-                        if (s.isVisit) {
-                            visitedStagesCount++;
-                            visitCount++;
-                        } else {
-                            tripCount++;
-                            const stageKm = parseFloat(s.km || 0);
-                            const stageMiles = parseFloat(s.miles || 0);
-                            const stageDrive = parseInt(s.driveTime || 0);
-                            totKm += stageKm; 
-                            gKm += stageKm;
-                            gMiles += stageMiles;
-                            gDrive += stageDrive;
-                            dayMiles += stageMiles; 
-                        }
-                    });
-                }
-                let stagesExpandedHtml = '';
-                if (day.stages && day.stages.length > 0) {
-                    stagesExpandedHtml = '<div class="mt-3 border-t border-stone-100 pt-2 space-y-2">';
-                    day.stages.forEach((s, idx) => {
-                         const typeIcon = s.isVisit 
-                            ? `<span class="bg-orange-100 text-orange-600 p-1 rounded-full text-[10px] flex-shrink-0"><i class="ph-fill ph-ticket"></i></span>` 
-                            : `<span class="bg-green-100 text-green-600 p-1 rounded-full text-[10px] flex-shrink-0"><i class="ph-bold ph-car"></i></span>`;
-                         const timeDisplay = s.start ? `<span class="font-mono text-[10px] text-stone-500 bg-stone-50 border border-stone-200 px-1 rounded ml-auto flex-shrink-0">${s.start}</span>` : '';
-                         stagesExpandedHtml += `
-                            <div class="flex items-center gap-2">
-                                <span class="text-[10px] text-stone-400 font-mono w-4 flex-shrink-0 text-right">${idx+1}.</span>
-                                ${typeIcon}
-                                <span class="text-sm font-bold text-stone-700 leading-tight">${s.name}</span>
-                                ${timeDisplay}
-                            </div>
-                         `;
-                    });
-                    stagesExpandedHtml += '</div>';
-                } else {
-                    stagesExpandedHtml = '<div class="mt-3 text-xs text-stone-400 italic">Nessuna tappa inserita.</div>';
-                }
-                const upBtnDay = i > 0 
-                    ? `<button onclick="event.stopPropagation(); moveDayUp('${day.id}')" class="p-1 hover:bg-stone-100 rounded text-stone-400 hover:text-orange-500 transition-colors"><i class="ph-bold ph-caret-up text-lg"></i></button>`
-                    : `<div class="w-7 h-7"></div>`; 
-                const downBtnDay = i < cachedDays.length - 1
-                    ? `<button onclick="event.stopPropagation(); moveDayDown('${day.id}')" class="p-1 hover:bg-stone-100 rounded text-stone-400 hover:text-orange-500 transition-colors"><i class="ph-bold ph-caret-down text-lg"></i></button>`
-                    : `<div class="w-7 h-7"></div>`; 
-                let linkHtml = '';
-                if(day.dayLink) {
-                    let safeLink = day.dayLink.trim();
-                    if (!/^https?:\/\//i.test(safeLink)) {
-                        safeLink = 'http://' + safeLink;
-                    }
-                    linkHtml = `<div class="mt-2 mb-1"><a href="${safeLink}" target=\"_blank\" class=\"text-xs font-bold text-blue-500 hover:underline flex items-center gap-1\"><i class=\"ph-bold ph-link\"></i> Link Utile (Hotel/Info)</a></div>`;
-                }
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-stone-200 active:scale-95 transition-transform cursor-pointer";
+                let dateStr = day.dateString ? new Date(day.dateString).toLocaleDateString('it-IT', {day: 'numeric', month: 'short'}) : 'N/D';
                 card.innerHTML = `
-                    <div class="flex justify-between items-start mb-2 gap-2">
-                        <div class="flex flex-col gap-0 border border-stone-100 rounded-lg bg-stone-50/50 p-0.5 flex-shrink-0">
-                            ${upBtnDay}
-                            ${downBtnDay}
+                    <div class="flex justify-between items-start">
+                        <div class="pr-2">
+                            <span class="text-[9px] font-black text-orange-500 uppercase tracking-widest">GIORNO ${day.chronoId}</span>
+                            <h3 class="font-bold text-stone-800 text-lg leading-tight">${day.title || 'In viaggio'}</h3>
                         </div>
-                        <div class="flex-grow pr-2">
-                            <span class="text-[10px] font-black text-orange-500 uppercase tracking-widest">GIORNO ${day.chronoId}</span>
-                            <h3 class="font-bold text-stone-800 text-lg leading-tight mb-1">${day.title || 'Stato non indicato'}</h3>
-                        </div>
-                        <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-xs font-bold text-center min-w-[60px] flex-shrink-0">${dateStr}</div>
+                        <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-xs font-bold">${dateStr}</div>
                     </div>
-                    <p class="text-sm text-stone-600 mb-1">${day.description || ''}</p>
-                    ${linkHtml}
-                    ${stagesExpandedHtml}
-                    <div class="flex items-center gap-3 text-xs font-bold text-black border-t border-stone-100 pt-2 mt-3 overflow-x-auto whitespace-nowrap scrollbar-hide">
-                        <span class="flex items-center gap-1"><i class="ph-fill ph-flag-checkered text-orange-600"></i> ${visitCount} Tappe</span>
-                        ${tripCount > 0 ? `<span class="flex items-center gap-1"><i class="ph-fill ph-car text-orange-600"></i> ${tripCount} Road Trip</span>` : ''}
-                        <span class="flex items-center gap-1"><i class="ph-fill ph-road-horizon text-orange-600"></i> ${totKm.toFixed(0)} km</span>
-                        ${globalShowMiles ? `<span class="flex items-center gap-1 text-stone-400 font-mono">(${dayMiles.toFixed(0)} mi)</span>` : ''}
-                    </div>
-                    ${notesHtml}
                 `;
                 card.onclick = () => openDayDetail(day);
                 list.appendChild(card);
             });
-            const elSummDrive = document.getElementById('summ-view-drive');
-            if(elSummDrive) elSummDrive.textContent = minsToTimeStr(gDrive);
-            const elSummMiles = document.getElementById('summ-view-miles');
-            if(elSummMiles) elSummMiles.textContent = `${gMiles.toFixed(0)} mi`;
-            const elSummKm = document.getElementById('summ-view-km');
-            if(elSummKm) elSummKm.textContent = `${gKm.toFixed(0)} km`;
-            const elStates = document.getElementById('summ-view-states');
-            if(elStates) elStates.textContent = statesSet.size;
-            const elStages = document.getElementById('summ-view-stages');
-            if(elStages) elStages.textContent = visitedStagesCount;
             updateSummaryChart();
-        };
-
-        const renderPathSummary = () => {
-            const container = document.getElementById('all-stages-summary');
-            if (!container) return;
-            container.innerHTML = '';
-            
-            const allVisits = [];
-            cachedDays.forEach(day => {
-                if (day.stages) {
-                    day.stages.forEach(s => {
-                        if (s.isVisit) {
-                            allVisits.push({ ...s, dayNum: day.chronoId });
-                        }
-                    });
-                }
-            });
-
-            if (allVisits.length === 0) {
-                container.innerHTML = '<p class="text-xs text-stone-400 italic">Nessun giorno pianificato o nessuna tappa visitata.</p>';
-                return;
-            }
-
-            const listWrapper = document.createElement('div');
-            listWrapper.className = "bg-stone-50 rounded-xl border border-stone-200 shadow-sm overflow-hidden";
-            
-            let html = '';
-            allVisits.forEach((v) => {
-                html += `
-                    <div class="flex items-center p-3 text-[11px] border-b border-stone-100 last:border-0 hover:bg-white transition-colors gap-3">
-                        <i class="ph-fill ph-ticket text-orange-500 text-sm"></i>
-                        <span class="font-bold text-stone-700">${v.name}</span>
-                    </div>
-                `;
-            });
-            listWrapper.innerHTML = html;
-            container.appendChild(listWrapper);
-        };
-        
-        window.moveDayUp = async (id) => {
-            const index = cachedDays.findIndex(d => d.id === id);
-            if (index > 0) {
-                const currentDay = cachedDays[index];
-                const prevDay = cachedDays[index - 1];
-                const dateCurrent = currentDay.dateString;
-                const datePrev = prevDay.dateString;
-                try {
-                    const batch = writeBatch(db);
-                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', daysColName);
-                    batch.update(doc(colRef, currentDay.id), { dateString: datePrev });
-                    batch.update(doc(colRef, prevDay.id), { dateString: dateCurrent });
-                    await batch.commit();
-                } catch(e) { console.error("Error moving day up", e); alert("Errore spostamento"); }
-            }
-        };
-
-        window.moveDayDown = async (id) => {
-            const index = cachedDays.findIndex(d => d.id === id);
-            if (index < cachedDays.length - 1) {
-                const currentDay = cachedDays[index];
-                const nextDay = cachedDays[index + 1];
-                const dateCurrent = currentDay.dateString;
-                const dateNext = nextDay.dateString;
-                try {
-                    const batch = writeBatch(db);
-                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', daysColName);
-                    batch.update(doc(colRef, currentDay.id), { dateString: dateNext });
-                    batch.update(doc(colRef, nextDay.id), { dateString: dateCurrent });
-                    await batch.commit();
-                } catch(e) { console.error("Error moving day down", e); alert("Errore spostamento"); }
-            }
         };
 
         const openDayDetail = (day) => {
@@ -2186,475 +1022,91 @@
             document.getElementById('notes-view').classList.remove('hidden');
             document.getElementById('back-btn').classList.remove('hidden');
             document.getElementById('bottom-nav').classList.add('hidden'); 
-            document.getElementById('header-title').textContent = `GIORNO ${day.chronoId} - ${day.title || ''}`;
+            document.getElementById('header-title').textContent = `Giorno ${day.chronoId}`;
             const detailContainer = document.getElementById('day-detail-content');
-            let totMiles = 0, totKm = 0, totDrive = 0, dayDur = 0;
-            const stages = day.stages || [];
-            stages.forEach(s => { 
-                if(!s.isVisit) {
-                    totMiles += parseFloat(s.miles || 0); 
-                    totKm += parseFloat(s.km || 0); 
-                    totDrive += (s.driveTime || 0); 
-                }
-            });
-            if(stages.length > 0) {
-                 const sorted = [...stages].sort((a,b) => timeToMins(a.start) - timeToMins(b.start));
-                 const f = timeToMins(sorted[0].start);
-                 let l = 0; 
-                 const lastStage = sorted[sorted.length - 1];
-                 if (lastStage.isVisit) {
-                     l = timeToMins(lastStage.start) + timeToMins(lastStage.pause);
-                 } else {
-                     l = timeToMins(lastStage.end);
-                 }
-                 if(l < f) l += 1440; 
-                 if(l > f) dayDur = l - f;
-            }
             let stagesHtml = '';
-            stages.forEach((s, idx) => {
-                const safeUrl = getMapsUrl(s.mapsLink);
-                let pauseDisplay = s.pause && s.pause !== '00:00' ? `<span class="flex items-center gap-1 text-amber-500 font-bold"><i class="ph-bold ph-coffee"></i> ${s.pause.replace(':', 'h ')}m</span>` : '<span class="text-stone-300 flex items-center gap-1"><i class="ph ph-coffee"></i> --</span>';
-                let typeIcon = s.isVisit 
-                    ? `<span class="text-orange-600 font-bold flex items-center gap-1 text-xs bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100"><i class="ph-fill ph-ticket"></i> VISITA</span>` 
-                    : `<span class="flex items-center gap-1 text-green-700 font-medium text-xs"><i class="ph-bold ph-car"></i> ${minsToTimeStr(s.driveTime)}</span>`;
-                let kmDisplay = s.isVisit 
-                    ? '' 
-                    : `<div class="font-mono text-stone-400 text-xs">${parseFloat(s.km).toFixed(0)} km</div>`;
-                let milesDisplay = (globalShowMiles && !s.isVisit) ? `<div class="font-mono text-stone-400 text-xs">${s.miles} mi</div>` : ''; 
-                let mapButtonHtml = '';
-                if (s.mapsLink) {
-                    const safeUrl = getMapsUrl(s.mapsLink);
-                    mapButtonHtml = `
-                        <a href="${safeUrl}" target=\"_blank\" class=\"w-16 h-16 flex-shrink-0 rounded-xl shadow-md border-2 border-white flex items-center justify-center bg-map-pattern hover:scale-105 transition-transform\" title=\"Vedi su Google Maps\">
-                            <i class=\"ph-fill ph-map-pin text-3xl text-red-500 drop-shadow-sm\"></i>
-                        </a>
-                    `;
-                }
-                stagesHtml += `
-                    <div class="border-b border-stone-100 last:border-0">
-                        <div class="p-3 bg-white hover:bg-stone-50 cursor-pointer flex flex-col gap-2" onclick="document.getElementById('stage-detail-${idx}').classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-180')">
-                            <div class="flex justify-between items-start">
-                                <div class="font-bold text-stone-800 text-sm flex items-center gap-1"><span class="text-orange-500 mr-1">${idx + 1}.</span> ${s.name}</div>
-                                <div class="text-xs text-stone-500 font-mono bg-stone-100 px-2 py-1 rounded">${s.start} <span class="text-stone-300">➜</span> ${s.end}</div>
-                            </div>
-                            <div class="flex items-center justify-between text-xs text-stone-500 mt-1">
-                                <div class="flex gap-3 items-center">
-                                    ${typeIcon}
-                                    ${pauseDisplay}
-                                </div>
-                                <div class="text-right">
-                                    ${kmDisplay}
-                                    ${milesDisplay}
-                                </div>
-                            </div>
-                            <div class="flex justify-center -mt-2 opacity-50"><i class="chevron ph-bold ph-caret-down text-stone-400 transition-transform duration-200 rotate-180"></i></div>
-                        </div>
-                        <div id="stage-detail-${idx}" class="bg-stone-50 p-4 text-sm text-stone-700 border-t border-stone-100 shadow-inner">
-                            <div class="flex justify-between gap-4">
-                                <div class="flex-grow">
-                                    <div class="mb-2"><span class="text-[10px] uppercase font-bold text-stone-400">Descrizione</span><p class="mt-1">${s.desc || '<span class="italic text-stone-400">Nessuna descrizione.</span>'}</p></div>
-                                    ${!s.isVisit ? `<div class="flex gap-4 text-xs font-mono text-stone-500 border-t border-stone-200 pt-2 mt-2">
-                                        ${globalShowMiles ? `<div>Miglia: <span class="font-bold text-stone-800">${s.miles}</span></div>` : ''}
-                                        <div>Km esatti: <span class="font-bold text-stone-800">${s.km}</span></div>
-                                    </div>` : ''}
-                                </div>
-                                ${mapButtonHtml}
-                            </div>
-                        </div>
-                    </div>`;
+            (day.stages || []).forEach((s, idx) => {
+                stagesHtml += `<div class="py-2 border-b border-stone-50 last:border-0"><div class="flex justify-between font-bold text-sm"><span>${idx+1}. ${s.name}</span><span class="text-stone-400 font-mono text-xs">${s.start}</span></div></div>`;
             });
-            const gridCols = globalShowMiles ? 'grid-cols-4' : 'grid-cols-3';
-            const milesStat = globalShowMiles ? `<div><div class="text-[10px] text-stone-400 uppercase">Miglia</div><div class="font-bold text-sm sm:text-base">${totMiles.toFixed(1)}</div></div>` : '';
-            let dateDisplay = 'Data non impostata';
-            if(day.dateString) {
-                const d = new Date(day.dateString);
-                dateDisplay = d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            }
-            const currentIndex = cachedDays.findIndex(d => d.id === day.id);
-            const prevDayBtn = currentIndex > 0 
-                ? `<button onclick="openDayDetailWithId('${cachedDays[currentIndex-1].id}')" class="px-2 py-1 bg-stone-100 text-stone-500 hover:bg-stone-200 rounded text-xs font-bold flex items-center gap-1 transition-colors"><i class="ph-bold ph-caret-left"></i> Prev</button>` 
-                : `<div class="w-12"></div>`;
-            const nextDayBtn = currentIndex < cachedDays.length - 1
-                ? `<button onclick="openDayDetailWithId('${cachedDays[currentIndex+1].id}')" class="px-2 py-1 bg-stone-100 text-stone-500 hover:bg-stone-200 rounded text-xs font-bold flex items-center gap-1 transition-colors">Next <i class="ph-bold ph-caret-right"></i></button>`
-                : `<div class="w-12"></div>`;
-
             detailContainer.innerHTML = `
-                <div class="flex justify-between items-center mb-4 bg-stone-50 p-2 rounded-lg border border-stone-100">
-                    ${prevDayBtn}
-                    <div class="text-center">
-                        <div class="text-[10px] font-black text-orange-400 uppercase tracking-widest">GIORNO ${day.chronoId}</div>
-                        <div class="text-lg font-bold text-stone-800 leading-none">${dateDisplay}</div>
-                    </div>
-                    ${nextDayBtn}
-                </div>
-                <div class="flex justify-between items-center mb-4 border-b border-stone-100 pb-2">
-                    <div class="font-bold text-stone-500 text-sm truncate flex-grow mr-2">${day.title || 'Stato non indicato'}</div>
-                    <div class="flex gap-2 flex-shrink-0">
-                        <button onclick="editDayFromDetail('${day.id}')" class="px-3 py-1.5 bg-orange-50 text-orange-600 border border-orange-100 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-orange-100 transition-colors"><i class="ph-bold ph-pencil-simple"></i> Modifica</button>
-                        <button onclick="deleteDayFromDetail('${day.id}')" class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-100 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-red-100 transition-colors"><i class="ph-bold ph-trash"></i> Elimina</button>
-                    </div>
-                </div>
-                <div class="mb-4"><p class="text-stone-600 text-sm italic border-l-4 border-orange-400 pl-3 py-1 bg-orange-50/50 rounded-r">${day.description || 'Nessuna descrizione generale.'}</p></div>
-                <div class="mb-6">
-                     <h4 class="text-xs font-bold text-stone-400 uppercase mb-2 flex items-center gap-2"><i class="ph ph-note"></i> Note</h4>
-                    <div id="loading-notes" class="hidden flex justify-center py-2"><div class="loader w-4 h-4 border-t-orange-400"></div></div>
-                    <div id="empty-notes" class="hidden text-center py-2 text-stone-400 text-xs italic">Nessuna nota aggiunta.</div>
-                    <ul id="notes-list" class="space-y-2"></ul>
-                </div>
-                <div class="bg-gradient-to-r from-stone-800 to-stone-900 text-white rounded-xl p-4 shadow-lg mb-6">
-                    <div class="grid ${gridCols} gap-2 text-center divide-x divide-stone-700">
-                        <div><div class="text-[10px] text-stone-400 uppercase">Auto</div><div class="font-bold text-amber-400 text-sm sm:text-base">${minsToTimeStr(totDrive)}</div></div>
-                        <div><div class="text-[10px] text-stone-400 uppercase">Durata</div><div class="font-bold text-sm sm:text-base">${minsToTimeStr(dayDur)}</div></div>
-                        ${milesStat}
-                        <div><div class="text-[10px] text-stone-400 uppercase">Km</div><div class="font-bold text-green-400 text-sm sm:text-base">${totKm.toFixed(1)}</div></div>
-                    </div>
-                </div>
-                <h4 class="text-xs font-bold text-stone-400 uppercase mb-2">Piano di Viaggio (Clicca per espandere)</h4>
-                <div class="rounded-lg border border-stone-200 bg-white overflow-hidden shadow-sm">${stagesHtml || '<div class="p-4 text-center text-stone-400 text-xs">Nessuna tappa inserita.</div>'}</div>
+                <div class="mb-4"><h2 class="text-2xl font-black text-stone-800">${day.title || ''}</h2><p class="text-stone-500 text-sm mt-2 italic">${day.description || ''}</p></div>
+                <div class="mb-6"><h4 class="text-xs font-bold text-stone-400 uppercase mb-2">Percorso</h4><div class="bg-stone-50 p-4 rounded-xl shadow-inner">${stagesHtml || 'Nessuna tappa.'}</div></div>
+                <div id="notes-list" class="space-y-2 mb-4"></div>
             `;
             loadNotes(day.id);
-            document.getElementById('notes-list-container').scrollTop = 0;
         };
-
-        window.openDayDetailWithId = (id) => {
-            const day = cachedDays.find(d => d.id === id);
-            if(day) openDayDetail(day);
+        const loadNotes = (dayId) => {
+            const q = query(collection(db, 'artifacts', appId, 'public', 'data', notesColName), where('dayId', '==', dayId));
+            onSnapshot(q, (snap) => {
+                const list = document.getElementById('notes-list');
+                if(!list) return;
+                list.innerHTML = '<h4 class="text-xs font-bold text-stone-400 uppercase mb-2">Note</h4>';
+                snap.forEach(d => {
+                    const div = document.createElement('div');
+                    div.className = "bg-yellow-50 p-3 rounded-lg text-sm border border-yellow-100 flex justify-between";
+                    div.innerHTML = `<span>${d.data().text}</span><button onclick="deleteNote('${d.id}')" class="text-stone-300 ml-2"><i class="ph ph-trash"></i></button>`;
+                    list.appendChild(div);
+                });
+            });
         };
-
-        window.editDayFromDetail = (id) => {
-            const day = cachedDays.find(d => d.id === id);
-            if(day) openModal(day);
-        };
-
-        window.deleteDayFromDetail = async (id) => {
-            if(confirm('Eliminare questa giornata e tutti i suoi dati?')) {
-                try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, id));
-                    document.getElementById('back-btn').click(); 
-                } catch(e) {
-                    console.error(e);
-                    alert("Errore durante l'eliminazione");
-                }
-            }
-        };
-
+        window.deleteNote = (id) => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', notesColName, id));
         document.getElementById('back-btn').onclick = () => {
             document.getElementById('days-view').classList.remove('hidden');
             document.getElementById('notes-view').classList.add('hidden');
-            document.getElementById('back-btn').classList.remove('hidden');
+            document.getElementById('back-btn').classList.add('hidden');
             document.getElementById('bottom-nav').classList.remove('hidden'); 
             document.getElementById('header-title').textContent = "Travel Planner";
-            if(unsubscribeNotes) unsubscribeNotes();
-            setTimeout(() => {
-                document.getElementById('days-list-container').scrollTop = lastListScroll;
-            }, 0);
         };
 
-        const loadNotes = (dayId) => {
-            const list = document.getElementById('notes-list'); 
-            const loader = document.getElementById('loading-notes');
-            const empty = document.getElementById('empty-notes');
-            if(!list) return; 
-            list.innerHTML = '';
-            loader.classList.remove('hidden');
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', notesColName), where('dayId', '==', dayId));
-            unsubscribeNotes = onSnapshot(q, (snapshot) => {
-                loader.classList.add('hidden'); 
-                list.innerHTML = '';
-                const notes = []; 
-                snapshot.forEach(d => notes.push({id: d.id, ...d.data()}));
-                notes.sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
-                if(notes.length === 0) empty.classList.remove('hidden');
-                else empty.classList.add('hidden');
-                notes.forEach(n => {
-                    const li = document.createElement('li'); 
-                    li.className = "bg-yellow-100 p-3 rounded-lg text-sm text-stone-800 flex justify-between group shadow-sm border border-yellow-200";
-                    li.innerHTML = `<span>${n.text}</span> <button class="text-stone-400 hover:text-red-600 opacity-0 group-hover:opacity-100" onclick="deleteNote('${n.id}')"><i class="ph ph-trash"></i></button>`;
-                    list.appendChild(li);
-                });
-                window.deleteNote = (id) => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', notesColName, id));
-            }, () => loader.classList.add('hidden'));
+        // --- GESTURES & MODAL HELPERS ---
+        window.openModal = (dayData) => {
+            editingDayId = dayData?.id || null;
+            document.getElementById('day-modal').classList.remove('hidden');
+            document.getElementById('day-name-input').value = dayData?.title || '';
+            document.getElementById('day-desc-input').value = dayData?.description || '';
+            document.getElementById('day-date-input').value = dayData?.dateString || '';
+            currentStages = dayData?.stages || [];
+            renderStages();
         };
-
-        document.getElementById('add-note-btn').onclick = async () => {
-            const txt = document.getElementById('note-input').value.trim();
-            if(!txt || !currentDayId) return;
-            document.getElementById('note-input').value = '';
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', notesColName), { dayId: currentDayId, text: txt, createdAt: serverTimestamp() });
-        };
-        
-        let mapInstance = null;
-        let carMarker = null;
-        let routePolyline = null;
-        let isPlaying = false;
-        let animInterval = null; 
-        let videoSpeed = 1; 
-        
-        const carIcon = L.divIcon({
-            html: '<div class="bg-orange-500 text-white p-1 rounded-full shadow-lg border-2 border-white flex items-center justify-center w-8 h-8"><i class="ph-fill ph-car-profile text-lg"></i></div>',
-            className: 'car-icon-div',
-            iconSize: [32, 32],
-            iconAnchor: [16, 16]
-        });
-
-        const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-        
-        window.setVideoSpeed = (speed) => {
-            videoSpeed = speed;
-            document.querySelectorAll('.speed-btn').forEach(btn => {
-                btn.classList.remove('bg-white', 'text-black');
-                btn.classList.add('hover:bg-white/30', 'text-white'); 
+        window.closeModal = () => document.getElementById('day-modal').classList.add('hidden');
+        const renderStages = () => {
+            const container = document.getElementById('stages-container');
+            container.innerHTML = '';
+            currentStages.forEach((s, i) => {
+                const div = document.createElement('div');
+                div.className = "p-3 bg-stone-50 border rounded-lg relative";
+                div.innerHTML = `<span class="text-[9px] font-bold text-stone-300">TAPPA ${i+1}</span><input type="text" value="${s.name}" onchange="currentStages[${i}].name=this.value" class="w-full text-sm font-bold bg-transparent border-b outline-none">`;
+                container.appendChild(div);
             });
-            const btnId = speed === 0.5 ? 'btn-speed-05' : (speed === 2 ? 'btn-speed-2' : 'btn-speed-1');
-            const activeBtn = document.getElementById(btnId);
-            if(activeBtn) {
-                activeBtn.classList.remove('hover:bg-white/30', 'text-white');
-                activeBtn.classList.add('bg-white', 'text-black');
-            }
         };
-        
-        window.toggleVideoFullscreen = () => {
-            const container = document.getElementById('map-video-container');
-            const isFakeFullscreen = container.classList.contains('fixed');
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else if (isFakeFullscreen) {
-                 container.classList.remove('fixed', 'inset-0', 'z-[60]', 'h-screen', 'w-screen', 'rounded-none');
-                 container.classList.add('h-64', 'rounded-xl', 'mb-4');
-                 if(mapInstance) setTimeout(() => { mapInstance.invalidateSize(); }, 100);
-            } else {
-                container.requestFullscreen().catch(err => {
-                    console.warn("Native fullscreen failed, using CSS fallback:", err);
-                    container.classList.remove('h-64', 'rounded-xl', 'mb-4');
-                    container.classList.add('fixed', 'inset-0', 'z-[60]', 'h-screen', 'w-screen', 'rounded-none');
-                    if(mapInstance) setTimeout(() => { mapInstance.invalidateSize(); }, 100);
-                });
-            }
+        window.addStageUI = () => { currentStages.push({ name: '', start: '', end: '', pause: '', driveTime: 0 }); renderStages(); };
+        document.getElementById('confirm-save-btn').onclick = async () => {
+            const payload = { title: document.getElementById('day-name-input').value, description: document.getElementById('day-desc-input').value, dateString: document.getElementById('day-date-input').value, stages: currentStages, updatedAt: serverTimestamp() };
+            if(editingDayId) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, editingDayId), payload);
+            else { payload.createdAt = serverTimestamp(); await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), payload); }
+            closeModal();
         };
 
-        document.addEventListener('fullscreenchange', () => {
-             if(mapInstance) {
-                 setTimeout(() => { mapInstance.invalidateSize(); }, 100);
-             }
-        });
-
-        window.playTravelVideo = async () => {
-            const container = document.getElementById('map-video-container');
-            const overlay = document.getElementById('video-overlay-msg');
-            const statusText = document.getElementById('video-status-text');
-            const btn = document.getElementById('play-video-btn');
-
-            if (isPlaying) return;
-            isPlaying = true;
-            btn.classList.add('opacity-50', 'cursor-not-allowed');
-            container.classList.remove('hidden');
-            
-            if (!mapInstance) {
-                mapInstance = L.map('travel-video-map', { zoomControl: false }).setView([41.9028, 12.4964], 5);
-                L.control.zoom({ position: 'bottomright' }).addTo(mapInstance); 
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-                    subdomains: 'abcd',
-                    maxZoom: 20
-                }).addTo(mapInstance);
-            }
-
-            if (carMarker) mapInstance.removeLayer(carMarker);
-            if (routePolyline) mapInstance.removeLayer(routePolyline);
-            overlay.classList.remove('hidden');
-            statusText.textContent = "Analisi tappe...";
-
-            const allStages = [];
-            cachedDays.sort((a,b) => a.chronoId - b.chronoId).forEach(day => {
-                 if(day.stages) day.stages.forEach(s => {
-                     if (s.name) {
-                         let query = s.name;
-                         if (day.title) query += `, ${day.title}`;
-                         allStages.push({ query: query, name: s.name });
-                     }
-                 });
-            });
-
-            if (allStages.length < 2) {
-                statusText.textContent = "Aggiungi almeno 2 tappe per il video!";
-                setTimeout(() => { overlay.classList.add('hidden'); isPlaying = false; btn.classList.remove('opacity-50', 'cursor-not-allowed'); }, 2000);
-                return;
-            }
-
-            const coords = [];
-            statusText.textContent = `Geocoding 0/${allStages.length}...`;
-            for (let i = 0; i < allStages.length; i++) {
-                const stage = allStages[i];
-                statusText.textContent = `Trovo: ${stage.name}...`;
-                try {
-                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(stage.query)}&limit=1`);
-                    if(res.ok) {
-                        const data = await res.json();
-                        if(data && data.length > 0) {
-                            coords.push([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
-                        }
-                    }
-                } catch(e) { console.error(e); }
-                await sleep(800); 
-            }
-
-            if (coords.length < 2) {
-                statusText.textContent = "Impossibile trovare coordinate sufficienti.";
-                setTimeout(() => { overlay.classList.add('hidden'); isPlaying = false; btn.classList.remove('opacity-50', 'cursor-not-allowed'); }, 2000);
-                return;
-            }
-
-            statusText.textContent = "Calcolo percorso stradale...";
-            let pathPoints = [];
-            const osrmCoords = coords.map(c => `${c[1]},${c[0]}`).join(';');
-            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${osrmCoords}?overview=full&geometries=geojson`;
-
-            try {
-                const routeRes = await fetch(osrmUrl);
-                if (routeRes.ok) {
-                    const routeData = await routeRes.json();
-                    if (routeData.routes && routeData.routes.length > 0) {
-                        pathPoints = routeData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-                    }
-                }
-            } catch(e) { console.warn("OSRM failed, falling back to straight lines"); }
-            
-            if (pathPoints.length === 0) {
-                 if (coords.length > 1) {
-                    for (let i = 0; i < coords.length - 1; i++) {
-                        const start = coords[i];
-                        const end = coords[i+1];
-                        const steps = 100; 
-                        for (let j = 0; j <= steps; j++) {
-                            const lat = start[0] + (end[0] - start[0]) * (j / steps);
-                            const lng = start[1] + (end[1] - start[1]) * (j / steps);
-                            pathPoints.push([lat, lng]);
-                        }
-                    }
-                } else if (coords.length === 1) {
-                    pathPoints.push(coords[0]);
-                }
-            }
-
-            let totalDist = 0;
-            const dists = [0]; 
-            for (let i = 0; i < pathPoints.length - 1; i++) {
-                const p1 = L.latLng(pathPoints[i]);
-                const p2 = L.latLng(pathPoints[i+1]);
-                const d = p1.distanceTo(p2);
-                totalDist += d;
-                dists.push(totalDist);
-            }
-
-            statusText.textContent = "Pronti a partire!";
-            await sleep(500);
-            overlay.classList.add('hidden');
-            routePolyline = L.polyline(pathPoints, { color: '#fb923c', weight: 4, opacity: 0.8 }).addTo(mapInstance);
-            mapInstance.setView(pathPoints[0], 10); 
-            carMarker = L.marker(pathPoints[0], { icon: carIcon }).addTo(mapInstance);
-            await sleep(2000);
-            const duration = 80000; 
-            const intervalTime = 20; 
-            const baseDistPerStep = totalDist / (duration / intervalTime);
-            let traveled = 0;
-            if (animInterval) clearInterval(animInterval);
-            animInterval = setInterval(() => {
-                traveled += baseDistPerStep * videoSpeed;
-                if (traveled >= totalDist) {
-                    carMarker.setLatLng(pathPoints[pathPoints.length - 1]);
-                    clearInterval(animInterval);
-                    isPlaying = false;
-                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    return;
-                }
-                let idx = 0;
-                for (let i = 0; i < dists.length - 1; i++) {
-                    if (traveled >= dists[i] && traveled < dists[i+1]) {
-                        idx = i;
-                        break;
-                    }
-                }
-                const segmentLen = dists[idx+1] - dists[idx];
-                const segmentProgress = traveled - dists[idx];
-                const percent = segmentLen === 0 ? 0 : segmentProgress / segmentLen;
-                const p1 = pathPoints[idx];
-                const p2 = pathPoints[idx+1];
-                const lat = p1[0] + (p2[0] - p1[0]) * percent;
-                const lng = p1[1] + (p2[1] - p1[1]) * percent;
-                const pos = [lat, lng];
-                carMarker.setLatLng(pos);
-                mapInstance.setView(pos, mapInstance.getZoom(), { animate: false }); 
-            }, intervalTime);
-        };
-
-        // --- SWIPE GESTURES FOR MOBILE NAVIGATION ---
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let touchEndX = 0;
-        let touchEndY = 0;
-
-        const mainContent = document.querySelector('main');
-        
-        mainContent.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-        }, { passive: true });
-
-        mainContent.addEventListener('touchmove', (e) => {
-            // Check if current view allows swipe
-            const notesViewHidden = document.getElementById('notes-view').classList.contains('hidden');
-            const loginViewHidden = document.getElementById('login-view').classList.contains('hidden');
-            const logsModalHidden = document.getElementById('logs-modal').classList.contains('hidden');
-            const dayModalHidden = document.getElementById('day-modal').classList.contains('hidden');
-            if (!notesViewHidden || !loginViewHidden || !logsModalHidden || !dayModalHidden) return;
-
-            let x = e.changedTouches[0].screenX;
-            let y = e.changedTouches[0].screenY;
-
-            // Prevent browser back navigation if swiping horizontally
-            if (Math.abs(x - touchStartX) > Math.abs(y - touchStartY)) {
-                if (e.cancelable) e.preventDefault();
-            }
+        // --- SWIPE GESTURES ---
+        let touchStartX = 0, touchStartY = 0;
+        document.querySelector('main').addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: true });
+        document.querySelector('main').addEventListener('touchmove', (e) => {
+            if (!document.getElementById('notes-view').classList.contains('hidden')) return;
+            let x = e.changedTouches[0].screenX, y = e.changedTouches[0].screenY;
+            if (Math.abs(x - touchStartX) > Math.abs(y - touchStartY)) { if (e.cancelable) e.preventDefault(); }
         }, { passive: false });
-
-        mainContent.addEventListener('touchend', (e) => {
-            touchEndX = e.changedTouches[0].screenX;
-            touchEndY = e.changedTouches[0].screenY;
-            handleSwipe();
+        document.querySelector('main').addEventListener('touchend', (e) => {
+            const deltaX = e.changedTouches[0].screenX - touchStartX, deltaY = e.changedTouches[0].screenY - touchStartY;
+            if (Math.abs(deltaX) > 70 && Math.abs(deltaY) < 100 && document.getElementById('notes-view').classList.contains('hidden')) {
+                const tabs = ['days', 'summary', 'expenses', 'budget', 'todo'];
+                let idx = tabs.indexOf(currentTabName);
+                if (deltaX > 0 && idx > 0) switchTab(tabs[idx - 1]);
+                else if (deltaX < 0 && idx < tabs.length - 1) switchTab(tabs[idx + 1]);
+            }
         }, { passive: true });
 
-        const handleSwipe = () => {
-            // Check if user is in a sub-view (detail or login)
-            const notesViewHidden = document.getElementById('notes-view').classList.contains('hidden');
-            const loginViewHidden = document.getElementById('login-view').classList.contains('hidden');
-            const logsModalHidden = document.getElementById('logs-modal').classList.contains('hidden');
-            const dayModalHidden = document.getElementById('day-modal').classList.contains('hidden');
-            
-            if (!notesViewHidden || !loginViewHidden || !logsModalHidden || !dayModalHidden) return;
-
-            const deltaX = touchEndX - touchStartX;
-            const deltaY = touchEndY - touchStartY;
-            const threshold = 70; // min distance for swipe
-            const restraint = 100; // max perpendicular distance
-
-            // Ensure it's a horizontal swipe
-            if (Math.abs(deltaX) > threshold && Math.abs(deltaY) < restraint) {
-                const tabs = ['days', 'summary', 'expenses', 'budget'];
-                let currentIndex = tabs.indexOf(currentTabName);
-                
-                if (deltaX > 0) {
-                    // Swipe Right -> Prev Tab
-                    if (currentIndex > 0) {
-                        switchTab(tabs[currentIndex - 1]);
-                    }
-                } else {
-                    // Swipe Left -> Next Tab
-                    if (currentIndex < tabs.length - 1) {
-                        switchTab(tabs[currentIndex + 1]);
-                    }
-                }
-            }
-        };
+        // Travel Reel placeholder (legacy function to maintain compatibility)
+        window.playTravelVideo = () => alert("Funzionalità non ancora popolata in questa vista.");
 
     </script>
 </body>
