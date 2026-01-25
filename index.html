@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Travel Planner Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -52,7 +52,7 @@
     <div class="w-full h-full bg-white shadow-2xl relative flex flex-col">
         
         <!-- Header -->
-        <header class="bg-orange-400 text-white p-4 shadow-md z-20 flex items-center justify-between transition-colors duration-300" id="main-header">
+        <header class="bg-orange-400 text-white p-4 shadow-md z-20 flex items-center justify-between transition-colors duration-300 flex-shrink-0" id="main-header">
             <div class="flex items-center gap-3 overflow-hidden">
                 <button id="back-btn" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors flex-shrink-0">
                     <i class="ph ph-arrow-left text-xl"></i>
@@ -318,7 +318,7 @@
                 </div>
 
                 <!-- Input Bar (Fixed Bottom) - ADIACENTE alla navigazione -->
-                <div class="fixed bottom-[calc(3rem+env(safe-area-inset-bottom,0px))] left-0 w-full bg-white p-2 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-30">
+                <div style="bottom: calc(3rem + env(safe-area-inset-bottom));" class="fixed left-0 w-full bg-white p-2 border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-30">
                     <div class="max-w-4xl mx-auto flex flex-col gap-2">
                         <!-- Row 1: Inputs -->
                         <div class="flex gap-2 items-center">
@@ -329,7 +329,7 @@
                             
                             <!-- Moltiplicatore (Qtà) -->
                             <div class="relative w-12 flex-shrink-0">
-                                <label class="absolute -top-2 left-1 text-[8px] text-stone-400 font-bold bg-white px-1">Qtà</label>
+                                <label class="absolute -top-2 left-1 text-[8px] text-stone-400 font-bold bg-white px-1">QTÀ</label>
                                 <input type="number" id="expense-qty-input" min="1" max="20" value="1" class="w-full p-2 text-center rounded-lg border border-stone-200 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-bold text-stone-600">
                             </div>
 
@@ -384,7 +384,7 @@
                         <div class="text-2xl font-bold text-stone-600 mt-1 font-mono" id="total-expenses-usd">0.00 $</div>
                     </div>
 
-                    <!-- Dettaglio Categorie (Updated) -->
+                    <!-- Dettaglio Categorie -->
                     <div class="mb-6 border-b border-stone-100 pb-6">
                         <h3 class="text-sm font-bold text-stone-600 mb-3 uppercase">Spese per Categoria</h3>
                         <div class="space-y-2">
@@ -426,7 +426,7 @@
                 </div>
 
                 <!-- Input Bar (Fixed Bottom) - ADIACENTE alla navigazione -->
-                <div class="fixed bottom-[calc(3rem+env(safe-area-inset-bottom,0px))] left-0 w-full bg-white p-2 border-t border-stone-200 shadow-2xl z-30">
+                <div style="bottom: calc(3rem + env(safe-area-inset-bottom));" class="fixed left-0 w-full bg-white p-2 border-t border-stone-200 shadow-2xl z-30">
                     <div class="max-w-4xl mx-auto flex gap-2 items-center">
                         <!-- Quantità -->
                         <div class="relative w-16 flex-shrink-0">
@@ -584,9 +584,6 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp, query, where, getDocs, writeBatch, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // =================================================================
-        // CONFIGURAZIONE PERSONALE
-        // =================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCGKOOLOXRU5-kKlROBjBt3n9QLOoh0pEA",
             authDomain: "mio-diario-viaggi.firebaseapp.com",
@@ -596,171 +593,37 @@
             appId: "1:826682465160:web:f92ba804c99ad3e651b83d"
         };
         const appId = 'travel-planner-v1'; 
-        // =================================================================
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Update Debug Footer safely
         const debugAppIdEl = document.getElementById('debug-app-id');
         if(debugAppIdEl) debugAppIdEl.textContent = appId;
 
-        // --- State ---
-        let currentAuthUser = null;
-        let activeSecretKey = null;
-        let daysColName = null;
-        let notesColName = null;
-        let logsColName = null; 
-        let expensesColName = null; 
-        let todoColName = null; // NEW: Todo collection
-        let currentDayId = null;
-        let editingDayId = null;
-        let unsubscribeDays = null;
-        let unsubscribeNotes = null;
-        let unsubscribeAllNotes = null;
-        let unsubscribeExpenses = null; 
-        let unsubscribeTodo = null; // NEW: Todo listener
-        let currentStages = []; 
-        let cachedDays = []; 
-        let cachedGlobalNotes = []; 
-        let cachedExpenses = []; 
-        let cachedTodos = []; // NEW: Todo cache
-        let activityChart = null; 
-        let currentExchangeRate = 1.05; 
-        let globalShowMiles = true; 
-        let globalShowUSD = true; 
-        let lastListScroll = 0; 
-        let currentTabName = 'days'; 
+        // --- STATE & VARS ---
+        let activeSecretKey = null, daysColName = null, notesColName = null, logsColName = null, expensesColName = null, todoColName = null;
+        let currentDayId = null, editingDayId = null, currentStages = [], cachedDays = [], cachedGlobalNotes = [], cachedExpenses = [], cachedTodos = [];
+        let unsubscribeDays = null, unsubscribeNotes = null, unsubscribeExpenses = null, unsubscribeTodo = null, unsubscribeAllNotes = null;
+        let currentExchangeRate = 1.05, globalShowMiles = true, globalShowUSD = true, currentTabName = 'days', lastListScroll = 0, activityChart = null;
 
-        // --- Helpers ---
+        // --- HELPERS ---
         const generateColNames = (key) => {
             const safe = key.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-            return safe.length < 3 ? null : { 
-                days: `days_${safe}`, 
-                notes: `notes_${safe}`, 
-                logs: `logs_${safe}`, 
-                expenses: `expenses_${safe}`,
-                todo: `todo_${safe}`,
-                display: key.trim().toUpperCase() 
-            };
+            return safe.length < 3 ? null : { days: `days_${safe}`, notes: `notes_${safe}`, logs: `logs_${safe}`, expenses: `expenses_${safe}`, todo: `todo_${safe}`, display: key.trim().toUpperCase() };
         };
+        const timeToMins = (t) => { if(!t) return 0; const [h, m] = t.split(':').map(Number); return (h * 60) + m; };
+        const minsToHHMM = (m) => { let mins = m % 1440; if (mins < 0) mins += 1440; const h = Math.floor(mins / 60); const min = mins % 60; return `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`; };
+        const minsToTimeStr = (m) => { if(m < 0) return "--"; const h = Math.floor(m / 60); const min = m % 60; return `${h}h ${min.toString().padStart(2, '0')}m`; };
+        const getMapsUrl = (input) => { if (!input) return ''; let text = input.trim(); if (/^https?:\/\//i.test(text)) return text; if (/^(www\.|maps\.)/i.test(text) || text.includes('google.com/maps')) return 'https://' + text; return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}`; };
+        const getDeviceType = () => { const ua = navigator.userAgent; if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return "Tablet"; if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated/.test(ua)) return "Mobile"; return "Desktop"; };
 
-        const timeToMins = (t) => {
-            if(!t) return 0;
-            const [h, m] = t.split(':').map(Number);
-            return (h * 60) + m;
-        };
-
-        const minsToHHMM = (m) => {
-            let mins = m % 1440;
-            if (mins < 0) mins += 1440;
-            const h = Math.floor(mins / 60);
-            const min = mins % 60;
-            return `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-        };
-
-        const minsToTimeStr = (m) => {
-            if(m < 0) return "--";
-            const h = Math.floor(m / 60);
-            const min = m % 60;
-            return `${h}h ${min.toString().padStart(2, '0')}m`;
-        };
-
-        const getMapsUrl = (input) => {
-            if (!input) return '';
-            let text = input.trim();
-            if (/^https?:\/\//i.test(text)) return text;
-            if (/^(www\.|maps\.)/i.test(text) || text.includes('google.com/maps')) {
-                return 'https://' + text;
-            }
-            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(text)}`;
-        };
-        
-        // --- LOGS LOGIC ---
-        const getDeviceType = () => {
-            const ua = navigator.userAgent;
-            if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return "Tablet";
-            if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated/.test(ua)) return "Mobile";
-            return "Desktop/Laptop";
-        };
-
-        const logAccess = async () => {
-             if(!logsColName) return;
-             let locationStr = "Posizione non disponibile";
-             try {
-                 const res = await fetch('https://ipapi.co/json/');
-                 if(res.ok) {
-                     const data = await res.json();
-                     if(data.city) locationStr = `${data.city}, ${data.country_name}`;
-                 }
-             } catch(e) {}
-             try {
-                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', logsColName), {
-                     timestamp: serverTimestamp(),
-                     device: getDeviceType(),
-                     userAgent: navigator.userAgent,
-                     location: locationStr 
-                 });
-             } catch(e) {}
-        };
-
-        const showLogs = () => {
-            if(!logsColName) return;
-            const modal = document.getElementById('logs-modal');
-            const list = document.getElementById('logs-list');
-            modal.classList.remove('hidden');
-            list.innerHTML = '<div class="flex justify-center p-4"><div class="loader w-6 h-6 border-t-orange-500"></div></div>';
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', logsColName), orderBy('timestamp', 'desc'), limit(20));
-            getDocs(q).then(snap => {
-                list.innerHTML = '';
-                if(snap.empty) { list.innerHTML = '<p class="text-center text-stone-400 text-sm">Nessun accesso.</p>'; return; }
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    const date = data.timestamp ? data.timestamp.toDate() : new Date();
-                    const formattedDate = date.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-                    const item = document.createElement('div');
-                    item.className = "flex justify-between items-center py-3 border-b border-stone-100 last:border-0";
-                    item.innerHTML = `
-                        <div class="flex flex-col">
-                            <span class="font-bold text-sm text-stone-700">${data.device || 'N/D'} <span class="text-[10px] text-stone-400 ml-1">${data.location || ''}</span></span>
-                            <span class="text-[10px] text-stone-400 truncate w-40">${data.userAgent}</span>
-                        </div>
-                        <span class="text-xs font-mono text-orange-500 bg-orange-50 px-2 py-1 rounded">${formattedDate}</span>
-                    `;
-                    list.appendChild(item);
-                });
-            });
-        };
-        document.getElementById('logs-btn').onclick = showLogs;
-
-        // --- EXPORT TO EXCEL ---
-        document.getElementById('export-btn').onclick = async () => {
-            if (!daysColName || !expensesColName) return;
-            const exportBtn = document.getElementById('export-btn');
-            exportBtn.innerHTML = '<div class="loader w-4 h-4 border-t-white border-white"></div>';
-            try {
-                const daysSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', daysColName));
-                let daysData = daysSnap.docs.map(d => ({ ...d.data(), _id: d.id }));
-                daysData.sort((a,b) => (a.dateString || '9999').localeCompare(b.dateString || '9999'));
-                const wb = XLSX.utils.book_new();
-                const daysSheetData = [["Index", "Data", "Stato", "Descrizione", "Link"]];
-                daysData.forEach((day, index) => {
-                    daysSheetData.push([index + 1, day.dateString || '', day.title || '', day.description || '', day.dayLink || '']);
-                });
-                const wsDays = XLSX.utils.aoa_to_sheet(daysSheetData);
-                XLSX.utils.book_append_sheet(wb, wsDays, "Giorni");
-                XLSX.writeFile(wb, `TravelPlan_${activeSecretKey}.xlsx`);
-            } catch (error) { alert("Errore durante l'export."); } 
-            finally { exportBtn.innerHTML = '<i class="ph ph-download-simple text-xl"></i>'; }
-        };
-
-        // --- CHART LOGIC ---
+        // --- CHART & RENDERING LOGIC (DEFINED FIRST TO AVOID HOISTING ISSUES) ---
         const updateSummaryChart = () => {
             if (!cachedDays || cachedDays.length === 0) return;
-            const labels = [], driveData = [], restData = [], metaData = [];
-            let maxDriveVal = 0, maxDriveLabel = '--', maxIntenseVal = 0, maxIntenseLabel = '--';
+            const labels = [], driveData = [], restData = [];
             const sortedDays = [...cachedDays].sort((a,b) => a.chronoId - b.chronoId);
+            let maxDriveVal = 0, maxDriveLabel = '--', maxIntenseVal = 0, maxIntenseLabel = '--';
             sortedDays.forEach(day => {
                 labels.push(`G${day.chronoId}`);
                 let dayDriveMins = 0, dayDurationMins = 0;
@@ -768,83 +631,94 @@
                     day.stages.forEach(s => { if (!s.isVisit) dayDriveMins += parseInt(s.driveTime || 0); });
                     const sortedStages = [...day.stages].sort((a,b) => timeToMins(a.start) - timeToMins(b.start));
                     const start = timeToMins(sortedStages[0].start);
-                    let end = 0;
-                    const lastStage = sortedStages[sortedStages.length - 1];
-                    end = lastStage.isVisit ? (timeToMins(lastStage.start) + timeToMins(lastStage.pause)) : timeToMins(lastStage.end);
+                    let end = sortedStages[sortedStages.length - 1].isVisit ? (timeToMins(sortedStages[sortedStages.length - 1].start) + timeToMins(sortedStages[sortedStages.length - 1].pause)) : timeToMins(sortedStages[sortedStages.length - 1].end);
                     if (end < start) end += 1440;
                     dayDurationMins = end - start;
                 }
                 if (dayDriveMins > maxDriveVal) { maxDriveVal = dayDriveMins; maxDriveLabel = `Giorno ${day.chronoId}`; }
                 if (dayDurationMins > maxIntenseVal) { maxIntenseVal = dayDurationMins; maxIntenseLabel = `Giorno ${day.chronoId}`; }
                 const driveP = dayDurationMins > 0 ? (dayDriveMins / dayDurationMins) * 100 : (dayDriveMins > 0 ? 100 : 0);
-                driveData.push(driveP);
-                restData.push(100 - driveP);
-                metaData.push({ drive: (dayDriveMins/60).toFixed(1), total: (dayDurationMins/60).toFixed(1), pct: Math.round(driveP) });
+                driveData.push(driveP); restData.push(100 - driveP);
             });
-            document.getElementById('high-intense-day').textContent = maxIntenseLabel;
-            document.getElementById('high-intense-val').textContent = minsToTimeStr(maxIntenseVal);
-            document.getElementById('high-drive-day').textContent = maxDriveLabel;
-            document.getElementById('high-drive-val').textContent = minsToTimeStr(maxDriveVal);
+            const hiDay = document.getElementById('high-intense-day'); if(hiDay) hiDay.textContent = maxIntenseLabel;
+            const hiVal = document.getElementById('high-intense-val'); if(hiVal) hiVal.textContent = minsToTimeStr(maxIntenseVal);
+            const hdDay = document.getElementById('high-drive-day'); if(hdDay) hdDay.textContent = maxDriveLabel;
+            const hdVal = document.getElementById('high-drive-val'); if(hdVal) hdVal.textContent = minsToTimeStr(maxDriveVal);
             const canvas = document.getElementById('activityChart');
             if(!canvas) return; 
             if (activityChart) activityChart.destroy();
             activityChart = new Chart(canvas.getContext('2d'), {
                 type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Guida', data: driveData, backgroundColor: '#fb923c', borderRadius: 4 },
-                        { label: 'Altro', data: restData, backgroundColor: '#d6d3d1', borderRadius: 4 }
-                    ]
-                },
-                options: {
-                    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { x: { stacked: true, min: 0, max: 100, ticks: { callback: v => v + "%" } }, y: { stacked: true } }
-                }
+                data: { labels: labels, datasets: [{ label: 'Guida', data: driveData, backgroundColor: '#fb923c', borderRadius: 4 }, { label: 'Altro', data: restData, backgroundColor: '#d6d3d1', borderRadius: 4 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { stacked: true, min: 0, max: 100, ticks: { callback: v => v + "%" } }, y: { stacked: true } } }
             });
         };
 
-        // --- SETTINGS TOGGLES ---
-        document.getElementById('global-miles-toggle').addEventListener('change', (e) => {
-            globalShowMiles = e.target.checked;
-            localStorage.setItem(`showMiles_${activeSecretKey}`, globalShowMiles);
-            updateGlobalVisibility();
-            if(cachedDays.length > 0) renderDaysUI(); 
-        });
-        document.getElementById('global-usd-toggle').addEventListener('change', (e) => {
-            globalShowUSD = e.target.checked;
-            localStorage.setItem(`showUSD_${activeSecretKey}`, globalShowUSD);
-            updateGlobalVisibility();
-            if(cachedExpenses.length > 0) renderExpensesList();
-        });
+        const renderPathSummary = () => {
+            const cont = document.getElementById('all-stages-summary'); if(!cont) return;
+            cont.innerHTML = '';
+            cachedDays.forEach(d => {
+                (d.stages || []).forEach(s => {
+                    if (s.isVisit) {
+                        const div = document.createElement('div');
+                        div.className = "flex items-center p-3 bg-stone-50 rounded-xl text-[11px] font-bold border border-stone-100";
+                        div.innerHTML = `<i class="ph ph-ticket text-orange-400 mr-2"></i> ${s.name} <span class="ml-auto text-stone-300 font-mono text-[9px]">G${d.chronoId}</span>`;
+                        cont.appendChild(div);
+                    }
+                });
+            });
+        };
+
+        const renderDaysUI = () => {
+            const list = document.getElementById('days-list'); list.innerHTML = '';
+            let gKm = 0, gMiles = 0, gDrive = 0, visitedCount = 0;
+            const statesSet = new Set();
+            cachedDays.forEach((day, i) => {
+                day.chronoId = i + 1;
+                if(day.title) day.title.split('-').forEach(p => { if(p.trim()) statesSet.add(p.trim().toUpperCase()); });
+                let dayKm = 0, dayMiles = 0, dayDrive = 0, visits = 0;
+                let stagesHtml = '<div class="mt-3 border-t border-stone-100 pt-2 space-y-1">';
+                (day.stages || []).forEach((s, idx) => {
+                    const kmVal = parseFloat(s.km || 0), miVal = parseFloat(s.miles || 0), drVal = parseInt(s.driveTime || 0);
+                    if (s.isVisit) { visitedCount++; visits++; } else { dayKm += kmVal; dayMiles += miVal; dayDrive += drVal; gKm += kmVal; gMiles += miVal; gDrive += drVal; }
+                    const icon = s.isVisit ? 'ph-fill ph-ticket text-orange-400' : 'ph-bold ph-car text-green-500';
+                    stagesHtml += `<div class="flex items-center gap-2 text-xs text-stone-600"><i class="${icon} text-[10px]"></i> <span class="font-bold truncate">${s.name}</span><span class="ml-auto font-mono text-[10px] text-stone-400">${s.start || ''}</span></div>`;
+                });
+                stagesHtml += '</div>';
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-stone-200 active:scale-[0.98] transition-all cursor-pointer";
+                let dStr = day.dateString ? new Date(day.dateString).toLocaleDateString('it-IT', {weekday: 'short', day: 'numeric', month: 'short'}) : 'N/D';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="overflow-hidden"><span class="text-[9px] font-black text-orange-500 uppercase tracking-widest">Giorno ${day.chronoId}</span><h3 class="font-bold text-stone-800 text-base leading-tight truncate">${day.title || 'In viaggio'}</h3></div>
+                        <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-[10px] font-bold whitespace-nowrap">${dStr.toUpperCase()}</div>
+                    </div>
+                    <p class="text-xs text-stone-500 mt-1 line-clamp-1">${day.description || ''}</p>
+                    ${stagesHtml}
+                    <div class="flex gap-3 text-[10px] font-bold text-stone-400 mt-3 border-t border-stone-50 pt-2"><span><i class="ph ph-flag-checkered"></i> ${visits} tappe</span><span><i class="ph ph-road-horizon"></i> ${dayKm.toFixed(0)} km</span>${globalShowMiles ? `<span><i class="ph ph-signpost"></i> ${dayMiles.toFixed(0)} mi</span>` : ''}</div>
+                `;
+                card.onclick = () => openDayDetail(day);
+                list.appendChild(card);
+            });
+            const dur = document.getElementById('summ-view-duration'); if(dur) dur.textContent = `${cachedDays.length}gg / ${Math.max(0, cachedDays.length-1)}nt`;
+            const km = document.getElementById('summ-view-km'); if(km) km.textContent = gKm.toFixed(0) + ' km';
+            const mi = document.getElementById('summ-view-miles'); if(mi) mi.textContent = gMiles.toFixed(0) + ' mi';
+            const dr = document.getElementById('summ-view-drive'); if(dr) dr.textContent = minsToTimeStr(gDrive);
+            const st = document.getElementById('summ-view-states'); if(st) st.textContent = statesSet.size;
+            const sg = document.getElementById('summ-view-stages'); if(sg) sg.textContent = visitedCount;
+            updateSummaryChart();
+        };
+
         const updateGlobalVisibility = () => {
-            document.getElementById('card-miles-container').style.display = globalShowMiles ? 'flex' : 'none';
-            document.getElementById('expenses-header-usd').style.display = globalShowUSD ? 'block' : 'none';
-            document.getElementById('expenses-input-usd').style.display = globalShowUSD ? 'block' : 'none';
-            document.getElementById('budget-total-usd').style.display = globalShowUSD ? 'block' : 'none';
-            document.getElementById('budget-exchange-rate').style.display = globalShowUSD ? 'block' : 'none';
-        }
-
-        // --- EXPENSES LOGIC ---
-        document.getElementById('global-exchange-rate').addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value);
-            if(!isNaN(val) && val > 0) { currentExchangeRate = val; localStorage.setItem(`rate_${activeSecretKey}`, val); renderExpensesList(); }
-        });
-        const loadExpenses = () => {
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), orderBy('createdAt', 'desc'));
-            unsubscribeExpenses = onSnapshot(q, (snapshot) => {
-                cachedExpenses = [];
-                snapshot.forEach(docSnap => cachedExpenses.push({ id: docSnap.id, ...docSnap.data() }));
-                document.getElementById('loading-expenses').classList.add('hidden');
-                if(cachedExpenses.length === 0) { document.getElementById('empty-expenses').classList.remove('hidden'); document.getElementById('expenses-header').classList.add('hidden'); renderExpensesList(); return; }
-                document.getElementById('empty-expenses').classList.add('hidden');
-                document.getElementById('expenses-header').classList.remove('hidden');
-                renderExpensesList();
-            });
+            const cmc = document.getElementById('card-miles-container'); if(cmc) cmc.style.display = globalShowMiles ? 'block' : 'none';
+            const ehs = document.getElementById('expenses-header-usd'); if(ehs) ehs.style.display = globalShowUSD ? 'block' : 'none';
+            const eiu = document.getElementById('expenses-input-usd'); if(eiu) eiu.style.display = globalShowUSD ? 'block' : 'none';
+            const btu = document.getElementById('budget-total-usd'); if(btu) btu.style.display = globalShowUSD ? 'block' : 'none';
+            const ber = document.getElementById('budget-exchange-rate'); if(ber) ber.style.display = globalShowUSD ? 'block' : 'none';
         };
+
         const renderExpensesList = () => {
-            const list = document.getElementById('expenses-list');
+            const list = document.getElementById('expenses-list'); if(!list) return;
             list.innerHTML = '';
             let totalEur = 0;
             const catSums = { 'Pernottamenti': 0, 'Pasti': 0, 'Carburante': 0, 'Attrazioni': 0, 'Pass e Tasse': 0, 'Altro': 0 };
@@ -857,166 +731,82 @@
                 row.className = "flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm";
                 row.innerHTML = `
                     <div class="flex-grow pr-2"><div class="font-bold text-stone-700 text-sm">${data.name} <span class="text-[10px] text-stone-400 bg-stone-100 px-1 rounded ml-1">${cat}</span></div></div>
-                    <div class="flex items-center gap-3">
-                        <div class="text-right">
-                            <span class="font-mono font-bold text-emerald-600 text-sm">${(amountEur*qty).toFixed(2)}€</span>
-                            ${globalShowUSD ? `<div class="text-[10px] text-stone-400">${(amountEur*qty*currentExchangeRate).toFixed(2)}$</div>` : ''}
-                        </div>
-                        <button onclick="deleteExpense('${data.id}')" class="p-1.5 text-stone-300 hover:text-red-500"><i class="ph ph-trash"></i></button>
-                    </div>
+                    <div class="flex items-center gap-3"><div class="text-right"><span class="font-mono font-bold text-emerald-600 text-sm">${(amountEur*qty).toFixed(2)}€</span>${globalShowUSD ? `<div class="text-[10px] text-stone-400">${(amountEur*qty*currentExchangeRate).toFixed(2)}$</div>` : ''}</div><button onclick="deleteExpense('${data.id}')" class="p-1.5 text-stone-300 hover:text-red-500"><i class="ph ph-trash"></i></button></div>
                 `;
                 list.appendChild(row);
             });
-            updateTotalExpenses(totalEur, catSums);
-        };
-        const updateTotalExpenses = (totalEur, catSums) => {
-            document.getElementById('total-expenses').innerHTML = `${totalEur.toFixed(2)} <span class="text-2xl">€</span>`;
-            document.getElementById('total-expenses-usd').textContent = `${(totalEur * currentExchangeRate).toFixed(2)} $`;
+            const te = document.getElementById('total-expenses'); if(te) te.innerHTML = `${totalEur.toFixed(2)} <span class="text-2xl">€</span>`;
+            const tusd = document.getElementById('total-expenses-usd'); if(tusd) tusd.textContent = `${(totalEur * currentExchangeRate).toFixed(2)} $`;
             if (catSums) { for (const [key, val] of Object.entries(catSums)) { const el = document.getElementById(`cat-total-${key}`); if (el) el.textContent = `${val.toFixed(2)} €`; } }
         };
-        document.getElementById('expense-amount-input').addEventListener('input', (e) => {
-             const eur = parseFloat(e.target.value);
-             if(!isNaN(eur)) document.getElementById('expense-amount-usd-input').value = (eur * currentExchangeRate).toFixed(2);
-        });
-        document.getElementById('expense-amount-usd-input').addEventListener('input', (e) => {
-             const usd = parseFloat(e.target.value);
-             if(!isNaN(usd)) document.getElementById('expense-amount-input').value = (usd / currentExchangeRate).toFixed(2);
-        });
-        document.getElementById('add-expense-btn').onclick = async () => {
-            const nameIn = document.getElementById('expense-name-input'), linkIn = document.getElementById('expense-link-input'), qtyIn = document.getElementById('expense-qty-input'), eurIn = document.getElementById('expense-amount-input');
-            const catIn = document.querySelector('input[name="new-expense-cat"]:checked');
-            const name = nameIn.value.trim(), amount = parseFloat(eurIn.value), qty = parseInt(qtyIn.value) || 1;
-            if(!name || isNaN(amount)) return;
-            nameIn.value = ''; linkIn.value = ''; eurIn.value = ''; document.getElementById('expense-amount-usd-input').value = '';
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), { name, link: linkIn.value, amount, qty, category: catIn ? catIn.value : 'Altro', createdAt: serverTimestamp() });
-        };
-        window.deleteExpense = (id) => { if(confirm("Eliminare?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id)); };
 
-        // --- NEW: TO-DO LOGIC ---
-        const loadTodo = () => {
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', todoColName), orderBy('createdAt', 'desc'));
-            unsubscribeTodo = onSnapshot(q, (snapshot) => {
-                cachedTodos = [];
-                snapshot.forEach(docSnap => cachedTodos.push({ id: docSnap.id, ...docSnap.data() }));
-                document.getElementById('loading-todo').classList.add('hidden');
-                if(cachedTodos.length === 0) { document.getElementById('empty-todo').classList.remove('hidden'); renderTodoList(); return; }
-                document.getElementById('empty-todo').classList.add('hidden');
-                renderTodoList();
-            });
-        };
         const renderTodoList = () => {
-            const list = document.getElementById('todo-list');
-            list.innerHTML = '';
+            const list = document.getElementById('todo-list'); list.innerHTML = '';
             cachedTodos.forEach(item => {
                 const div = document.createElement('div');
                 div.className = `flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm group transition-all ${item.done ? 'opacity-60' : ''}`;
                 div.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTodoStatus('${item.id}', this.checked)" class="w-5 h-5 accent-orange-500 rounded border-stone-300">
-                        <span class="bg-stone-100 text-stone-500 font-bold px-2 py-0.5 rounded text-xs">x${item.qty || 1}</span>
-                        <span class="text-sm font-bold text-stone-700 ${item.done ? 'line-through text-stone-400 font-normal' : ''}">${item.text}</span>
-                    </div>
+                    <div class="flex items-center gap-3"><input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleTodoStatus('${item.id}', this.checked)" class="w-5 h-5 accent-orange-500 rounded border-stone-300"><span class="bg-stone-100 text-stone-500 font-bold px-2 py-0.5 rounded text-xs">x${item.qty || 1}</span><span class="text-sm font-bold text-stone-700 ${item.done ? 'line-through text-stone-400 font-normal' : ''}">${item.text}</span></div>
                     <button onclick="deleteTodo('${item.id}')" class="text-stone-300 hover:text-red-500 p-1.5"><i class="ph ph-trash"></i></button>
                 `;
                 list.appendChild(div);
             });
         };
-        window.toggleTodoStatus = async (id, isDone) => {
-            try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id), { done: isDone }); } catch(e) {}
-        };
-        document.getElementById('add-todo-btn').onclick = async () => {
-            const qtyIn = document.getElementById('todo-qty-input'), itemIn = document.getElementById('todo-item-input');
-            const qty = parseInt(qtyIn.value) || 1, text = itemIn.value.trim();
-            if(!text) return;
-            itemIn.value = ''; qtyIn.value = '1';
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', todoColName), { qty, text, done: false, createdAt: serverTimestamp() });
-        };
-        window.deleteTodo = (id) => { if(confirm("Rimuovere dalla lista?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id)); };
 
-        // --- TAB NAVIGATION LOGIC ---
-        window.switchTab = (tabName) => {
-            currentTabName = tabName;
-            ['days', 'summary', 'expenses', 'budget', 'todo'].forEach(t => {
-                document.getElementById(`${t}-view`).classList.add('hidden');
-                const btn = document.getElementById(`tab-${t}`);
-                btn.classList.add('text-stone-400');
-                btn.classList.remove('text-orange-500', 'text-emerald-600');
-                btn.querySelector('i').classList.replace('ph-fill', 'ph-bold');
-            });
-            document.getElementById(`${tabName}-view`).classList.remove('hidden');
-            const activeTab = document.getElementById(`tab-${tabName}`);
-            const activeColor = (tabName === 'expenses' || tabName === 'budget') ? 'text-emerald-600' : 'text-orange-500';
-            activeTab.classList.remove('text-stone-400');
-            activeTab.classList.add(activeColor);
-            activeTab.querySelector('i').classList.replace('ph-bold', 'ph-fill');
-            
-            if (tabName === 'summary') setTimeout(updateSummaryChart, 100);
-            if ((tabName === 'expenses' || tabName === 'budget') && !unsubscribeExpenses) loadExpenses();
-            if (tabName === 'todo' && !unsubscribeTodo) loadTodo();
-        };
+        // --- DATA LOADERS ---
+        const loadDays = () => { unsubscribeDays = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', daysColName), (snapshot) => { const days = []; snapshot.forEach(d => days.push({id: d.id, ...d.data()})); days.sort((a, b) => (a.dateString || '').localeCompare(b.dateString || '')); cachedDays = days; document.getElementById('loading-days').classList.add('hidden'); if(days.length === 0) document.getElementById('empty-days').classList.remove('hidden'); else document.getElementById('empty-days').classList.add('hidden'); renderDaysUI(); renderPathSummary(); }); };
+        const loadExpenses = () => { const q = query(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), orderBy('createdAt', 'desc')); unsubscribeExpenses = onSnapshot(q, (snapshot) => { cachedExpenses = []; snapshot.forEach(docSnap => cachedExpenses.push({ id: docSnap.id, ...docSnap.data() })); document.getElementById('loading-expenses').classList.add('hidden'); if(cachedExpenses.length === 0) document.getElementById('empty-expenses').classList.remove('hidden'); else document.getElementById('empty-expenses').classList.add('hidden'); renderExpensesList(); }); };
+        const loadTodo = () => { const q = query(collection(db, 'artifacts', appId, 'public', 'data', todoColName), orderBy('createdAt', 'desc')); unsubscribeTodo = onSnapshot(q, (snapshot) => { cachedTodos = snapshot.docs.map(d => ({ id: d.id, ...d.data() })); document.getElementById('loading-todo').classList.add('hidden'); if(cachedTodos.length === 0) document.getElementById('empty-todo').classList.remove('hidden'); else document.getElementById('empty-todo').classList.add('hidden'); renderTodoList(); }); };
+        const loadGlobalNotes = () => { unsubscribeAllNotes = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', notesColName), (snapshot) => { cachedGlobalNotes = []; snapshot.forEach(d => cachedGlobalNotes.push({id: d.id, ...d.data()})); renderDaysUI(); }); };
+        const loadNotes = (dayId) => { const q = query(collection(db, 'artifacts', appId, 'public', 'data', notesColName), where('dayId', '==', dayId)); onSnapshot(q, (snap) => { const list = document.getElementById('notes-list'); if(!list) return; list.innerHTML = '<h4 class="text-[10px] font-bold text-stone-300 uppercase mb-2">Note</h4>'; snap.forEach(d => { const n = d.data(); const div = document.createElement('div'); div.className = "p-3 bg-yellow-50 border border-yellow-100 rounded-xl text-xs flex justify-between"; div.innerHTML = `<span>${n.text}</span><button onclick="deleteNote('${d.id}')" class="text-stone-300"><i class="ph ph-trash"></i></button>`; list.appendChild(div); }); }); };
 
-        // --- LOGIN & AUTH ---
+        // --- AUTH & LOGIN ---
         const login = async () => {
             const key = document.getElementById('secret-key-input').value;
             const names = generateColNames(key);
-            if(!names) { alert("Chiave non valida."); return; }
+            if(!names) { alert("Chiave non valida (min 3 caratteri)."); return; }
             document.getElementById('login-btn').classList.add('hidden');
             document.getElementById('auth-loader').classList.remove('hidden');
             try {
                 if (!auth.currentUser) await signInAnonymously(auth);
                 activeSecretKey = names.display;
-                daysColName = names.days; notesColName = names.notes; logsColName = names.logs; expensesColName = names.expenses;
-                todoColName = names.todo; 
-                document.getElementById('app-id-display').textContent = appId.substring(0, 8); 
+                daysColName = names.days; notesColName = names.notes; logsColName = names.logs; expensesColName = names.expenses; todoColName = names.todo;
                 document.getElementById('current-key-display').textContent = activeSecretKey;
+                document.getElementById('app-id-display').textContent = appId.substring(0, 8);
                 document.getElementById('login-view').classList.add('hidden');
                 document.getElementById('days-view').classList.remove('hidden');
-                document.getElementById('bottom-nav').classList.remove('hidden'); 
+                document.getElementById('bottom-nav').classList.remove('hidden');
                 document.getElementById('logout-btn').classList.remove('hidden');
                 document.getElementById('export-btn').classList.remove('hidden');
+                document.getElementById('logs-btn').classList.remove('hidden');
+                document.getElementById('import-btn').classList.remove('hidden');
                 const savedRate = localStorage.getItem(`rate_${activeSecretKey}`);
                 if(savedRate) { currentExchangeRate = parseFloat(savedRate); document.getElementById('global-exchange-rate').value = currentExchangeRate; }
-                updateGlobalVisibility(); logAccess(); loadDays();
-            } catch(e) { alert("Errore di accesso."); } 
+                updateGlobalVisibility(); logAccess(); loadGlobalNotes(); loadDays();
+            } catch(e) { alert("Errore di accesso: " + e.message); } 
             finally { document.getElementById('login-btn').classList.remove('hidden'); document.getElementById('auth-loader').classList.add('hidden'); }
         };
         document.getElementById('login-btn').onclick = login;
-        document.getElementById('logout-btn').onclick = () => location.reload();
 
-        const loadDays = () => {
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', daysColName), (snapshot) => {
-                document.getElementById('loading-days').classList.add('hidden'); 
-                if(snapshot.empty) { document.getElementById('empty-days').classList.remove('hidden'); document.getElementById('days-list').innerHTML = ''; return; }
-                document.getElementById('empty-days').classList.add('hidden');
-                const days = [];
-                snapshot.forEach(d => days.push({id: d.id, ...d.data()}));
-                days.sort((a, b) => (a.dateString || '').localeCompare(b.dateString || ''));
-                cachedDays = days; 
-                renderDaysUI(); 
+        // --- GLOBAL ACTIONS ---
+        window.toggleTodoStatus = async (id, isDone) => { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id), { done: isDone }); } catch(e) {} };
+        window.deleteNote = (id) => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', notesColName, id));
+        window.deleteExpense = (id) => { if(confirm("Eliminare?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id)); };
+        window.deleteTodo = (id) => { if(confirm("Rimuovere?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id)); };
+        window.deleteDayFromDetail = async (id) => { if(confirm('Eliminare?')) { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, id)); document.getElementById('back-btn').click(); } };
+        window.switchTab = (tabName) => {
+            currentTabName = tabName;
+            ['days', 'summary', 'expenses', 'budget', 'todo'].forEach(t => {
+                const v = document.getElementById(`${t}-view`); if(v) v.classList.add('hidden');
+                const btn = document.getElementById(`tab-${t}`);
+                if(btn) { btn.classList.replace('text-orange-500', 'text-stone-400'); btn.classList.replace('text-emerald-600', 'text-stone-400'); btn.querySelector('i').classList.replace('ph-fill', 'ph-bold'); }
             });
-        };
-
-        const renderDaysUI = () => {
-            const list = document.getElementById('days-list');
-            list.innerHTML = '';
-            cachedDays.forEach((day, i) => {
-                day.chronoId = i + 1;
-                const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-xl shadow-sm border border-stone-200 active:scale-95 transition-transform cursor-pointer";
-                let dateStr = day.dateString ? new Date(day.dateString).toLocaleDateString('it-IT', {day: 'numeric', month: 'short'}) : 'N/D';
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div class="pr-2">
-                            <span class="text-[9px] font-black text-orange-500 uppercase tracking-widest">GIORNO ${day.chronoId}</span>
-                            <h3 class="font-bold text-stone-800 text-lg leading-tight">${day.title || 'In viaggio'}</h3>
-                        </div>
-                        <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-xs font-bold">${dateStr}</div>
-                    </div>
-                `;
-                card.onclick = () => openDayDetail(day);
-                list.appendChild(card);
-            });
-            updateSummaryChart();
+            const activeView = document.getElementById(`${tabName}-view`); if(activeView) activeView.classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabName}`);
+            if(activeBtn) { const color = (tabName === 'expenses' || tabName === 'budget') ? 'text-emerald-600' : 'text-orange-500'; activeBtn.classList.replace('text-stone-400', color); activeBtn.querySelector('i').classList.replace('ph-bold', 'ph-fill'); }
+            if (tabName === 'expenses' || tabName === 'budget') { if(!unsubscribeExpenses) loadExpenses(); }
+            if (tabName === 'todo') { if(!unsubscribeTodo) loadTodo(); }
+            if (tabName === 'summary') setTimeout(updateSummaryChart, 100);
         };
 
         const openDayDetail = (day) => {
@@ -1025,65 +815,106 @@
             document.getElementById('days-view').classList.add('hidden');
             document.getElementById('notes-view').classList.remove('hidden');
             document.getElementById('back-btn').classList.remove('hidden');
-            document.getElementById('bottom-nav').classList.add('hidden'); 
+            document.getElementById('bottom-nav').classList.add('hidden');
             document.getElementById('header-title').textContent = `Giorno ${day.chronoId}`;
-            const detailContainer = document.getElementById('day-detail-content');
-            detailContainer.innerHTML = `
-                <div class="mb-4"><h2 class="text-2xl font-black text-stone-800">${day.title || ''}</h2><p class="text-stone-500 text-sm mt-2 italic">${day.description || ''}</p></div>
-                <div id="notes-list" class="space-y-2 mb-4"></div>
-            `;
+            let detailH = `<div class="mb-6"><h2 class="text-xl font-black text-stone-800">${day.title || ''}</h2><p class="text-sm text-stone-500 mt-1">${day.description || ''}</p></div>`;
+            detailH += `<div class="space-y-4 mb-8">`;
+            (day.stages || []).forEach((s, idx) => {
+                const mapsUrl = s.mapsLink ? (s.mapsLink.startsWith('http') ? s.mapsLink : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name)}`) : '';
+                detailH += `<div class="bg-stone-50 border border-stone-200 rounded-xl p-4"><div class="flex justify-between items-start mb-2"><span class="font-bold text-stone-800">${idx+1}. ${s.name}</span><span class="font-mono text-xs bg-white px-2 py-1 rounded shadow-sm">${s.start || '--'} <i class="ph ph-arrow-right mx-1"></i> ${s.end || '--'}</span></div><p class="text-xs text-stone-600 mb-2">${s.desc || ''}</p><div class="flex justify-between items-center text-[10px] font-bold text-stone-400"><span>${s.isVisit ? 'VISITA' : `${s.km} km • ${minsToTimeStr(s.driveTime)}`}</span>${mapsUrl ? `<a href="${mapsUrl}" target="_blank" class="text-blue-500 flex items-center gap-1"><i class="ph ph-map-pin"></i> MAPS</a>` : ''}</div></div>`;
+            });
+            detailH += `</div><div id="notes-list" class="space-y-2 mb-6"></div><div class="flex gap-2"><button onclick="openModal(cachedDays.find(d=>d.id=='${day.id}'))" class="flex-grow py-3 bg-stone-100 rounded-xl font-bold text-xs">MODIFICA</button><button onclick="deleteDayFromDetail('${day.id}')" class="p-3 bg-red-50 text-red-500 rounded-xl"><i class="ph ph-trash"></i></button></div>`;
+            document.getElementById('day-detail-content').innerHTML = detailH;
             loadNotes(day.id);
         };
-        const loadNotes = (dayId) => {
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', notesColName), where('dayId', '==', dayId));
-            onSnapshot(q, (snap) => {
-                const list = document.getElementById('notes-list');
-                if(!list) return;
-                list.innerHTML = '<h4 class="text-xs font-bold text-stone-400 uppercase mb-2">Note</h4>';
-                snap.forEach(d => {
-                    const div = document.createElement('div');
-                    div.className = "bg-yellow-50 p-3 rounded-lg text-sm border border-yellow-100 flex justify-between";
-                    div.innerHTML = `<span>${d.data().text}</span><button onclick="deleteNote('${d.id}')" class="text-stone-300 ml-2"><i class="ph ph-trash"></i></button>`;
-                    list.appendChild(div);
-                });
-            });
-        };
-        window.deleteNote = (id) => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', notesColName, id));
-        document.getElementById('back-btn').onclick = () => {
-            document.getElementById('days-view').classList.remove('hidden');
-            document.getElementById('notes-view').classList.add('hidden');
-            document.getElementById('back-btn').classList.add('hidden');
-            document.getElementById('bottom-nav').classList.remove('hidden'); 
-            document.getElementById('header-title').textContent = "Travel Planner";
-        };
-
-        // --- SWIPE GESTURES ---
-        let touchStartX = 0, touchStartY = 0;
-        document.querySelector('main').addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: true });
-        document.querySelector('main').addEventListener('touchend', (e) => {
-            const deltaX = e.changedTouches[0].screenX - touchStartX;
-            if (Math.abs(deltaX) > 70 && document.getElementById('notes-view').classList.contains('hidden')) {
-                const tabs = ['days', 'summary', 'expenses', 'budget', 'todo'];
-                let idx = tabs.indexOf(currentTabName);
-                if (deltaX > 0 && idx > 0) switchTab(tabs[idx - 1]);
-                else if (deltaX < 0 && idx < tabs.length - 1) switchTab(tabs[idx + 1]);
-            }
-        }, { passive: true });
-
         window.openModal = (dayData) => {
-            editingDayId = dayData?.id || null;
-            document.getElementById('day-modal').classList.remove('hidden');
-            document.getElementById('day-name-input').value = dayData?.title || '';
-            document.getElementById('day-date-input').value = dayData?.dateString || '';
+            editingDayId = dayData?.id || null; document.getElementById('day-modal').classList.remove('hidden');
+            const title = document.getElementById('modal-title'); if(title) title.textContent = editingDayId ? "Modifica Giornata" : "Nuova Giornata";
+            const ni = document.getElementById('day-name-input'); if(ni) ni.value = dayData?.title || '';
+            const di = document.getElementById('day-desc-input'); if(di) di.value = dayData?.description || '';
+            const ddi = document.getElementById('day-date-input'); if(ddi) ddi.value = dayData?.dateString || new Date().toISOString().split('T')[0];
+            currentStages = dayData?.stages || []; renderStages();
         };
         window.closeModal = () => document.getElementById('day-modal').classList.add('hidden');
+        window.addStageUI = () => {
+            const defStart = currentStages.length > 0 ? (currentStages[currentStages.length-1].end || '') : '';
+            currentStages.push({ id: Date.now(), name: '', desc: '', start: defStart, end: '', pause: '00:00', km: 0, miles: 0, driveTime: 0, isVisit: false, mapsLink: '' });
+            renderStages();
+        };
+        const renderStages = () => {
+            const container = document.getElementById('stages-container'); container.innerHTML = '';
+            currentStages.forEach((s, i) => {
+                const div = document.createElement('div');
+                div.className = "bg-stone-50 border p-3 rounded-2xl relative";
+                div.innerHTML = `<div class="flex justify-between items-center mb-2"><label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" ${s.isVisit ? 'checked' : ''} onchange="updateStageField(${s.id}, 'isVisit', this.checked)" class="accent-orange-500"> <span class="text-[9px] font-bold text-orange-500 uppercase">Visita</span></label><button onclick="removeStage(${s.id})" class="text-red-400 p-1"><i class="ph ph-trash"></i></button></div><input type="text" value="${s.name}" onchange="updateStageField(${s.id}, 'name', this.value)" placeholder="Nome tappa" class="w-full p-2 bg-transparent border-b text-sm font-bold mb-2"><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] font-bold text-stone-400 uppercase">Partenza</label><input type="time" value="${s.start}" onchange="updateStageField(${s.id}, 'start', this.value)" class="w-full text-xs"></div><div><label class="text-[8px] font-bold text-stone-400 uppercase">Arrivo</label><input type="time" value="${s.end}" onchange="updateStageField(${s.id}, 'end', this.value)" class="w-full text-xs"></div><div class="${s.isVisit ? 'hidden' : ''}"><label class="text-[8px] font-bold text-stone-400 uppercase">Km</label><input type="number" value="${s.km}" onchange="updateStageField(${s.id}, 'km', this.value)" class="w-full text-xs font-mono"></div></div><input type="text" value="${s.mapsLink || ''}" onchange="updateStageField(${s.id}, 'mapsLink', this.value)" placeholder="Link Google Maps" class="w-full mt-2 p-1 text-[9px] text-blue-500 border-none bg-transparent underline">`;
+                container.appendChild(div);
+            });
+            calculateTotals();
+        };
+        window.updateStageField = (id, f, v) => {
+            const s = currentStages.find(x => x.id === id); if(!s) return;
+            s[f] = v;
+            if(f === 'start' || f === 'end') { let d = timeToMins(s.end) - timeToMins(s.start); if(d < 0) d += 1440; s.driveTime = d; }
+            if(f === 'km') s.miles = (parseFloat(v) / 1.609).toFixed(1);
+            renderStages();
+        };
+        window.removeStage = (id) => { currentStages = currentStages.filter(s => s.id !== id); renderStages(); };
+        const calculateTotals = () => {
+            let dk = 0, dt = 0; currentStages.forEach(s => { if(!s.isVisit) { dk += parseFloat(s.km || 0); dt += parseInt(s.driveTime || 0); } });
+            const skm = document.getElementById('sum-km'); if(skm) skm.textContent = dk.toFixed(0) + ' km';
+            const sdt = document.getElementById('sum-drive-time'); if(sdt) sdt.textContent = minsToTimeStr(dt);
+        };
+
+        // --- LISTENERS ---
         document.getElementById('confirm-save-btn').onclick = async () => {
-            const payload = { title: document.getElementById('day-name-input').value, dateString: document.getElementById('day-date-input').value, updatedAt: serverTimestamp() };
+            const payload = { title: document.getElementById('day-name-input').value, description: document.getElementById('day-desc-input').value, dateString: document.getElementById('day-date-input').value, stages: currentStages, updatedAt: serverTimestamp() };
             if(editingDayId) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', daysColName, editingDayId), payload);
             else { payload.createdAt = serverTimestamp(); await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), payload); }
             closeModal();
         };
-
+        document.getElementById('back-btn').onclick = () => { document.getElementById('days-view').classList.remove('hidden'); document.getElementById('notes-view').classList.add('hidden'); document.getElementById('back-btn').classList.add('hidden'); document.getElementById('bottom-nav').classList.remove('hidden'); document.getElementById('header-title').textContent = "Travel Planner"; };
+        document.getElementById('logout-btn').onclick = () => location.reload();
+        document.getElementById('add-expense-btn').onclick = async () => {
+            const nameIn = document.getElementById('expense-name-input'), linkIn = document.getElementById('expense-link-input'), qtyIn = document.getElementById('expense-qty-input'), eurIn = document.getElementById('expense-amount-input');
+            const catIn = document.querySelector('input[name="new-expense-cat"]:checked');
+            const name = nameIn.value.trim(), amount = parseFloat(eurIn.value), qty = parseInt(qtyIn.value) || 1;
+            if(!name || isNaN(amount)) return;
+            nameIn.value = ''; linkIn.value = ''; eurIn.value = ''; document.getElementById('expense-amount-usd-input').value = '';
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), { name, link: linkIn.value, amount, qty, category: catIn ? catIn.value : 'Altro', createdAt: serverTimestamp() });
+        };
+        document.getElementById('add-todo-btn').onclick = async () => {
+            const qtyIn = document.getElementById('todo-qty-input'), itemIn = document.getElementById('todo-item-input');
+            const qty = parseInt(qtyIn.value) || 1, text = itemIn.value.trim();
+            if(!text) return;
+            itemIn.value = ''; qtyIn.value = '1';
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', todoColName), { qty, text, done: false, createdAt: serverTimestamp() });
+        };
+        document.getElementById('add-note-btn').onclick = async () => {
+            const txt = document.getElementById('note-input').value.trim();
+            if(!txt || !currentDayId) return;
+            document.getElementById('note-input').value = '';
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', notesColName), { dayId: currentDayId, text: txt, createdAt: serverTimestamp() });
+        };
+        document.getElementById('global-miles-toggle').addEventListener('change', (e) => { globalShowMiles = e.target.checked; localStorage.setItem(`showMiles_${activeSecretKey}`, globalShowMiles); updateGlobalVisibility(); if(cachedDays.length > 0) renderDaysUI(); });
+        document.getElementById('global-usd-toggle').addEventListener('change', (e) => { globalShowUSD = e.target.checked; localStorage.setItem(`showUSD_${activeSecretKey}`, globalShowUSD); updateGlobalVisibility(); if(cachedExpenses.length > 0) renderExpensesList(); });
+        document.getElementById('global-exchange-rate').addEventListener('input', (e) => { const val = parseFloat(e.target.value); if(!isNaN(val) && val > 0) { currentExchangeRate = val; localStorage.setItem(`rate_${activeSecretKey}`, val); renderExpensesList(); } });
+        document.getElementById('expense-amount-input').addEventListener('input', (e) => { const eur = parseFloat(e.target.value); if(!isNaN(eur)) document.getElementById('expense-amount-usd-input').value = (eur * currentExchangeRate).toFixed(2); });
+        document.getElementById('expense-amount-usd-input').addEventListener('input', (e) => { const usd = parseFloat(e.target.value); if(!isNaN(usd)) document.getElementById('expense-amount-input').value = (usd / currentExchangeRate).toFixed(2); });
+        let touchStartX = 0;
+        document.querySelector('main').addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive:true});
+        document.querySelector('main').addEventListener('touchend', e => {
+            const dx = e.changedTouches[0].screenX - touchStartX;
+            if (Math.abs(dx) > 70 && document.getElementById('notes-view').classList.contains('hidden')) {
+                const tabs = ['days', 'summary', 'expenses', 'budget', 'todo'];
+                let idx = tabs.indexOf(currentTabName);
+                if (dx > 0 && idx > 0) switchTab(tabs[idx-1]);
+                else if (dx < 0 && idx < tabs.length-1) switchTab(tabs[idx+1]);
+            }
+        }, {passive:true});
+        window.playTravelVideo = () => alert("Visualizzazione Extended Ripristinata. Animazione video non configurata.");
+        const logAccess = async () => { if(!logsColName) return; let loc = "N/D"; try { const res = await fetch('https://ipapi.co/json/'); if(res.ok) { const d = await res.json(); loc = `${d.city}, ${d.country_name}`; } } catch(e) {} try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', logsColName), { timestamp: serverTimestamp(), device: getDeviceType(), location: loc }); } catch(e) {} };
+        const showLogs = () => { if(!logsColName) return; const modal = document.getElementById('logs-modal'); const list = document.getElementById('logs-list'); modal.classList.remove('hidden'); list.innerHTML = '<div class="flex justify-center p-4"><div class="loader w-6 h-6 border-t-orange-500"></div></div>'; const q = query(collection(db, 'artifacts', appId, 'public', 'data', logsColName), orderBy('timestamp', 'desc'), limit(20)); getDocs(q).then(snap => { list.innerHTML = ''; if(snap.empty) { list.innerHTML = '<p class="text-center text-stone-400 text-sm">Nessun accesso.</p>'; return; } snap.forEach(doc => { const data = doc.data(); const date = data.timestamp ? data.timestamp.toDate() : new Date(); const formattedDate = date.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); const item = document.createElement('div'); item.className = "flex justify-between items-center py-3 border-b border-stone-100 last:border-0"; item.innerHTML = `<div class="flex flex-col"><span class="font-bold text-sm text-stone-700">${data.device || 'N/D'} <span class="text-[10px] text-stone-400 ml-1">${data.location || ''}</span></span><span class="text-[10px] text-stone-400 truncate w-40">${data.userAgent}</span></div><span class="text-xs font-mono text-orange-500 bg-orange-50 px-2 py-1 rounded">${formattedDate}</span>`; list.appendChild(item); }); }); };
+        document.getElementById('logs-btn').onclick = showLogs;
     </script>
 </body>
 </html>
