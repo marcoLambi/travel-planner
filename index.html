@@ -42,7 +42,7 @@
         /* Map Button Background Pattern */
         .bg-map-pattern {
             background-color: #e5e7eb;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239ca3af' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239ca3af' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
     </style>
 </head>
@@ -584,6 +584,23 @@
             </div>
         </div>
 
+        <!-- MODAL NOTA (Edit Note) -->
+        <div id="note-modal" class="fixed inset-0 bg-black/60 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                <div class="p-4 border-b border-stone-200 flex justify-between items-center bg-stone-50">
+                    <h3 class="text-lg font-bold text-stone-900">Modifica Nota</h3>
+                    <button onclick="closeNoteModal()" class="p-2 hover:bg-stone-200 rounded-full text-stone-600"><i class="ph ph-x text-xl"></i></button>
+                </div>
+                <div class="p-4">
+                    <textarea id="edit-note-textarea" rows="5" class="w-full p-3 bg-stone-50 border border-stone-300 rounded-xl focus:ring-1 focus:ring-orange-400 outline-none text-black resize-none text-sm"></textarea>
+                </div>
+                <div class="p-4 border-t border-stone-200 bg-white flex justify-end gap-3">
+                    <button onclick="closeNoteModal()" class="px-4 py-2 text-stone-600 hover:bg-stone-100 rounded-lg transition-colors font-bold text-xs">Annulla</button>
+                    <button id="save-note-btn" class="px-6 py-2 bg-orange-400 text-white rounded-lg font-bold shadow-md hover:bg-orange-500 transition-transform active:scale-95 text-xs">Salva</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Script -->
@@ -624,6 +641,7 @@
         let todoColName = null; // NEW: Todo collection
         let currentDayId = null;
         let editingDayId = null;
+        let editingNoteId = null; // NEW State for note editing
         let unsubscribeDays = null;
         let unsubscribeNotes = null;
         let unsubscribeAllNotes = null;
@@ -1194,6 +1212,15 @@
             document.getElementById('note-input').value = '';
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', notesColName), { dayId: currentDayId, text: txt, createdAt: serverTimestamp() });
         };
+        
+        // --- NEW NOTE EDITING HANDLERS ---
+        document.getElementById('save-note-btn').onclick = async () => {
+            const txt = document.getElementById('edit-note-textarea').value.trim();
+            if (editingNoteId && txt) {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', notesColName, editingNoteId), { text: txt });
+            }
+            closeNoteModal();
+        };
 
         document.getElementById('back-btn').onclick = () => { document.getElementById('days-view').classList.remove('hidden'); document.getElementById('notes-view').classList.add('hidden'); document.getElementById('back-btn').classList.add('hidden'); document.getElementById('bottom-nav').classList.remove('hidden'); document.getElementById('header-title').textContent = "Travel Planner"; };
         
@@ -1215,7 +1242,15 @@
         // --- GLOBAL ACTIONS ---
         window.toggleTodoStatus = async (id, isDone) => { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id), { done: isDone }); } catch(e) {} };
         window.deleteNote = (id) => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', notesColName, id));
-        window.editNote = async (id, oldText) => { const newT = prompt("Modifica nota:", oldText); if(newT && newT !== oldText) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', notesColName, id), { text: newT }); };
+        window.editNote = (id, oldText) => { 
+            editingNoteId = id;
+            document.getElementById('edit-note-textarea').value = oldText;
+            document.getElementById('note-modal').classList.remove('hidden');
+        };
+        window.closeNoteModal = () => {
+             document.getElementById('note-modal').classList.add('hidden');
+             editingNoteId = null;
+        };
         window.deleteExpense = (id) => { if(confirm("Eliminare?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id)); };
         window.deleteTodo = (id) => { if(confirm("Rimuovere?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id)); };
         
@@ -1315,9 +1350,13 @@
             const dayModal = document.getElementById('day-modal');
             const notesView = document.getElementById('notes-view');
             const logsModal = document.getElementById('logs-modal');
+            const noteModal = document.getElementById('note-modal'); // ADDED
             
             if (!dayModal.classList.contains('hidden')) {
                 closeModal();
+                history.pushState(null, null, window.location.href);
+            } else if (!noteModal.classList.contains('hidden')) { // ADDED
+                closeNoteModal();
                 history.pushState(null, null, window.location.href);
             } else if (!notesView.classList.contains('hidden')) {
                 document.getElementById('back-btn').click();
