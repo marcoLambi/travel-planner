@@ -124,7 +124,8 @@
                     </div>
                     <!-- NEW: Riga conteggio giorni/notti nel diario -->
                     <div id="diary-duration-line" class="text-xs text-stone-600 font-bold text-center mb-3 hidden"></div>
-                    <div id="days-list" class="space-y-3 max-w-3xl mx-auto"></div>
+                    <!-- WIDTH ADAPTED -->
+                    <div id="days-list" class="space-y-3 w-full mx-auto"></div>
                     
                     <!-- NEW: Export Button (In fondo alla home) -->
                     <div class="mt-8 mb-4 flex justify-center">
@@ -143,7 +144,8 @@
             <!-- VIEW 3: Riepilogo Totale (Stats) -->
             <div id="summary-view" class="absolute inset-0 flex flex-col hidden overflow-hidden pb-0 bg-stone-100">
                 <div class="flex-grow overflow-y-auto custom-scroll p-4 pb-28"> 
-                    <div class="max-w-4xl mx-auto">
+                    <!-- WIDTH ADAPTED -->
+                    <div class="w-full mx-auto">
                         <!-- NEW GLOBAL SETTINGS TOGGLES -->
                         <div class="grid grid-cols-2 gap-2 mb-6">
                             <!-- Miles Toggle -->
@@ -305,8 +307,8 @@
 
             <!-- VIEW 5: SPESE LISTA (Tab 3) -->
             <div id="expenses-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10">
-                <!-- Header Colonne Lista - ADDED ID -->
-                <div id="expenses-header" class="bg-white p-3 shadow-sm border-b border-stone-300 z-20 flex justify-between text-[10px] uppercase font-bold text-stone-600 max-w-4xl mx-auto w-full">
+                <!-- Header Colonne Lista - WIDTH ADAPTED -->
+                <div id="expenses-header" class="bg-white p-3 shadow-sm border-b border-stone-300 z-20 flex justify-between text-[10px] uppercase font-bold text-stone-600 w-full mx-auto">
                     <span class="w-1/3">Voce</span>
                     <div class="flex gap-4 w-2/3 justify-end pr-14">
                         <span>Euro (€)</span>
@@ -321,12 +323,14 @@
                         <i class="ph ph-receipt text-5xl mb-3 text-stone-400"></i>
                         <p class="text-sm">Nessuna spesa registrata.</p>
                     </div>
-                    <div id="expenses-list" class="space-y-2 max-w-4xl mx-auto"></div>
+                    <!-- WIDTH ADAPTED -->
+                    <div id="expenses-list" class="space-y-2 w-full mx-auto"></div>
                 </div>
 
                 <!-- Input Bar (Fixed Bottom) - ADIACENTE alla navigazione -->
                 <div style="bottom: calc(3rem + env(safe-area-inset-bottom));" class="fixed left-0 w-full bg-white p-2 border-t border-stone-300 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-30">
-                    <div class="max-w-4xl mx-auto flex flex-col gap-2">
+                    <!-- WIDTH ADAPTED -->
+                    <div class="w-full mx-auto flex flex-col gap-2">
                         <!-- Row 1: Inputs -->
                         <div class="flex gap-2 items-center">
                             <div class="flex-grow flex gap-1">
@@ -370,7 +374,8 @@
 
             <!-- VIEW 6: BUDGET / TOTALI (Tab 4) -->
             <div id="budget-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10 p-6 overflow-y-auto pb-24">
-                <div class="bg-white p-6 rounded-2xl shadow-xl border border-stone-300 max-w-4xl mx-auto w-full">
+                <!-- WIDTH ADAPTED -->
+                <div class="bg-white p-6 rounded-2xl shadow-xl border border-stone-300 w-full mx-auto">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="p-3 bg-emerald-100 rounded-full text-emerald-600"><i class="ph-fill ph-wallet text-2xl"></i></div>
                         <div>
@@ -419,7 +424,8 @@
 
             <!-- VIEW 7: TO-DO (Tab 5) -->
             <div id="todo-view" class="absolute inset-0 flex flex-col hidden bg-stone-50 z-10">
-                <div class="bg-white p-3 shadow-sm border-b border-stone-300 z-20 flex justify-between text-[10px] uppercase font-bold text-stone-600 max-w-4xl mx-auto w-full">
+                <!-- WIDTH ADAPTED -->
+                <div class="bg-white p-3 shadow-sm border-b border-stone-300 z-20 flex justify-between text-[10px] uppercase font-bold text-stone-600 w-full mx-auto">
                     <span>Lista Cose da Fare / Portare</span>
                 </div>
                 
@@ -429,12 +435,14 @@
                         <i class="ph ph-list-checks text-5xl mb-3 text-stone-400"></i>
                         <p class="text-sm px-10">La tua lista è vuota. Aggiungi qualcosa da non dimenticare!</p>
                     </div>
-                    <div id="todo-list" class="space-y-2 max-w-4xl mx-auto"></div>
+                    <!-- WIDTH ADAPTED -->
+                    <div id="todo-list" class="space-y-2 w-full mx-auto"></div>
                 </div>
 
                 <!-- Input Bar (Fixed Bottom) - ADIACENTE alla navigazione -->
                 <div style="bottom: calc(3rem + env(safe-area-inset-bottom));" class="fixed left-0 w-full bg-white p-2 border-t border-stone-300 shadow-2xl z-30">
-                    <div class="max-w-4xl mx-auto flex gap-2 items-center">
+                    <!-- WIDTH ADAPTED -->
+                    <div class="w-full mx-auto flex gap-2 items-center">
                         <!-- Quantità -->
                         <div class="relative w-16 flex-shrink-0">
                             <label class="absolute -top-2 left-1 text-[8px] text-stone-600 font-bold bg-white px-1">QTÀ</label>
@@ -453,11 +461,13 @@
             <!-- VIEW 4: Dettaglio Giorno -->
             <div id="notes-view" class="absolute inset-0 flex flex-col hidden bg-white z-30">
                 <div class="flex-grow overflow-y-auto custom-scroll" id="notes-list-container">
-                    <div id="day-detail-content" class="p-4 bg-white border-b border-stone-200 shadow-sm pb-24 max-w-4xl mx-auto"></div>
+                    <!-- WIDTH ADAPTED -->
+                    <div id="day-detail-content" class="p-4 bg-white border-b border-stone-200 shadow-sm pb-24 w-full mx-auto"></div>
                 </div>
                 <!-- Input bar (Fixed Bottom) - ADIACENTE al bordo inferiore (nav nascosta) -->
                 <div class="fixed bottom-0 left-0 w-full p-3 pb-safe bg-stone-100 border-t border-stone-300 flex gap-2 items-center z-40">
-                    <div class="max-w-4xl mx-auto w-full flex gap-2">
+                    <!-- WIDTH ADAPTED -->
+                    <div class="w-full mx-auto flex gap-2">
                         <input type="text" id="note-input" class="flex-grow p-3 rounded-xl border-none focus:ring-2 focus:ring-orange-400 shadow-sm text-black" placeholder="Aggiungi una nota..." autocomplete="off">
                         <button id="add-note-btn" class="bg-orange-400 hover:bg-orange-500 text-white p-3 rounded-xl shadow-md active:scale-95 transition-transform">
                             <i class="ph ph-paper-plane-right text-xl"></i>
