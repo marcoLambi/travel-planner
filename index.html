@@ -125,6 +125,13 @@
                     <!-- NEW: Riga conteggio giorni/notti nel diario -->
                     <div id="diary-duration-line" class="text-xs text-stone-600 font-bold text-center mb-3 hidden"></div>
                     <div id="days-list" class="space-y-3 max-w-3xl mx-auto"></div>
+                    
+                    <!-- NEW: Export Button (In fondo alla home) -->
+                    <div class="mt-8 mb-4 flex justify-center">
+                        <button onclick="exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md flex items-center gap-2 transition-transform active:scale-95 text-sm uppercase tracking-wide">
+                            <i class="ph-bold ph-microsoft-excel text-xl"></i> Esporta Dati Excel
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Pulsante flottante -->
@@ -601,6 +608,51 @@
             </div>
         </div>
 
+        <!-- MODAL SPESA (Edit Expense) - NEW -->
+        <div id="expense-modal" class="fixed inset-0 bg-black/60 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                <div class="p-4 border-b border-stone-200 flex justify-between items-center bg-stone-50">
+                    <h3 class="text-lg font-bold text-stone-900">Modifica Spesa</h3>
+                    <button onclick="closeExpenseModal()" class="p-2 hover:bg-stone-200 rounded-full text-stone-600"><i class="ph ph-x text-xl"></i></button>
+                </div>
+                <div class="p-4 space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Voce</label>
+                        <input type="text" id="edit-expense-name" class="w-full p-2 bg-stone-50 border border-stone-300 rounded-lg focus:ring-1 focus:ring-emerald-400 outline-none text-black text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Link (Opzionale)</label>
+                        <input type="text" id="edit-expense-link" class="w-full p-2 bg-stone-50 border border-stone-300 rounded-lg focus:ring-1 focus:ring-emerald-400 outline-none text-black text-sm">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Importo (€)</label>
+                            <input type="number" step="0.01" id="edit-expense-amount" class="w-full p-2 bg-stone-50 border border-stone-300 rounded-lg focus:ring-1 focus:ring-emerald-400 outline-none text-black text-sm font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Quantità</label>
+                            <input type="number" min="1" id="edit-expense-qty" class="w-full p-2 bg-stone-50 border border-stone-300 rounded-lg focus:ring-1 focus:ring-emerald-400 outline-none text-black text-sm text-center">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Categoria</label>
+                        <select id="edit-expense-cat" class="w-full p-2 bg-stone-50 border border-stone-300 rounded-lg focus:ring-1 focus:ring-emerald-400 outline-none text-black text-sm">
+                            <option value="Pernottamenti">Pernottamenti</option>
+                            <option value="Pasti">Pasti</option>
+                            <option value="Carburante">Carburante</option>
+                            <option value="Attrazioni">Attrazioni</option>
+                            <option value="Pass e Tasse">Pass e Tasse</option>
+                            <option value="Altro">Altro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-stone-200 bg-white flex justify-end gap-3">
+                    <button onclick="closeExpenseModal()" class="px-4 py-2 text-stone-600 hover:bg-stone-100 rounded-lg transition-colors font-bold text-xs">Annulla</button>
+                    <button id="save-expense-btn" class="px-6 py-2 bg-emerald-500 text-white rounded-lg font-bold shadow-md hover:bg-emerald-600 transition-transform active:scale-95 text-xs">Salva</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Script -->
@@ -642,6 +694,7 @@
         let currentDayId = null;
         let editingDayId = null;
         let editingNoteId = null; // NEW State for note editing
+        let editingExpenseId = null; // NEW State for expense editing
         let unsubscribeDays = null;
         let unsubscribeNotes = null;
         let unsubscribeAllNotes = null;
@@ -942,7 +995,10 @@
                             <span class="font-mono font-bold text-emerald-600 text-sm">${(amountEur*qty).toFixed(2)}€</span>
                             ${globalShowUSD ? `<div class="text-[10px] text-stone-500">${(amountEur*qty*currentExchangeRate).toFixed(2)}$</div>` : ''}
                         </div>
-                        <button onclick="deleteExpense('${data.id}')" class="p-1.5 text-stone-300 hover:text-red-500"><i class="ph ph-trash"></i></button>
+                        <div class="flex gap-1">
+                            <button onclick="editExpense('${data.id}')" class="p-1.5 text-stone-300 hover:text-blue-500"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button onclick="deleteExpense('${data.id}')" class="p-1.5 text-stone-300 hover:text-red-500"><i class="ph ph-trash"></i></button>
+                        </div>
                     </div>
                 `;
                 list.appendChild(row);
@@ -1004,6 +1060,10 @@
             document.getElementById('notes-view').classList.remove('hidden');
             document.getElementById('back-btn').classList.remove('hidden');
             document.getElementById('bottom-nav').classList.add('hidden'); 
+            
+            // Format date
+            let dStr = day.dateString ? new Date(day.dateString).toLocaleDateString('it-IT', {weekday: 'short', day: 'numeric', month: 'short'}).toUpperCase() : '';
+
             document.getElementById('header-title').textContent = `Giorno ${day.chronoId}`;
             
             // Add Navigation Buttons
@@ -1014,7 +1074,10 @@
             let navHtml = `
                 <div class="flex justify-between items-center mb-4 bg-stone-50 p-2 rounded-xl border border-stone-200">
                     ${prevId ? `<button onclick="openDayDetailById('${prevId}')" class="p-2 text-stone-500 hover:text-orange-500"><i class="ph-bold ph-caret-left text-xl"></i></button>` : `<div class="w-9"></div>`}
-                    <span class="text-sm font-black text-stone-500 uppercase tracking-widest">GIORNO ${day.chronoId}</span>
+                    <div class="text-center">
+                        <span class="block text-sm font-black text-stone-500 uppercase tracking-widest">GIORNO ${day.chronoId}</span>
+                        ${dStr ? `<span class="block text-[10px] font-bold text-stone-400 mt-[-2px]">${dStr}</span>` : ''}
+                    </div>
                     ${nextId ? `<button onclick="openDayDetailById('${nextId}')" class="p-2 text-stone-500 hover:text-orange-500"><i class="ph-bold ph-caret-right text-xl"></i></button>` : `<div class="w-9"></div>`}
                 </div>
             `;
@@ -1222,6 +1285,23 @@
             closeNoteModal();
         };
 
+        // --- NEW EXPENSE EDITING HANDLERS ---
+        document.getElementById('save-expense-btn').onclick = async () => {
+            if(!editingExpenseId) return;
+            const name = document.getElementById('edit-expense-name').value.trim();
+            const link = document.getElementById('edit-expense-link').value.trim();
+            const amount = parseFloat(document.getElementById('edit-expense-amount').value);
+            const qty = parseInt(document.getElementById('edit-expense-qty').value) || 1;
+            const cat = document.getElementById('edit-expense-cat').value;
+            
+            if(!name || isNaN(amount)) { alert("Dati non validi"); return; }
+            
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, editingExpenseId), {
+                name, link, amount, qty, category: cat
+            });
+            closeExpenseModal();
+        };
+
         document.getElementById('back-btn').onclick = () => { document.getElementById('days-view').classList.remove('hidden'); document.getElementById('notes-view').classList.add('hidden'); document.getElementById('back-btn').classList.add('hidden'); document.getElementById('bottom-nav').classList.remove('hidden'); document.getElementById('header-title').textContent = "Travel Planner"; };
         
         document.getElementById('confirm-save-btn').onclick = async () => {
@@ -1239,6 +1319,89 @@
             closeModal();
         };
 
+        // --- EXPORT TO EXCEL ---
+        window.exportToExcel = () => {
+            if(!cachedDays || cachedDays.length === 0) { alert("Nessun dato da esportare."); return; }
+            
+            const wb = XLSX.utils.book_new();
+            
+            // 1. SHEET GIORNI
+            const daysData = [['#', 'Data', 'Titolo', 'Descrizione', 'Link Hotel', 'Link Utile']];
+            cachedDays.forEach(d => {
+                daysData.push([
+                    d.chronoId,
+                    d.dateString,
+                    d.title,
+                    d.description,
+                    d.dayLink,
+                    d.usefulLink
+                ]);
+            });
+            const wsDays = XLSX.utils.aoa_to_sheet(daysData);
+            XLSX.utils.book_append_sheet(wb, wsDays, "Giorni");
+
+            // 2. SHEET TAPPE
+            const stagesData = [['Giorno', 'Start', 'End', 'Nome', 'Km', 'Miglia', 'Tipo', 'Link Maps']];
+            cachedDays.forEach(d => {
+                (d.stages || []).forEach(s => {
+                    stagesData.push([
+                        `Giorno ${d.chronoId}`,
+                        s.start,
+                        s.end,
+                        s.name,
+                        s.km,
+                        s.miles,
+                        s.isVisit ? 'Visita' : 'Guida',
+                        s.mapsLink
+                    ]);
+                });
+            });
+            const wsStages = XLSX.utils.aoa_to_sheet(stagesData);
+            XLSX.utils.book_append_sheet(wb, wsStages, "Tappe");
+
+            // 3. SHEET SPESE
+            const expensesData = [['Voce', 'Categoria', 'Link', 'Prezzo Unit.', 'Qtà', 'Totale €', 'Totale $ (Est.)']];
+            cachedExpenses.forEach(e => {
+                const amt = parseFloat(e.amount || 0);
+                const q = parseInt(e.qty || 1);
+                expensesData.push([
+                    e.name,
+                    e.category,
+                    e.link,
+                    amt,
+                    q,
+                    (amt * q).toFixed(2),
+                    (amt * q * currentExchangeRate).toFixed(2)
+                ]);
+            });
+            const wsExpenses = XLSX.utils.aoa_to_sheet(expensesData);
+            XLSX.utils.book_append_sheet(wb, wsExpenses, "Spese");
+
+            // 4. SHEET TODO
+            const todoData = [['Voce', 'Qtà', 'Stato']];
+            cachedTodos.forEach(t => {
+                todoData.push([
+                    t.text,
+                    t.qty || 1,
+                    t.done ? 'Completato' : 'Da fare'
+                ]);
+            });
+            const wsTodo = XLSX.utils.aoa_to_sheet(todoData);
+            XLSX.utils.book_append_sheet(wb, wsTodo, "Da Fare");
+
+            // 5. SHEET NOTE
+            const notesData = [['Giorno', 'Testo Nota']];
+            cachedGlobalNotes.forEach(n => {
+                const day = cachedDays.find(d => d.id === n.dayId);
+                const dayLabel = day ? `Giorno ${day.chronoId}` : 'Generale';
+                notesData.push([dayLabel, n.text]);
+            });
+            const wsNotes = XLSX.utils.aoa_to_sheet(notesData);
+            XLSX.utils.book_append_sheet(wb, wsNotes, "Note");
+
+            XLSX.writeFile(wb, `TravelPlanner_${activeSecretKey}_${new Date().toISOString().slice(0,10)}.xlsx`);
+        };
+
         // --- GLOBAL ACTIONS ---
         window.toggleTodoStatus = async (id, isDone) => { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id), { done: isDone }); } catch(e) {} };
         window.deleteNote = (id) => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', notesColName, id));
@@ -1251,6 +1414,25 @@
              document.getElementById('note-modal').classList.add('hidden');
              editingNoteId = null;
         };
+        
+        // --- EXPENSE EDIT ACTIONS ---
+        window.editExpense = (id) => {
+            const exp = cachedExpenses.find(e => e.id === id);
+            if(!exp) return;
+            editingExpenseId = id;
+            document.getElementById('edit-expense-name').value = exp.name || '';
+            document.getElementById('edit-expense-link').value = exp.link || '';
+            document.getElementById('edit-expense-amount').value = exp.amount || 0;
+            document.getElementById('edit-expense-qty').value = exp.qty || 1;
+            document.getElementById('edit-expense-cat').value = exp.category || 'Altro';
+            document.getElementById('expense-modal').classList.remove('hidden');
+        };
+
+        window.closeExpenseModal = () => {
+            document.getElementById('expense-modal').classList.add('hidden');
+            editingExpenseId = null;
+        };
+
         window.deleteExpense = (id) => { if(confirm("Eliminare?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id)); };
         window.deleteTodo = (id) => { if(confirm("Rimuovere?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id)); };
         
@@ -1351,12 +1533,16 @@
             const notesView = document.getElementById('notes-view');
             const logsModal = document.getElementById('logs-modal');
             const noteModal = document.getElementById('note-modal'); // ADDED
+            const expenseModal = document.getElementById('expense-modal'); // NEW
             
             if (!dayModal.classList.contains('hidden')) {
                 closeModal();
                 history.pushState(null, null, window.location.href);
             } else if (!noteModal.classList.contains('hidden')) { // ADDED
                 closeNoteModal();
+                history.pushState(null, null, window.location.href);
+            } else if (!expenseModal.classList.contains('hidden')) { // NEW
+                closeExpenseModal();
                 history.pushState(null, null, window.location.href);
             } else if (!notesView.classList.contains('hidden')) {
                 document.getElementById('back-btn').click();
