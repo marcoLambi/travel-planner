@@ -317,7 +317,15 @@
                 </div>
 
                 <!-- Lista Spese -->
-                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-52 w-full" id="expenses-list-container">
+                <div class="flex-grow overflow-y-auto p-4 custom-scroll pb-32 w-full" id="expenses-list-container">
+                    
+                    <!-- ADD EXPENSE BUTTON (Inside scrollable container, at top) - MOVED HERE -->
+                    <div class="p-2 w-full mx-auto z-20 bg-stone-50 mb-2">
+                        <button onclick="openAddExpenseModal()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold shadow-md flex items-center justify-center gap-2 transition-transform active:scale-95 text-sm uppercase tracking-wide">
+                            <i class="ph-bold ph-plus-circle text-xl"></i> Aggiungi Spesa
+                        </button>
+                    </div>
+
                     <div id="loading-expenses" class="hidden flex justify-center mt-10"><div class="loader border-t-emerald-400"></div></div>
                     <div id="empty-expenses" class="hidden flex flex-col items-center justify-center mt-10 text-stone-500">
                         <i class="ph ph-receipt text-5xl mb-3 text-stone-400"></i>
@@ -325,50 +333,6 @@
                     </div>
                     <!-- WIDTH ADAPTED -->
                     <div id="expenses-list" class="space-y-2 w-full mx-auto"></div>
-                </div>
-
-                <!-- Input Bar (Fixed Bottom) - ADIACENTE alla navigazione -->
-                <div style="bottom: calc(3rem + env(safe-area-inset-bottom));" class="fixed left-0 w-full bg-white p-2 border-t border-stone-300 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-30">
-                    <!-- WIDTH ADAPTED -->
-                    <div class="w-full mx-auto flex flex-col gap-2">
-                        <!-- Row 1: Inputs -->
-                        <div class="flex gap-2 items-center">
-                            <div class="flex-grow flex gap-1">
-                                <input type="text" id="expense-name-input" class="w-1/2 p-2 rounded-lg border border-stone-300 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs text-black" placeholder="Voce spesa..." autocomplete="off">
-                                <input type="text" id="expense-link-input" class="w-1/2 p-2 rounded-lg border border-stone-300 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs text-black" placeholder="Link (opz.)" autocomplete="off">
-                            </div>
-                            
-                            <!-- Moltiplicatore (Qtà) -->
-                            <div class="relative w-12 flex-shrink-0">
-                                <label class="absolute -top-2 left-1 text-[8px] text-stone-600 font-bold bg-white px-1">QTÀ</label>
-                                <input type="number" id="expense-qty-input" min="1" max="20" value="1" class="w-full p-2 text-center rounded-lg border border-stone-300 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-bold text-black">
-                            </div>
-
-                            <div class="relative w-16 flex-shrink-0">
-                                <input type="number" step="0.01" id="expense-amount-input" class="w-full p-2 pl-5 rounded-lg border border-stone-300 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono text-black" placeholder="0">
-                                <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-600 text-[10px]">€</span>
-                            </div>
-
-                            <div id="expenses-input-usd" class="relative w-16 flex-shrink-0"> <!-- ADDED ID -->
-                                <input type="number" step="0.01" id="expense-amount-usd-input" class="w-full p-2 pl-5 rounded-lg border border-stone-300 focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-xs font-mono bg-stone-50 text-black" placeholder="0">
-                                <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-stone-600 text-[10px]">$</span>
-                            </div>
-
-                            <button id="add-expense-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg shadow-md active:scale-95 transition-transform flex-shrink-0">
-                                <i class="ph ph-plus text-lg font-bold"></i>
-                            </button>
-                        </div>
-                        
-                        <!-- Row 2: Categories -->
-                        <div class="flex flex-wrap gap-2 text-[10px] font-bold text-stone-600 pb-1">
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pernottamenti" class="accent-emerald-500"> Pernottamenti</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pasti" class="accent-emerald-500"> Pasti</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Carburante" class="accent-emerald-500"> Carburante</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Attrazioni" class="accent-emerald-500"> Attrazioni</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Pass e Tasse" class="accent-emerald-500"> Pass e Tasse</label>
-                             <label class="flex items-center gap-1 cursor-pointer flex-shrink-0"><input type="radio" name="new-expense-cat" value="Altro" class="accent-emerald-500" checked> Altro</label>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -571,7 +535,7 @@
                         <div class="flex justify-between items-center mb-2">
                             <label class="text-sm font-bold text-orange-600 uppercase flex items-center gap-1"><i class="ph ph-flag-checkered"></i> Tappe & Percorso</label>
                             <!-- NEW TOGGLE -->
-                            <label class="flex items-center gap-1 cursor-pointer">
+                            <label id="modal-miles-toggle-wrapper" class="flex items-center gap-1 cursor-pointer">
                                 <span class="text-[10px] font-bold text-stone-600">USA MIGLIA</span>
                                 <input type="checkbox" id="use-miles-toggle" class="form-checkbox h-4 w-4 text-orange-500 rounded border-gray-300 focus:ring-orange-500" checked>
                             </label>
@@ -614,6 +578,51 @@
                 <div class="p-4 border-t border-stone-200 bg-white flex justify-end gap-3">
                     <button onclick="closeNoteModal()" class="px-4 py-2 text-stone-600 hover:bg-stone-100 rounded-lg transition-colors font-bold text-xs">Annulla</button>
                     <button id="save-note-btn" class="px-6 py-2 bg-orange-400 text-white rounded-lg font-bold shadow-md hover:bg-orange-500 transition-transform active:scale-95 text-xs">Salva</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL AGGIUNGI SPESA (Add Expense) - NEW POPUP -->
+        <div id="add-expense-modal" class="fixed inset-0 bg-black/60 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                <div class="p-4 border-b border-stone-200 flex justify-between items-center bg-stone-50">
+                    <h3 class="text-lg font-bold text-stone-900">Nuova Spesa</h3>
+                    <button onclick="closeAddExpenseModal()" class="p-2 hover:bg-stone-200 rounded-full text-stone-600"><i class="ph ph-x text-xl"></i></button>
+                </div>
+                <div class="p-4 space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Voce</label>
+                        <input type="text" id="new-expense-name" class="w-full p-2 bg-stone-50 border border-stone-300 rounded-lg focus:ring-1 focus:ring-emerald-400 outline-none text-black text-sm" placeholder="Es. Cena">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Link (Opzionale)</label>
+                        <input type="text" id="new-expense-link" class="w-full p-2 bg-stone-50 border border-stone-300 rounded-lg focus:ring-1 focus:ring-emerald-400 outline-none text-black text-sm" placeholder="https://...">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Importo (€)</label>
+                            <input type="number" step="0.01" id="new-expense-amount" class="w-full p-2 bg-stone-50 border border-stone-300 rounded-lg focus:ring-1 focus:ring-emerald-400 outline-none text-black text-sm font-mono" placeholder="0.00">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Quantità</label>
+                            <input type="number" min="1" id="new-expense-qty" value="1" class="w-full p-2 bg-stone-50 border border-stone-300 rounded-lg focus:ring-1 focus:ring-emerald-400 outline-none text-black text-sm text-center">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 uppercase mb-1">Categoria</label>
+                        <select id="new-expense-cat" class="w-full p-2 bg-stone-50 border border-stone-300 rounded-lg focus:ring-1 focus:ring-emerald-400 outline-none text-black text-sm">
+                            <option value="Pernottamenti">Pernottamenti</option>
+                            <option value="Pasti">Pasti</option>
+                            <option value="Carburante">Carburante</option>
+                            <option value="Attrazioni">Attrazioni</option>
+                            <option value="Pass e Tasse">Pass e Tasse</option>
+                            <option value="Altro" selected>Altro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-stone-200 bg-white flex justify-end gap-3">
+                    <button onclick="closeAddExpenseModal()" class="px-4 py-2 text-stone-600 hover:bg-stone-100 rounded-lg transition-colors font-bold text-xs">Annulla</button>
+                    <button id="confirm-add-expense-btn" class="px-6 py-2 bg-emerald-500 text-white rounded-lg font-bold shadow-md hover:bg-emerald-600 transition-transform active:scale-95 text-xs">Aggiungi</button>
                 </div>
             </div>
         </div>
@@ -801,6 +810,10 @@
             const eiu = document.getElementById('expenses-input-usd'); if(eiu) eiu.style.display = globalShowUSD ? 'block' : 'none';
             const btu = document.getElementById('budget-total-usd'); if(btu) btu.style.display = globalShowUSD ? 'block' : 'none';
             const ber = document.getElementById('budget-exchange-rate'); if(ber) ber.style.display = globalShowUSD ? 'block' : 'none';
+            
+            // New visibility items for Miles
+            const sumMilesCont = document.getElementById('sum-miles-container'); if(sumMilesCont) sumMilesCont.style.display = globalShowMiles ? 'block' : 'none';
+            const modalToggle = document.getElementById('modal-miles-toggle-wrapper'); if(modalToggle) modalToggle.style.display = globalShowMiles ? 'flex' : 'none';
         };
 
         const calculateTotals = () => {
@@ -990,6 +1003,15 @@
                 if(catSums[cat] !== undefined) catSums[cat] += (amountEur * qty);
                 else catSums['Altro'] += (amountEur * qty);
 
+                // Prepare link url
+                let linkHtml = '';
+                if (data.link) {
+                    let url = data.link.trim();
+                    if (!/^https?:\/\//i.test(url)) url = 'http://' + url;
+                    // Adjusted class for inline placement next to category
+                    linkHtml = `<a href="${url}" target="_blank" class="ml-2 text-blue-500 hover:text-blue-700 inline-flex items-center justify-center" title="Apri Link"><i class="ph-bold ph-link"></i></a>`;
+                }
+
                 const row = document.createElement('div');
                 row.className = "flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm";
                 row.innerHTML = `
@@ -998,7 +1020,10 @@
                          <button onclick="moveExpense('${data.id}', 1, ${data.order || 0})" class="text-stone-300 hover:text-stone-600 ${index===sortedExpenses.length-1 ? 'invisible':''}"><i class="ph-bold ph-caret-down"></i></button>
                     </div>
                     <div class="flex-grow pr-2">
-                        <div class="font-bold text-stone-900 text-sm">${data.name} <span class="text-[10px] text-stone-500 bg-stone-100 px-1 rounded ml-1">${cat}</span></div>
+                        <div class="font-bold text-stone-900 text-sm flex items-center flex-wrap">
+                            <span class="mr-1">${data.name}</span>
+                            <span class="text-[10px] text-stone-500 bg-stone-100 px-1 rounded ml-1 flex items-center">${cat}${linkHtml}</span>
+                        </div>
                         <div class="text-[10px] text-stone-400 font-mono mt-0.5">${amountEur.toFixed(2)} € x ${qty}</div>
                     </div>
                     <div class="flex items-center gap-3">
@@ -1118,7 +1143,7 @@
                     <div class="grid grid-cols-2 gap-4 text-sm">
                         <div><p class="text-stone-400 text-xs">Ore Auto</p><p class="font-mono text-lg font-bold text-amber-400">${minsToTimeStr(dStats.driveTime)}</p></div>
                         <div><p class="text-stone-400 text-xs">Durata</p><p class="font-mono text-lg font-bold">${minsToTimeStr(dStats.duration)}</p></div>
-                        <div><p class="text-stone-400 text-xs">Miglia</p><p class="font-mono font-bold">${dStats.miles.toFixed(0)} mi</p></div>
+                        ${globalShowMiles ? `<div><p class="text-stone-400 text-xs">Miglia</p><p class="font-mono font-bold">${dStats.miles.toFixed(0)} mi</p></div>` : ''}
                         <div><p class="text-stone-400 text-xs">Km</p><p class="font-mono font-bold text-green-400">${dStats.km.toFixed(0)} km</p></div>
                     </div>
                 </div>
@@ -1253,21 +1278,41 @@
         document.getElementById('global-miles-toggle').addEventListener('change', (e) => { globalShowMiles = e.target.checked; localStorage.setItem(`showMiles_${activeSecretKey}`, globalShowMiles); updateGlobalVisibility(); if(cachedDays.length > 0) renderDaysUI(); });
         document.getElementById('global-usd-toggle').addEventListener('change', (e) => { globalShowUSD = e.target.checked; localStorage.setItem(`showUSD_${activeSecretKey}`, globalShowUSD); updateGlobalVisibility(); if(cachedExpenses.length > 0) renderExpensesList(); });
         document.getElementById('global-exchange-rate').addEventListener('input', (e) => { const val = parseFloat(e.target.value); if(!isNaN(val) && val > 0) { currentExchangeRate = val; localStorage.setItem(`rate_${activeSecretKey}`, val); renderExpensesList(); } });
-        document.getElementById('expense-amount-input').addEventListener('input', (e) => { const eur = parseFloat(e.target.value); if(!isNaN(eur)) document.getElementById('expense-amount-usd-input').value = (eur * currentExchangeRate).toFixed(2); });
-        document.getElementById('expense-amount-usd-input').addEventListener('input', (e) => { const usd = parseFloat(e.target.value); if(!isNaN(usd)) document.getElementById('expense-amount-input').value = (usd / currentExchangeRate).toFixed(2); });
+        // REMOVED OLD LISTENERS THAT CAUSED CRASHES: expense-amount-input and expense-amount-usd-input are no longer in the DOM.
         
-        document.getElementById('add-expense-btn').onclick = async () => {
-            const nameIn = document.getElementById('expense-name-input');
-            const linkIn = document.getElementById('expense-link-input'); 
-            const qtyIn = document.getElementById('expense-qty-input');
-            const eurIn = document.getElementById('expense-amount-input');
-            const catIn = document.querySelector('input[name="new-expense-cat"]:checked');
-            const name = nameIn.value.trim();
-            const amount = parseFloat(eurIn.value); 
-            const qty = parseInt(qtyIn.value) || 1;
-            if(!name || isNaN(amount)) return;
-            nameIn.value = ''; linkIn.value = ''; eurIn.value = ''; document.getElementById('expense-amount-usd-input').value = '';
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), { name, link: linkIn.value, amount, qty, category: catIn ? catIn.value : 'Altro', createdAt: serverTimestamp(), order: Date.now() });
+        // --- ADD EXPENSE MODAL LOGIC ---
+        window.openAddExpenseModal = () => {
+            document.getElementById('new-expense-name').value = '';
+            document.getElementById('new-expense-link').value = '';
+            document.getElementById('new-expense-amount').value = '';
+            document.getElementById('new-expense-qty').value = '1';
+            document.getElementById('new-expense-cat').value = 'Altro';
+            document.getElementById('add-expense-modal').classList.remove('hidden');
+        };
+
+        window.closeAddExpenseModal = () => {
+            document.getElementById('add-expense-modal').classList.add('hidden');
+        };
+
+        document.getElementById('confirm-add-expense-btn').onclick = async () => {
+            const name = document.getElementById('new-expense-name').value.trim();
+            const link = document.getElementById('new-expense-link').value.trim();
+            const amount = parseFloat(document.getElementById('new-expense-amount').value);
+            const qty = parseInt(document.getElementById('new-expense-qty').value) || 1;
+            const cat = document.getElementById('new-expense-cat').value;
+
+            if(!name || isNaN(amount)) { alert("Inserisci nome e importo validi."); return; }
+
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), { 
+                name, 
+                link, 
+                amount, 
+                qty, 
+                category: cat, 
+                createdAt: serverTimestamp(), 
+                order: Date.now() 
+            });
+            closeAddExpenseModal();
         };
         
         document.getElementById('add-todo-btn').onclick = async () => {
@@ -1545,6 +1590,7 @@
             const logsModal = document.getElementById('logs-modal');
             const noteModal = document.getElementById('note-modal'); // ADDED
             const expenseModal = document.getElementById('expense-modal'); // NEW
+            const addExpenseModal = document.getElementById('add-expense-modal'); // NEW
             
             if (!dayModal.classList.contains('hidden')) {
                 closeModal();
@@ -1554,6 +1600,9 @@
                 history.pushState(null, null, window.location.href);
             } else if (!expenseModal.classList.contains('hidden')) { // NEW
                 closeExpenseModal();
+                history.pushState(null, null, window.location.href);
+            } else if (!addExpenseModal.classList.contains('hidden')) { // NEW
+                closeAddExpenseModal();
                 history.pushState(null, null, window.location.href);
             } else if (!notesView.classList.contains('hidden')) {
                 document.getElementById('back-btn').click();
