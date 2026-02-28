@@ -775,14 +775,7 @@
             if(stages.length > 0) {
                  const sorted = [...stages].sort((a,b) => timeToMins(a.start) - timeToMins(b.start));
                  const f = timeToMins(sorted[0].start);
-                 let l = 0; 
-                 const lastStage = sorted[sorted.length - 1];
-                 if (lastStage.isVisit) {
-                     l = timeToMins(lastStage.start) + timeToMins(lastStage.pause);
-                 } else {
-                     l = timeToMins(lastStage.end);
-                 }
-                 if(l < f) l += 1440; 
+                 let l = 1440; 
                  if(l > f) dayDur = l - f;
             }
             return { km: dk, miles: (dk / 1.609), driveTime: dt, duration: dayDur };
@@ -834,10 +827,11 @@
                         </div>
                     </div>
                     <input type="text" value="${s.name}" onchange="updateStageField(${s.id}, 'name', this.value)" placeholder="Nome tappa" class="w-full p-2 bg-transparent border-b text-sm font-bold mb-2 text-black">
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid ${s.isVisit ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} gap-2">
                         <div><label class="text-[8px] font-bold text-stone-600 uppercase">Partenza</label><input type="time" value="${s.start}" onchange="updateStageField(${s.id}, 'start', this.value)" class="w-full text-xs text-black font-bold"></div>
                         <div><label class="text-[8px] font-bold text-stone-600 uppercase">Arrivo</label><input type="time" value="${s.end}" onchange="updateStageField(${s.id}, 'end', this.value)" class="w-full text-xs text-black font-bold"></div>
                         <div class="${s.isVisit ? 'hidden' : ''}"><label class="text-[8px] font-bold text-stone-600 uppercase">Km</label><input type="number" value="${s.km}" onchange="updateStageField(${s.id}, 'km', this.value)" class="w-full text-xs font-mono text-black font-bold"></div>
+                        <div class="${s.isVisit ? 'hidden' : ''}"><label class="text-[8px] font-bold text-stone-600 uppercase">Sosta</label><input type="time" value="${s.pause}" onchange="updateStageField(${s.id}, 'pause', this.value)" class="w-full text-xs text-black font-bold"></div>
                     </div>
                     <input type="text" value="${s.mapsLink || ''}" onchange="updateStageField(${s.id}, 'mapsLink', this.value)" placeholder="Link Google Maps" class="w-full mt-2 p-1 text-[9px] text-blue-600 border-none bg-transparent underline font-bold">
                 `;
@@ -859,15 +853,14 @@
                     day.stages.forEach(s => { if (!s.isVisit) dayDriveMins += parseInt(s.driveTime || 0); });
                     const sortedStages = [...day.stages].sort((a,b) => timeToMins(a.start) - timeToMins(b.start));
                     const start = timeToMins(sortedStages[0].start);
-                    let end = 0;
-                    const lastStage = sortedStages[sortedStages.length - 1];
-                    let endMins = lastStage.isVisit ? (timeToMins(lastStage.start) + timeToMins(lastStage.pause)) : timeToMins(lastStage.end);
-                    if (endMins < start) endMins += 1440;
+                    let endMins = 1320; // 22:00
                     dayDurationMins = endMins - start;
+                    if (dayDurationMins < 0) dayDurationMins = 0;
                 }
                 if (dayDriveMins > maxDriveVal) { maxDriveVal = dayDriveMins; maxDriveLabel = `Giorno ${day.chronoId}`; }
                 if (dayDurationMins > maxIntenseVal) { maxIntenseVal = dayDurationMins; maxIntenseLabel = `Giorno ${day.chronoId}`; }
-                const driveP = dayDurationMins > 0 ? (dayDriveMins / dayDurationMins) * 100 : 0;
+                let driveP = dayDurationMins > 0 ? (dayDriveMins / dayDurationMins) * 100 : 0;
+                if (driveP > 100) driveP = 100;
                 driveData.push(driveP);
                 restData.push(100 - driveP);
             });
@@ -880,11 +873,17 @@
             const canvas = document.getElementById('activityChart');
             if(!canvas) return; 
             if (activityChart) activityChart.destroy();
-            activityChart = new Chart(canvas.getContext('2d'), {
-                type: 'bar',
-                data: { labels: labels, datasets: [{ label: 'Guida', data: driveData, backgroundColor: '#fb923c', borderRadius: 4 }, { label: 'Altro', data: restData, backgroundColor: '#d6d3d1', borderRadius: 4 }] },
-                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { stacked: true, min: 0, max: 100, ticks: { callback: v => v + "%" } }, y: { stacked: true } } }
-            });
+            
+            // Fix applied: Added safety check to ensure Chart.js library is loaded
+            if (typeof window.Chart !== 'undefined') {
+                activityChart = new window.Chart(canvas.getContext('2d'), {
+                    type: 'bar',
+                    data: { labels: labels, datasets: [{ label: 'Guida', data: driveData, backgroundColor: '#fb923c', borderRadius: 4 }, { label: 'Altro', data: restData, backgroundColor: '#d6d3d1', borderRadius: 4 }] },
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { stacked: true, min: 0, max: 100, ticks: { callback: v => v + "%" } }, y: { stacked: true } } }
+                });
+            } else {
+                console.warn("La libreria Chart.js non è ancora stata caricata completamente.");
+            }
         };
 
         const renderPathSummary = () => {
@@ -1102,11 +1101,11 @@
             
             let navHtml = `
                 <div class="flex justify-between items-center mb-4 bg-stone-50 p-2 rounded-xl border border-stone-200">
-                    ${prevId ? `<button onclick="openDayDetailById('${prevId}')" class="p-2 text-stone-500 hover:text-orange-500"><i class="ph-bold ph-caret-left text-xl"></i></button>` : `<div class="w-9"></div>`}
+                    ${prevId ? `<button onclick="openDayDetailById('${prevId}')" class="p-2 bg-white rounded-lg shadow-sm text-orange-600 hover:bg-orange-50 transition-colors"><i class="ph-bold ph-caret-left text-xl"></i></button>` : `<div class="w-10"></div>`}
                     <div class="text-center">
                         ${dStr ? `<span class="block text-base font-black text-stone-800 uppercase tracking-wide">${dStr}</span>` : ''}
                     </div>
-                    ${nextId ? `<button onclick="openDayDetailById('${nextId}')" class="p-2 text-stone-500 hover:text-orange-500"><i class="ph-bold ph-caret-right text-xl"></i></button>` : `<div class="w-9"></div>`}
+                    ${nextId ? `<button onclick="openDayDetailById('${nextId}')" class="p-2 bg-white rounded-lg shadow-sm text-orange-600 hover:bg-orange-50 transition-colors"><i class="ph-bold ph-caret-right text-xl"></i></button>` : `<div class="w-10"></div>`}
                 </div>
             `;
             
@@ -1151,9 +1150,9 @@
                             <span class="font-mono text-base font-bold bg-white px-2 py-1 rounded shadow-sm text-black border border-stone-200">${s.start || '--'} <i class="ph-bold ph-arrow-right mx-1 text-stone-400"></i> ${s.end || '--'}</span>
                         </div>
                         <p class="text-xs text-stone-800 mb-2">${s.desc || ''}</p>
-                        <div class="flex justify-between items-center text-[10px] font-bold text-stone-500">
-                            <span>${s.isVisit ? 'VISITA' : `${s.km} km • ${minsToTimeStr(s.driveTime)}`}</span>
-                            ${mapsUrl ? `<a href="${mapsUrl}" target="_blank" class="flex items-center justify-center w-12 h-12 bg-white rounded-lg shadow-sm border border-stone-200 hover:scale-105 transition-transform" title="Apri in Google Maps"><img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg" alt="Google Maps" class="w-8 h-8"></a>` : ''}
+                        <div class="flex justify-between items-center text-sm font-bold text-black mt-2">
+                            <span class="flex-grow mr-3 leading-snug">${s.isVisit ? '<span class="text-orange-600 font-black uppercase">Visita Città</span>' : `${s.km} km &nbsp;|&nbsp; Guida: ${minsToTimeStr(s.driveTime)} &nbsp;|&nbsp; Sosta: ${s.pause || '00:00'}`}</span>
+                            ${mapsUrl ? `<a href="${mapsUrl}" target="_blank" class="flex flex-shrink-0 items-center justify-center w-12 h-12 bg-white rounded-lg shadow-sm border border-stone-200 hover:scale-105 transition-transform" title="Apri in Google Maps"><img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg" alt="Google Maps" class="w-8 h-8"></a>` : ''}
                         </div>
                     </div>`;
             });
@@ -1270,7 +1269,6 @@
         document.getElementById('global-miles-toggle').addEventListener('change', (e) => { globalShowMiles = e.target.checked; localStorage.setItem(`showMiles_${activeSecretKey}`, globalShowMiles); updateGlobalVisibility(); if(cachedDays.length > 0) renderDaysUI(); });
         document.getElementById('global-usd-toggle').addEventListener('change', (e) => { globalShowUSD = e.target.checked; localStorage.setItem(`showUSD_${activeSecretKey}`, globalShowUSD); updateGlobalVisibility(); if(cachedExpenses.length > 0) renderExpensesList(); });
         document.getElementById('global-exchange-rate').addEventListener('input', (e) => { const val = parseFloat(e.target.value); if(!isNaN(val) && val > 0) { currentExchangeRate = val; localStorage.setItem(`rate_${activeSecretKey}`, val); renderExpensesList(); } });
-        // REMOVED OLD LISTENERS THAT CAUSED CRASHES: expense-amount-input and expense-amount-usd-input are no longer in the DOM.
         
         // --- ADD EXPENSE MODAL LOGIC ---
         window.openAddExpenseModal = () => {
@@ -1358,7 +1356,7 @@
                 description: document.getElementById('day-desc-input').value, 
                 dateString: document.getElementById('day-date-input').value, 
                 dayLink: document.getElementById('day-link-input').value,
-                usefulLink: document.getElementById('day-useful-link-input').value, // ADDED
+                usefulLink: document.getElementById('day-useful-link-input').value,
                 stages: currentStages, 
                 updatedAt: serverTimestamp() 
             };
@@ -1370,82 +1368,36 @@
         // --- EXPORT TO EXCEL ---
         window.exportToExcel = () => {
             if(!cachedDays || cachedDays.length === 0) { alert("Nessun dato da esportare."); return; }
-            
             const wb = XLSX.utils.book_new();
-            
-            // 1. SHEET GIORNI
             const daysData = [['Giorno #', 'Data', 'Titolo', 'Descrizione', 'Link Hotel', 'Link Utile', 'Km Totali', 'Miglia Totali', 'Ore Guida', 'Durata Giornata']];
             cachedDays.forEach(d => {
                 const stats = calculateDayStats(d.stages || []);
-                daysData.push([
-                    d.chronoId,
-                    d.dateString,
-                    d.title,
-                    d.description,
-                    d.dayLink,
-                    d.usefulLink,
-                    stats.km.toFixed(0),
-                    stats.miles.toFixed(0),
-                    minsToTimeStr(stats.driveTime),
-                    minsToTimeStr(stats.duration)
-                ]);
+                daysData.push([d.chronoId, d.dateString, d.title, d.description, d.dayLink, d.usefulLink, stats.km.toFixed(0), stats.miles.toFixed(0), minsToTimeStr(stats.driveTime), minsToTimeStr(stats.duration)]);
             });
             const wsDays = XLSX.utils.aoa_to_sheet(daysData);
             XLSX.utils.book_append_sheet(wb, wsDays, "Giorni");
-
-            // 2. SHEET TAPPE
             const stagesData = [['Giorno #', 'Ordine', 'Tipo', 'Nome Tappa', 'Partenza', 'Arrivo', 'Km', 'Miglia', 'Ore Guida', 'Link Maps', 'Dettagli/Note']];
             cachedDays.forEach(d => {
                 (d.stages || []).forEach((s, idx) => {
-                    stagesData.push([
-                        d.chronoId,
-                        idx + 1,
-                        s.isVisit ? 'Visita' : 'Guida',
-                        s.name,
-                        s.start,
-                        s.end,
-                        s.km,
-                        s.miles,
-                        minsToTimeStr(s.driveTime),
-                        s.mapsLink,
-                        s.desc || ''
-                    ]);
+                    stagesData.push([d.chronoId, idx + 1, s.isVisit ? 'Visita' : 'Guida', s.name, s.start, s.end, s.km, s.miles, minsToTimeStr(s.driveTime), s.mapsLink, s.desc || '']);
                 });
             });
             const wsStages = XLSX.utils.aoa_to_sheet(stagesData);
             XLSX.utils.book_append_sheet(wb, wsStages, "Tappe");
-
-            // 3. SHEET SPESE
             const expensesData = [['Voce', 'Categoria', 'Link', 'Prezzo Unit. (€)', 'Qtà', 'Totale (€)', 'Totale Est. ($)']];
             cachedExpenses.forEach(e => {
                 const amt = parseFloat(e.amount || 0);
                 const q = parseInt(e.qty || 1);
-                expensesData.push([
-                    e.name,
-                    e.category,
-                    e.link,
-                    amt,
-                    q,
-                    (amt * q).toFixed(2),
-                    (amt * q * currentExchangeRate).toFixed(2)
-                ]);
+                expensesData.push([e.name, e.category, e.link, amt, q, (amt * q).toFixed(2), (amt * q * currentExchangeRate).toFixed(2)]);
             });
             const wsExpenses = XLSX.utils.aoa_to_sheet(expensesData);
             XLSX.utils.book_append_sheet(wb, wsExpenses, "Spese");
-
-            // 4. SHEET TODO
             const todoData = [['Voce', 'Qtà', 'Stato']];
             cachedTodos.forEach(t => {
-                todoData.push([
-                    t.text,
-                    t.qty || 1,
-                    t.done ? 'Completato' : 'Da fare'
-                ]);
+                todoData.push([t.text, t.qty || 1, t.done ? 'Completato' : 'Da fare']);
             });
             const wsTodo = XLSX.utils.aoa_to_sheet(todoData);
             XLSX.utils.book_append_sheet(wb, wsTodo, "Da Fare");
-
-            // 5. SHEET NOTE
             const notesData = [['Giorno #', 'Testo Nota']];
             cachedGlobalNotes.forEach(n => {
                 const day = cachedDays.find(d => d.id === n.dayId);
@@ -1454,7 +1406,6 @@
             });
             const wsNotes = XLSX.utils.aoa_to_sheet(notesData);
             XLSX.utils.book_append_sheet(wb, wsNotes, "Note");
-
             XLSX.writeFile(wb, `TravelPlanner_${activeSecretKey}_${new Date().toISOString().slice(0,10)}.xlsx`);
         };
 
@@ -1462,33 +1413,25 @@
         document.getElementById('import-btn').addEventListener('click', () => {
             document.getElementById('import-input').click();
         });
-
         document.getElementById('import-input').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-
             if (!confirm("Attenzione: l'importazione ripristinerà i dati estratti dal file all'interno del diario corrente. Procedere?")) {
                 e.target.value = '';
                 return;
             }
-
             const reader = new FileReader();
             reader.onload = async (evt) => {
                 try {
                     const data = new Uint8Array(evt.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    
                     const dayIdMap = {}; 
-
-                    // 1. Ripristino Giorni e Tappe
                     if (workbook.Sheets["Giorni"] && workbook.Sheets["Tappe"]) {
                         const daysData = XLSX.utils.sheet_to_json(workbook.Sheets["Giorni"]);
                         const stagesData = XLSX.utils.sheet_to_json(workbook.Sheets["Tappe"]);
-
                         for (const rowD of daysData) {
                             const chrono = rowD['Giorno #'];
                             const dayStagesRaw = stagesData.filter(s => s['Giorno #'] === chrono);
-                            
                             const dayStages = dayStagesRaw.map((s, idx) => {
                                 let mins = 0;
                                 const dtStr = s['Ore Guida'] || '';
@@ -1496,7 +1439,6 @@
                                 const mMatch = dtStr.match(/(\d+)m/);
                                 if(hMatch) mins += parseInt(hMatch[1]) * 60;
                                 if(mMatch) mins += parseInt(mMatch[1]);
-
                                 return {
                                     id: Date.now() + idx,
                                     name: s['Nome Tappa'] || '',
@@ -1511,7 +1453,6 @@
                                     mapsLink: s['Link Maps'] || ''
                                 };
                             });
-
                             const newDayRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), {
                                 title: rowD['Titolo'] || '',
                                 description: rowD['Descrizione'] || '',
@@ -1525,8 +1466,6 @@
                             dayIdMap[chrono] = newDayRef.id;
                         }
                     }
-
-                    // 2. Ripristino Note
                     if (workbook.Sheets["Note"]) {
                         const notesData = XLSX.utils.sheet_to_json(workbook.Sheets["Note"]);
                         for (const rowN of notesData) {
@@ -1543,8 +1482,6 @@
                             });
                         }
                     }
-
-                    // 3. Ripristino Spese
                     if (workbook.Sheets["Spese"]) {
                         const expData = XLSX.utils.sheet_to_json(workbook.Sheets["Spese"]);
                         for (let i = 0; i < expData.length; i++) {
@@ -1560,8 +1497,6 @@
                             });
                         }
                     }
-
-                    // 4. Ripristino To-Do
                     if (workbook.Sheets["Da Fare"]) {
                         const todoData = XLSX.utils.sheet_to_json(workbook.Sheets["Da Fare"]);
                         for (const rowT of todoData) {
@@ -1573,13 +1508,12 @@
                             });
                         }
                     }
-
                     alert("Importazione e ripristino dati completati con successo!");
                 } catch (err) {
                     console.error(err);
                     alert("Errore durante l'importazione. Verifica che il file inserito sia un export valido di questa app.");
                 }
-                e.target.value = ''; // Resetta l'input file
+                e.target.value = ''; 
             };
             reader.readAsArrayBuffer(file);
         });
@@ -1596,8 +1530,6 @@
              document.getElementById('note-modal').classList.add('hidden');
              editingNoteId = null;
         };
-        
-        // --- EXPENSE EDIT ACTIONS ---
         window.editExpense = (id) => {
             const exp = cachedExpenses.find(e => e.id === id);
             if(!exp) return;
@@ -1609,15 +1541,12 @@
             document.getElementById('edit-expense-cat').value = exp.category || 'Altro';
             document.getElementById('expense-modal').classList.remove('hidden');
         };
-
         window.closeExpenseModal = () => {
             document.getElementById('expense-modal').classList.add('hidden');
             editingExpenseId = null;
         };
-
         window.deleteExpense = (id) => { if(confirm("Eliminare?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id)); };
         window.deleteTodo = (id) => { if(confirm("Rimuovere?")) deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id)); };
-        
         window.moveStage = (idx, dir) => {
             if (idx + dir < 0 || idx + dir >= currentStages.length) return;
             const temp = currentStages[idx];
@@ -1625,32 +1554,23 @@
             currentStages[idx + dir] = temp;
             renderStages();
         };
-
         window.moveExpense = async (id, dir, currentOrder) => {
-            // Find current item index in sorted array to find neighbor
             const sorted = [...cachedExpenses].sort((a, b) => {
                 if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
                 return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
             });
             const idx = sorted.findIndex(e => e.id === id);
             if (idx === -1 || idx + dir < 0 || idx + dir >= sorted.length) return;
-            
             const other = sorted[idx + dir];
-            
-            // Swap orders. If order is missing (old items), assign Date.now() logic roughly
             const o1 = currentOrder || Date.now();
             const o2 = other.order || Date.now() + 1;
-            
-            // If they are equal (rare migration edge case), offset one
             const finalO1 = o1 === o2 ? o1 : o2;
             const finalO2 = o1 === o2 ? o2 + 1 : o1;
-
             const batch = writeBatch(db);
             batch.update(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, id), { order: finalO1 });
             batch.update(doc(db, 'artifacts', appId, 'public', 'data', expensesColName, other.id), { order: finalO2 });
             await batch.commit();
         };
-
         window.switchTab = (tabName) => {
             currentTabName = tabName;
             ['days', 'summary', 'expenses', 'budget', 'todo'].forEach(t => {
@@ -1670,14 +1590,13 @@
             if (tabName === 'todo') { if(!unsubscribeTodo) loadTodo(); }
             if (tabName === 'summary') setTimeout(updateSummaryChart, 100);
         };
-
         window.openModal = (dayData) => {
             editingDayId = dayData?.id || null; document.getElementById('day-modal').classList.remove('hidden');
             const title = document.getElementById('modal-title'); if(title) title.textContent = editingDayId ? "Modifica Giornata" : "Nuova Giornata";
             document.getElementById('day-name-input').value = dayData?.title || '';
             document.getElementById('day-desc-input').value = dayData?.description || '';
             document.getElementById('day-link-input').value = dayData?.dayLink || '';
-            document.getElementById('day-useful-link-input').value = dayData?.usefulLink || ''; // ADDED
+            document.getElementById('day-useful-link-input').value = dayData?.usefulLink || '';
             document.getElementById('day-date-input').value = dayData?.dateString || new Date().toISOString().split('T')[0];
             currentStages = dayData?.stages || []; renderStages();
         };
@@ -1696,8 +1615,6 @@
             renderStages();
         };
         window.playTravelVideo = () => alert("Visualizzazione Extended Ripristinata. Animazione video non configurata.");
-
-        // --- GESTURES & HISTORY POPSTATE ---
         let touchStartX = 0;
         document.querySelector('main').addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive:true});
         document.querySelector('main').addEventListener('touchend', e => {
@@ -1709,38 +1626,21 @@
                 else if (dx < 0 && idx < tabs.length-1) switchTab(tabs[idx+1]);
             }
         }, {passive:true});
-
         window.addEventListener('popstate', (e) => {
             const dayModal = document.getElementById('day-modal');
             const notesView = document.getElementById('notes-view');
             const logsModal = document.getElementById('logs-modal');
-            const noteModal = document.getElementById('note-modal'); // ADDED
-            const expenseModal = document.getElementById('expense-modal'); // NEW
-            const addExpenseModal = document.getElementById('add-expense-modal'); // NEW
-            
-            if (!dayModal.classList.contains('hidden')) {
-                closeModal();
-                history.pushState(null, null, window.location.href);
-            } else if (!noteModal.classList.contains('hidden')) { // ADDED
-                closeNoteModal();
-                history.pushState(null, null, window.location.href);
-            } else if (!expenseModal.classList.contains('hidden')) { // NEW
-                closeExpenseModal();
-                history.pushState(null, null, window.location.href);
-            } else if (!addExpenseModal.classList.contains('hidden')) { // NEW
-                closeAddExpenseModal();
-                history.pushState(null, null, window.location.href);
-            } else if (!notesView.classList.contains('hidden')) {
-                document.getElementById('back-btn').click();
-                history.pushState(null, null, window.location.href);
-            } else if (!logsModal.classList.contains('hidden')) {
-                logsModal.classList.add('hidden');
-                history.pushState(null, null, window.location.href);
-            } else {
-                history.pushState(null, null, window.location.href);
-            }
+            const noteModal = document.getElementById('note-modal');
+            const expenseModal = document.getElementById('expense-modal');
+            const addExpenseModal = document.getElementById('add-expense-modal');
+            if (!dayModal.classList.contains('hidden')) { closeModal(); history.pushState(null, null, window.location.href); } 
+            else if (!noteModal.classList.contains('hidden')) { closeNoteModal(); history.pushState(null, null, window.location.href); } 
+            else if (!expenseModal.classList.contains('hidden')) { closeExpenseModal(); history.pushState(null, null, window.location.href); } 
+            else if (!addExpenseModal.classList.contains('hidden')) { closeAddExpenseModal(); history.pushState(null, null, window.location.href); } 
+            else if (!notesView.classList.contains('hidden')) { document.getElementById('back-btn').click(); history.pushState(null, null, window.location.href); } 
+            else if (!logsModal.classList.contains('hidden')) { logsModal.classList.add('hidden'); history.pushState(null, null, window.location.href); } 
+            else { history.pushState(null, null, window.location.href); }
         });
-
     </script>
 </body>
 </html>
