@@ -75,7 +75,7 @@
                 </button>
                 <input type="file" id="import-input" accept=".xlsx, .xls" class="hidden">
                 
-                <button id="export-btn" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors" title="Scarica Excel">
+                <button id="export-btn" onclick="exportToExcel()" class="hidden p-2 hover:bg-white/20 rounded-full transition-colors" title="Scarica Excel">
                     <i class="ph ph-download-simple text-xl"></i>
                 </button>
                 <button id="logout-btn" class="hidden text-xs bg-orange-600/30 hover:bg-orange-600/50 px-3 py-1 rounded transition-colors flex items-center gap-1">
@@ -126,13 +126,6 @@
                     <div id="diary-duration-line" class="text-xs text-stone-600 font-bold text-center mb-3 hidden"></div>
                     <!-- WIDTH ADAPTED -->
                     <div id="days-list" class="space-y-3 w-full mx-auto"></div>
-                    
-                    <!-- NEW: Export Button (In fondo alla home) -->
-                    <div class="mt-8 mb-4 flex justify-center">
-                        <button onclick="exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md flex items-center gap-2 transition-transform active:scale-95 text-sm uppercase tracking-wide">
-                            <i class="ph-bold ph-microsoft-excel text-xl"></i> Esporta Dati Excel
-                        </button>
-                    </div>
                 </div>
 
                 <!-- Pulsante flottante -->
@@ -924,7 +917,7 @@
                     const kmVal = parseFloat(s.km || 0), miVal = parseFloat(s.miles || 0), drVal = parseInt(s.driveTime || 0);
                     if (s.isVisit) { visitedCount++; visits++; } else { dayKm += kmVal; dayMiles += miVal; dayDrive += drVal; gKm += kmVal; gMiles += miVal; gDrive += drVal; }
                     const icon = s.isVisit ? 'ph-fill ph-ticket text-orange-400' : 'ph-bold ph-car text-green-500';
-                    stagesHtml += `<div class="flex items-center gap-2 text-xs text-stone-800"><i class="${icon} text-[10px]"></i> <span class="font-bold truncate">${s.name}</span><span class="ml-auto font-mono text-[10px] text-stone-400">${s.start || ''}</span></div>`;
+                    stagesHtml += `<div class="flex items-center gap-2 text-xs text-stone-800"><i class="${icon} text-[10px]"></i> <span class="font-bold truncate">${s.name}</span><span class="ml-auto font-mono text-xs font-bold text-black">${s.start || ''}</span></div>`;
                 });
                 stagesHtml += '</div>';
 
@@ -951,7 +944,7 @@
                         <div class="overflow-hidden"><span class="text-[9px] font-black text-orange-500 uppercase tracking-widest">Giorno ${day.chronoId}</span><h3 class="font-bold text-stone-900 text-base leading-tight truncate">${day.title || 'In viaggio'}</h3></div>
                         <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-[10px] font-bold whitespace-nowrap">${dStr.toUpperCase()}</div>
                     </div>
-                    <p class="text-xs text-stone-600 mt-1 line-clamp-1">${day.description || ''}</p>
+                    <p class="text-sm font-bold text-black mt-1 line-clamp-1">${day.description || ''}</p>
                     ${linkBtn}${usefulLinkBtn}
                     ${stagesHtml}
                     <div class="flex gap-3 text-[10px] font-bold text-stone-500 mt-3 border-t border-stone-50 pt-2"><span><i class="ph ph-flag-checkered"></i> ${visits} tappe</span><span><i class="ph ph-road-horizon"></i> ${dayKm.toFixed(0)} km</span>${globalShowMiles ? `<span><i class="ph ph-signpost"></i> ${dayMiles.toFixed(0)} mi</span>` : ''}</div>
@@ -1189,7 +1182,7 @@
                 snap.forEach(d => {
                     const n = d.data();
                     const div = document.createElement('div');
-                    div.className = "p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-xs flex justify-between items-center text-stone-800 font-medium";
+                    div.className = "p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-sm flex justify-between items-center text-stone-800 font-medium";
                     // ESCAPE QUOTES FOR ONCLICK
                     const safeText = n.text.replace(/'/g, "\\'").replace(/\n/g, "\\n").replace(/"/g, '&quot;');
                     div.innerHTML = `<span class="break-all mr-2 flex-1">${n.text}</span>
@@ -1382,33 +1375,41 @@
             const wb = XLSX.utils.book_new();
             
             // 1. SHEET GIORNI
-            const daysData = [['#', 'Data', 'Titolo', 'Descrizione', 'Link Hotel', 'Link Utile']];
+            const daysData = [['Giorno #', 'Data', 'Titolo', 'Descrizione', 'Link Hotel', 'Link Utile', 'Km Totali', 'Miglia Totali', 'Ore Guida', 'Durata Giornata']];
             cachedDays.forEach(d => {
+                const stats = calculateDayStats(d.stages || []);
                 daysData.push([
                     d.chronoId,
                     d.dateString,
                     d.title,
                     d.description,
                     d.dayLink,
-                    d.usefulLink
+                    d.usefulLink,
+                    stats.km.toFixed(0),
+                    stats.miles.toFixed(0),
+                    minsToTimeStr(stats.driveTime),
+                    minsToTimeStr(stats.duration)
                 ]);
             });
             const wsDays = XLSX.utils.aoa_to_sheet(daysData);
             XLSX.utils.book_append_sheet(wb, wsDays, "Giorni");
 
             // 2. SHEET TAPPE
-            const stagesData = [['Giorno', 'Start', 'End', 'Nome', 'Km', 'Miglia', 'Tipo', 'Link Maps']];
+            const stagesData = [['Giorno #', 'Ordine', 'Tipo', 'Nome Tappa', 'Partenza', 'Arrivo', 'Km', 'Miglia', 'Ore Guida', 'Link Maps', 'Dettagli/Note']];
             cachedDays.forEach(d => {
-                (d.stages || []).forEach(s => {
+                (d.stages || []).forEach((s, idx) => {
                     stagesData.push([
-                        `Giorno ${d.chronoId}`,
+                        d.chronoId,
+                        idx + 1,
+                        s.isVisit ? 'Visita' : 'Guida',
+                        s.name,
                         s.start,
                         s.end,
-                        s.name,
                         s.km,
                         s.miles,
-                        s.isVisit ? 'Visita' : 'Guida',
-                        s.mapsLink
+                        minsToTimeStr(s.driveTime),
+                        s.mapsLink,
+                        s.desc || ''
                     ]);
                 });
             });
@@ -1416,7 +1417,7 @@
             XLSX.utils.book_append_sheet(wb, wsStages, "Tappe");
 
             // 3. SHEET SPESE
-            const expensesData = [['Voce', 'Categoria', 'Link', 'Prezzo Unit.', 'Qtà', 'Totale €', 'Totale $ (Est.)']];
+            const expensesData = [['Voce', 'Categoria', 'Link', 'Prezzo Unit. (€)', 'Qtà', 'Totale (€)', 'Totale Est. ($)']];
             cachedExpenses.forEach(e => {
                 const amt = parseFloat(e.amount || 0);
                 const q = parseInt(e.qty || 1);
@@ -1446,7 +1447,7 @@
             XLSX.utils.book_append_sheet(wb, wsTodo, "Da Fare");
 
             // 5. SHEET NOTE
-            const notesData = [['Giorno', 'Testo Nota']];
+            const notesData = [['Giorno #', 'Testo Nota']];
             cachedGlobalNotes.forEach(n => {
                 const day = cachedDays.find(d => d.id === n.dayId);
                 const dayLabel = day ? `Giorno ${day.chronoId}` : 'Generale';
@@ -1457,6 +1458,132 @@
 
             XLSX.writeFile(wb, `TravelPlanner_${activeSecretKey}_${new Date().toISOString().slice(0,10)}.xlsx`);
         };
+
+        // --- IMPORT DA EXCEL ---
+        document.getElementById('import-btn').addEventListener('click', () => {
+            document.getElementById('import-input').click();
+        });
+
+        document.getElementById('import-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!confirm("Attenzione: l'importazione ripristinerà i dati estratti dal file all'interno del diario corrente. Procedere?")) {
+                e.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async (evt) => {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    const dayIdMap = {}; 
+
+                    // 1. Ripristino Giorni e Tappe
+                    if (workbook.Sheets["Giorni"] && workbook.Sheets["Tappe"]) {
+                        const daysData = XLSX.utils.sheet_to_json(workbook.Sheets["Giorni"]);
+                        const stagesData = XLSX.utils.sheet_to_json(workbook.Sheets["Tappe"]);
+
+                        for (const rowD of daysData) {
+                            const chrono = rowD['Giorno #'];
+                            const dayStagesRaw = stagesData.filter(s => s['Giorno #'] === chrono);
+                            
+                            const dayStages = dayStagesRaw.map((s, idx) => {
+                                let mins = 0;
+                                const dtStr = s['Ore Guida'] || '';
+                                const hMatch = dtStr.match(/(\d+)h/);
+                                const mMatch = dtStr.match(/(\d+)m/);
+                                if(hMatch) mins += parseInt(hMatch[1]) * 60;
+                                if(mMatch) mins += parseInt(mMatch[1]);
+
+                                return {
+                                    id: Date.now() + idx,
+                                    name: s['Nome Tappa'] || '',
+                                    desc: s['Dettagli/Note'] || '',
+                                    start: s['Partenza'] || '',
+                                    end: s['Arrivo'] || '',
+                                    pause: '00:00',
+                                    km: parseFloat(s['Km']) || 0,
+                                    miles: parseFloat(s['Miglia']) || 0,
+                                    driveTime: mins,
+                                    isVisit: s['Tipo'] === 'Visita',
+                                    mapsLink: s['Link Maps'] || ''
+                                };
+                            });
+
+                            const newDayRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', daysColName), {
+                                title: rowD['Titolo'] || '',
+                                description: rowD['Descrizione'] || '',
+                                dateString: rowD['Data'] || '',
+                                dayLink: rowD['Link Hotel'] || '',
+                                usefulLink: rowD['Link Utile'] || '',
+                                stages: dayStages,
+                                createdAt: serverTimestamp(),
+                                updatedAt: serverTimestamp()
+                            });
+                            dayIdMap[chrono] = newDayRef.id;
+                        }
+                    }
+
+                    // 2. Ripristino Note
+                    if (workbook.Sheets["Note"]) {
+                        const notesData = XLSX.utils.sheet_to_json(workbook.Sheets["Note"]);
+                        for (const rowN of notesData) {
+                            const dayLabel = rowN['Giorno #'];
+                            let dId = null;
+                            if (dayLabel && dayLabel.startsWith('Giorno ')) {
+                                const cId = parseInt(dayLabel.replace('Giorno ', ''));
+                                dId = dayIdMap[cId] || null;
+                            }
+                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', notesColName), {
+                                dayId: dId,
+                                text: rowN['Testo Nota'] || '',
+                                createdAt: serverTimestamp()
+                            });
+                        }
+                    }
+
+                    // 3. Ripristino Spese
+                    if (workbook.Sheets["Spese"]) {
+                        const expData = XLSX.utils.sheet_to_json(workbook.Sheets["Spese"]);
+                        for (let i = 0; i < expData.length; i++) {
+                            const rowE = expData[i];
+                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', expensesColName), {
+                                name: rowE['Voce'] || '',
+                                category: rowE['Categoria'] || 'Altro',
+                                link: rowE['Link'] || '',
+                                amount: parseFloat(rowE['Prezzo Unit. (€)']) || 0,
+                                qty: parseInt(rowE['Qtà']) || 1,
+                                order: Date.now() + i,
+                                createdAt: serverTimestamp()
+                            });
+                        }
+                    }
+
+                    // 4. Ripristino To-Do
+                    if (workbook.Sheets["Da Fare"]) {
+                        const todoData = XLSX.utils.sheet_to_json(workbook.Sheets["Da Fare"]);
+                        for (const rowT of todoData) {
+                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', todoColName), {
+                                text: rowT['Voce'] || '',
+                                qty: parseInt(rowT['Qtà']) || 1,
+                                done: rowT['Stato'] === 'Completato',
+                                createdAt: serverTimestamp()
+                            });
+                        }
+                    }
+
+                    alert("Importazione e ripristino dati completati con successo!");
+                } catch (err) {
+                    console.error(err);
+                    alert("Errore durante l'importazione. Verifica che il file inserito sia un export valido di questa app.");
+                }
+                e.target.value = ''; // Resetta l'input file
+            };
+            reader.readAsArrayBuffer(file);
+        });
 
         // --- GLOBAL ACTIONS ---
         window.toggleTodoStatus = async (id, isDone) => { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', todoColName, id), { done: isDone }); } catch(e) {} };
