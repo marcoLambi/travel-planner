@@ -917,7 +917,7 @@
                     const kmVal = parseFloat(s.km || 0), miVal = parseFloat(s.miles || 0), drVal = parseInt(s.driveTime || 0);
                     if (s.isVisit) { visitedCount++; visits++; } else { dayKm += kmVal; dayMiles += miVal; dayDrive += drVal; gKm += kmVal; gMiles += miVal; gDrive += drVal; }
                     const icon = s.isVisit ? 'ph-fill ph-ticket text-orange-400' : 'ph-bold ph-car text-green-500';
-                    stagesHtml += `<div class="flex items-center gap-2 text-xs text-stone-800"><i class="${icon} text-[10px]"></i> <span class="font-bold truncate">${s.name}</span><span class="ml-auto font-mono text-xs font-bold text-black">${s.start || ''}</span></div>`;
+                    stagesHtml += `<div class="flex items-center gap-2 text-sm text-black"><i class="${icon} text-xs"></i> <span class="font-bold truncate">${s.name}</span><span class="ml-auto font-mono text-sm font-bold text-black">${s.start || ''}</span></div>`;
                 });
                 stagesHtml += '</div>';
 
@@ -941,13 +941,13 @@
                 let dStr = day.dateString ? new Date(day.dateString).toLocaleDateString('it-IT', {weekday: 'short', day: 'numeric', month: 'short'}) : 'N/D';
                 card.innerHTML = `
                     <div class="flex justify-between items-start">
-                        <div class="overflow-hidden"><span class="text-[9px] font-black text-orange-500 uppercase tracking-widest">Giorno ${day.chronoId}</span><h3 class="font-bold text-stone-900 text-base leading-tight truncate">${day.title || 'In viaggio'}</h3></div>
-                        <div class="bg-stone-100 text-stone-600 px-2 py-1 rounded text-[10px] font-bold whitespace-nowrap">${dStr.toUpperCase()}</div>
+                        <div class="overflow-hidden"><span class="text-xs font-black text-orange-500 uppercase tracking-widest">Giorno ${day.chronoId}</span><h3 class="font-bold text-black text-lg leading-tight truncate">${day.title || 'In viaggio'}</h3></div>
+                        <div class="bg-stone-200 text-black px-2 py-1 rounded text-xs font-bold whitespace-nowrap">${dStr.toUpperCase()}</div>
                     </div>
                     <p class="text-sm font-bold text-black mt-1 line-clamp-1">${day.description || ''}</p>
                     ${linkBtn}${usefulLinkBtn}
                     ${stagesHtml}
-                    <div class="flex gap-3 text-[10px] font-bold text-stone-500 mt-3 border-t border-stone-50 pt-2"><span><i class="ph ph-flag-checkered"></i> ${visits} tappe</span><span><i class="ph ph-road-horizon"></i> ${dayKm.toFixed(0)} km</span>${globalShowMiles ? `<span><i class="ph ph-signpost"></i> ${dayMiles.toFixed(0)} mi</span>` : ''}</div>
+                    <div class="flex flex-wrap gap-3 text-xs font-bold text-black mt-3 border-t border-stone-200 pt-2"><span><i class="ph-bold ph-flag-checkered text-stone-500"></i> ${visits} tappe</span><span><i class="ph-bold ph-road-horizon text-stone-500"></i> ${dayKm.toFixed(0)} km</span>${globalShowMiles ? `<span><i class="ph-bold ph-signpost text-stone-500"></i> ${dayMiles.toFixed(0)} mi</span>` : ''}<span><i class="ph-bold ph-car text-stone-500"></i> ${minsToTimeStr(dayDrive)}</span></div>
                 `;
                 card.onclick = () => openDayDetail(day);
                 list.appendChild(card);
